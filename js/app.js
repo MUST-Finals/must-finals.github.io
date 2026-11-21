@@ -1112,8 +1112,24 @@ route(/^\/tools(?:\/([a-z]+))?$/, viewTools);
 function viewBackendSoon(kind) {
   $('#app').innerHTML = `<div class="card empty">${ic('user')}<div><b>${kind === 'admin' ? 'Admin' : 'Accounts'} are not available yet.</b><br>Sign-in, sync and community features are being set up. Everything on the site works offline without an account.</div></div>`;
 }
-route(/^\/account$/, () => (window.MFB && MFB.ready) ? MFB.viewAccount() : viewBackendSoon('account'));
-route(/^\/admin$/, () => (window.MFB && MFB.ready && MFB.isAdmin()) ? MFB.viewAdmin() : viewBackendSoon('admin'));
+route(/^\/account$/, () => {
+  if (window.MFB && MFB.ready) return MFB.viewAccount();
+  if (!window.MFB) return viewBackendSoon('account');
+  $('#app').innerHTML = '<div class="card empty">Loading account\u2026</div>';
+  MFB.init().then(() => {
+    if (location.hash !== '#/account') return;
+    MFB.ready ? MFB.viewAccount() : viewBackendSoon('account');
+  });
+});
+route(/^\/admin$/, () => {
+  if (window.MFB && MFB.ready) return MFB.isAdmin() ? MFB.viewAdmin() : MFB.viewAccount();
+  if (!window.MFB) return viewBackendSoon('admin');
+  $('#app').innerHTML = '<div class="card empty">Loading account\u2026</div>';
+  MFB.init().then(() => {
+    if (location.hash !== '#/admin') return;
+    MFB.ready ? (MFB.isAdmin() ? MFB.viewAdmin() : MFB.viewAccount()) : viewBackendSoon('admin');
+  });
+});
 
 /* theme */
 async function applyTheme() {

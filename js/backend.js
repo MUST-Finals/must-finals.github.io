@@ -11,7 +11,7 @@ const MFB = {
 };
 window.MFB = MFB;  // classic-script const doesn't attach to window; boot() guards on window.MFB
 
-MFB.init = async function () {
+MFB._doInit = async function () {
   if (!window.supabase || !MFB.url || !MFB.key) return;
   MFB.sb = window.supabase.createClient(MFB.url, MFB.key);
   // OAuth returns to #/account#access_token=... : the router hash prefix breaks
@@ -35,11 +35,17 @@ MFB.init = async function () {
     MFB.profile = null;
     if (MFB.user) { await MFB.loadProfile(); await MFB.syncDown(); }
     MFB.paintNav();
+    if (/^#\/account/.test(location.hash) && typeof MFB.viewAccount === 'function') MFB.viewAccount();
   });
   MFB.ready = true;
   MFB.paintNav();
   // If the router rendered the account view before init finished, re-render it.
   if (/^#\/account/.test(location.hash) && typeof MFB.viewAccount === 'function') MFB.viewAccount();
+};
+
+MFB.init = function () {
+  if (!MFB._p) MFB._p = MFB._doInit().catch(() => { MFB._p = null; });
+  return MFB._p;
 };
 
 MFB.loadProfile = async function () {
