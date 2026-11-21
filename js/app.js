@@ -280,7 +280,7 @@ async function viewDashboard() {
       </div>
     </div>
   </section>
-  <div class="dz-bottom">
+  <div class="dz-low"><div class="dz-bottom">
     <div class="dz-col-main card" style="padding:18px"><h2 style="margin-top:0">${ic('trend')} Your progress</h2>${trendHtml}</div>
     <div class="dz-col-mid"><div id="dz-goal"></div><div id="dz-recs"></div></div>
     <div class="dz-col-right card" style="padding:18px">
@@ -288,7 +288,7 @@ async function viewDashboard() {
       <div class="dz-cal"><div class="dz-cal-h">${'Mo Tu We Th Fr Sa Su'.split(' ').map(d => `<span>${d}</span>`).join('')}</div><div class="dz-cal-g">${calCells}</div></div>
       <div style="margin-top:10px;display:grid;gap:8px">${upcomingHtml}</div>
     </div>
-  </div>
+  </div></div>
   <div class="grid g4" style="margin:16px 0">
     <div class="card stat"><span class="v">${D.subjects.length}</span><span class="l">${ic('book')} Subjects</span></div>
     <div class="card stat"><span class="v">${totalLecs}</span><span class="l">${ic('layers')} Lectures</span></div>
