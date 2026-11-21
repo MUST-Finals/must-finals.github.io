@@ -96,15 +96,18 @@ MFB.syncDown = async function () {
   const { data: row, error } = await MFB.sb.from('progress').select('state').eq('user_id', MFB.user.id).maybeSingle();
   if (error || !row || !row.state) { await MFB.syncUp(); return; }
   const remote = row.state, local = MFB.localState();
+  let changed = false;
   for (const k of Object.keys(remote.data || {})) {
     const rts = (remote.ts && remote.ts[k]) || 0;
     const lts = local.ts[k] || 0;
     if (rts > lts) {
-      try { localStorage.setItem('mf.' + k, JSON.stringify(remote.data[k])); localStorage.setItem('mf.t.' + k, String(rts)); } catch {}
+      try { localStorage.setItem('mf.' + k, JSON.stringify(remote.data[k])); localStorage.setItem('mf.t.' + k, String(rts)); changed = true; } catch {}
     }
   }
   await MFB.syncUp();
-  if (Object.keys(remote.data || {}).length) location.reload();
+  // Never reload here: this runs on every signed-in load and a reload loops forever.
+  // Views read localStorage through store on render, so a re-render picks changes up.
+  if (changed && typeof render === 'function') render();
 };
 MFB.paintSync = function () {
   const el = document.getElementById('sync-status');
