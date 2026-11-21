@@ -1,0 +1,22 @@
+/* Additive MUST Finals workspace styles */
+.ex-hero{padding:24px}
+.ex-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:18px 0}
+.ex-card{display:block;padding:18px;color:var(--ink);min-height:155px;transition:transform .16s,border-color .16s}
+.ex-card:hover{transform:translateY(-2px);border-color:var(--primary);text-decoration:none}
+.ex-card h3{margin:14px 0 6px;font-size:16px}
+.ex-card p{margin:0 0 12px;color:var(--muted);font-size:13px}
+.ex-arrow{font-size:12px;font-weight:700;color:var(--primary2)}
+.ex-panel{padding:18px;margin:14px 0}
+.ex-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.ex-panel label{display:grid;gap:6px;color:var(--ink2);font-size:13px;font-weight:650;margin:8px 0}
+.ex-panel input,.ex-panel select,.ex-panel textarea{width:100%;min-width:0;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font:inherit}
+.ex-course{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin:8px 0}
+.ex-row{justify-content:space-between;align-items:center}
+.ex-unread{border-color:var(--primary)}
+.ex-focus{text-align:center;padding:28px;max-width:620px;margin:20px auto}
+.ex-clock{font-size:clamp(48px,10vw,76px);font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.05em;margin:10px 0}
+.ex-options{display:grid;gap:8px;margin-top:14px}
+.ex-mind{display:grid;gap:8px;margin-top:16px;padding:14px;border:1px solid var(--stroke);border-radius:12px;background:var(--surface2)}
+.ex-node{padding:10px 14px;border:1px solid var(--primary);border-radius:9px;background:var(--primarySoft);color:var(--ink);width:fit-content;max-width:90%;overflow-wrap:anywhere}
+@media(max-width:850px){.ex-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.ex-grid,.ex-form{grid-template-columns:1fr}.ex-course{grid-template-columns:1fr}.ex-card{min-height:0}}
