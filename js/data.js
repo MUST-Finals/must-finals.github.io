@@ -2402,6 +2402,2213 @@ window.DATA = {
     "{ * , + }"
    ],
    "a": 2
+  },
+  {
+   "id": "cs212-qz2-m01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "نهال 2026 V1/V2",
+   "q": "Which of the following is a non-linear data structure?",
+   "opts": [
+    "Stack",
+    "Array",
+    "Tree",
+    "Queue"
+   ],
+   "a": 2,
+   "exp": "Tree تركيب غير خطي؛ أما Stack وQueue وArray فهي linear. المقصود هنا تصنيف الهياكل في Lecture 1."
+  },
+  {
+   "id": "cs212-qz2-m02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "نهال 2026 V1/V2",
+   "q": "An array stores its elements in:",
+   "opts": [
+    "Unrelated memory locations",
+    "Contiguous memory locations",
+    "A tree structure",
+    "A queue only"
+   ],
+   "a": 1,
+   "exp": "عناصر الـArray متجاورة في الذاكرة؛ لذلك الوصول بالـindex مباشر."
+  },
+  {
+   "id": "cs212-qz2-m03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "نهال 2026 V1/V2",
+   "q": "What is the main purpose of organizing data into a suitable data structure?",
+   "opts": [
+    "Improve data access and updates",
+    "Remove all program errors",
+    "Avoid using memory",
+    "Eliminate algorithms"
+   ],
+   "a": 0,
+   "exp": "اختيار الهيكل المناسب يحسّن إدارة البيانات والوصول والتعديل؛ لا يمنع كل الأخطاء."
+  },
+  {
+   "id": "cs212-qz2-m04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "نهال 2026 V1/V2",
+   "q": "A linked list differs from an array because its nodes:",
+   "opts": [
+    "Must be stored contiguously",
+    "Are connected using pointers",
+    "Follow FIFO only",
+    "Can hold no data"
+   ],
+   "a": 1,
+   "exp": "كل Node ترتبط بالـNode التالية بمؤشر next؛ لا يلزم التجاور في الذاكرة."
+  },
+  {
+   "id": "cs212-qz2-m05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "نهال 2026 V1/V2",
+   "q": "A stack initially contains [5, 10, 15], where 15 is at the top. After Pop() followed by Push(20), the second element from the top is:",
+   "opts": [
+    "5",
+    "10",
+    "15",
+    "20"
+   ],
+   "a": 1,
+   "exp": "بعد Pop نحذف 15، ثم Push(20): Stack = [5,10,20]، فالثاني من الأعلى 10."
+  },
+  {
+   "id": "cs212-qz2-m06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "نهال 2026 V1/V2",
+   "q": "Which notation places the operator before its operands?",
+   "opts": [
+    "Infix",
+    "Postfix",
+    "Prefix",
+    "None"
+   ],
+   "a": 2,
+   "exp": "في Prefix يسبق المعاملُ العمليةَ: +AB. في Postfix يأتي بعدها: AB+."
+  },
+  {
+   "id": "cs212-qz2-m07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "نهال 2026 V1/V2",
+   "q": "In a text editor, the Undo feature commonly uses a stack to:",
+   "opts": [
+    "Arrange text alphabetically",
+    "Store all documents permanently",
+    "Execute multiple commands simultaneously",
+    "Reverse the most recent actions"
+   ],
+   "a": 3,
+   "exp": "Undo يعكس أحدث تغيير أولاً، أي LIFO."
+  },
+  {
+   "id": "cs212-qz2-m08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "نهال 2026 V1/V2",
+   "q": "A circular queue can reuse freed array positions mainly because:",
+   "opts": [
+    "It sorts elements",
+    "Its indices wrap around",
+    "It is always LIFO",
+    "It has no front"
+   ],
+   "a": 1,
+   "exp": "الفهارس تلف بالباقي % capacity فتُستَخدم الخانات التي أصبحت متاحة."
+  },
+  {
+   "id": "cs212-qz2-m09",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "نهال 2026 V1/V2",
+   "q": "For a call center serving callers in arrival order, the most suitable structure is a:",
+   "opts": [
+    "Stack",
+    "Tree",
+    "FIFO Queue",
+    "Graph"
+   ],
+   "a": 2,
+   "exp": "أول متصل يدخل الصف هو أول من تتم خدمته: FIFO."
+  },
+  {
+   "id": "cs212-qz2-m10",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "نهال 2026 V1/V2",
+   "q": "In a double-ended queue (Deque), insertion and deletion can be performed at:",
+   "opts": [
+    "Front only",
+    "Rear only",
+    "Both front and rear",
+    "Middle only"
+   ],
+   "a": 2,
+   "exp": "Deque تسمح بالإدخال والحذف من الطرفين."
+  },
+  {
+   "id": "cs212-qz2-m11",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "نهال 2026 V1/V2",
+   "q": "Linear data structures are characterized by arranging elements:",
+   "opts": [
+    "Sequentially",
+    "Hierarchically",
+    "Randomly",
+    "In multiple levels"
+   ],
+   "a": 0,
+   "exp": "عناصر الـLinear structures تُرتب في تسلسل منطقي واحد."
+  },
+  {
+   "id": "cs212-qz2-m12",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "نهال 2026 V1/V2",
+   "q": "Which of the following is classified as a primitive data type?",
+   "opts": [
+    "Linked List",
+    "Stack",
+    "Graph",
+    "Boolean"
+   ],
+   "a": 3,
+   "exp": "Boolean نوع بيانات أولي؛ بقية الخيارات هياكل بيانات."
+  },
+  {
+   "id": "cs212-qz2-m13",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "نهال 2026 V1/V2",
+   "q": "A data type differs from a data structure because a data type primarily defines:",
+   "opts": [
+    "The nature of data and the operations allowed on it",
+    "How multiple elements are connected using pointers",
+    "The order in which elements are inserted and removed",
+    "How nodes are arranged in a hierarchy"
+   ],
+   "a": 0,
+   "exp": "Data type يصف نوع القيمة والعمليات المسموحة؛ data structure ينظم مجموعة من القيم."
+  },
+  {
+   "id": "cs212-qz2-m14",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "نهال 2026 V1/V2",
+   "q": "A hospital admitting emergency patients by urgency is an example of:",
+   "opts": [
+    "Priority Queue",
+    "Simple Queue",
+    "Circular Queue",
+    "Stack"
+   ],
+   "a": 0,
+   "exp": "الحالات الأعلى أولوية تتقدم وفق الـpriority، وليس فقط وقت الوصول."
+  },
+  {
+   "id": "cs212-qz2-m15",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "نهال 2026 V1/V2",
+   "q": "The operation used to retrieve the front element of a queue without removing it is:",
+   "opts": [
+    "Dequeue()",
+    "Enqueue()",
+    "Peek()",
+    "getRear()"
+   ],
+   "a": 2,
+   "exp": "Peek يعرض عنصر Front دون حذفه؛ Dequeue يحذفه."
+  },
+  {
+   "id": "cs212-qz2-m16",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "نهال 2026 V1/V2",
+   "q": "After push(4), push(9), and pop(), the top of the stack is:",
+   "opts": [
+    "9",
+    "4",
+    "Empty",
+    "13"
+   ],
+   "a": 1,
+   "exp": "Push(4), Push(9) ثم Pop يحذف 9 ويبقى 4 في الأعلى."
+  },
+  {
+   "id": "cs212-qz2-m17",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "نهال 2026 V1/V2",
+   "q": "The isFull() operation is used to check whether a stack:",
+   "opts": [
+    "Contains no elements",
+    "Has reached its maximum capacity",
+    "Contains duplicate values",
+    "Has its elements sorted"
+   ],
+   "a": 1,
+   "exp": "isFull يتحقق من بلوغ السعة القصوى، وليس من ترتيب القيم."
+  },
+  {
+   "id": "cs212-qz2-m18",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "نهال 2026 V1/V2",
+   "q": "The infix expression A - B / C is equivalent to:",
+   "opts": [
+    "(A - B) / C",
+    "A - (B / C)",
+    "(A / B) - C",
+    "A / (B - C)"
+   ],
+   "a": 1,
+   "exp": "القسمة أعلى أولوية من الطرح، لذلك نحسب B/C أولاً."
+  },
+  {
+   "id": "cs212-qz2-m19",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Spring 2026 Exam 1",
+   "q": "In a stack, top initially points to _____ in a 0-indexed array implementation when empty.",
+   "opts": [
+    "-1",
+    "1",
+    "0",
+    "NULL"
+   ],
+   "a": 0,
+   "exp": "التنفيذ الشائع بالـArray يبدأ top=-1 عندما يكون الـStack فارغًا."
+  },
+  {
+   "id": "cs212-qz2-m20",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Spring 2026 Exam 1",
+   "q": "Which data structure uses the LIFO principle?",
+   "opts": [
+    "Queue",
+    "Stack",
+    "Array",
+    "Linked List"
+   ],
+   "a": 1,
+   "exp": "Last In First Out هي خاصية Stack."
+  },
+  {
+   "id": "cs212-qz2-m21",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "Spring 2026 Exam 1",
+   "q": "Which operator is used to get the address of a variable?",
+   "opts": [
+    "->",
+    "&",
+    "*",
+    "**"
+   ],
+   "a": 1,
+   "exp": "&x يحصل على عنوان المتغير x؛ أما *p فيفك المؤشر."
+  },
+  {
+   "id": "cs212-qz2-m22",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "Spring 2026 Exam 1",
+   "q": "What is a \"Null Pointer\"?",
+   "opts": [
+    "A pointer pointing to 0 or NULL",
+    "A pointer with no name",
+    "An array",
+    "A deleted node"
+   ],
+   "a": 0,
+   "exp": "nullptr (أو NULL في الأكواد القديمة) يعني أن المؤشر لا يشير إلى كائن صالح."
+  },
+  {
+   "id": "cs212-qz2-m23",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Spring 2026 Exam 1",
+   "q": "In a Queue, deletion occurs at:",
+   "opts": [
+    "Top",
+    "Rear",
+    "Front",
+    "Middle"
+   ],
+   "a": 2,
+   "exp": "Dequeue يحذف العنصر الموجود في front."
+  },
+  {
+   "id": "cs212-qz2-m24",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2026 Exam 1",
+   "q": "In a Circular Linked List, the last node points to:",
+   "opts": [
+    "NULL",
+    "Middle node",
+    "First node",
+    "Previous node"
+   ],
+   "a": 2,
+   "exp": "آخر Node تشير للـhead فتتكون دائرة."
+  },
+  {
+   "id": "cs212-qz2-m25",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2026 Exam 1",
+   "q": "In a Singly Linked List, each node contains:",
+   "opts": [
+    "Data only",
+    "Data and Previous pointer",
+    "Two pointers",
+    "Data and Next pointer"
+   ],
+   "a": 3,
+   "exp": "Node في Singly Linked List تحتوي data وnext."
+  },
+  {
+   "id": "cs212-qz2-m26",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Spring 2026 Exam 1",
+   "q": "Which data structure is used for Function Calls/Recursion?",
+   "opts": [
+    "Stack",
+    "Queue",
+    "Tree",
+    "Hash Table"
+   ],
+   "a": 0,
+   "exp": "Call Stack يحفظ إطارات استدعاء الدوال ثم يعيدها بترتيب LIFO."
+  },
+  {
+   "id": "cs212-qz2-m27",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2026 Exam 1",
+   "q": "Linked list is considered as an example of _____ type of memory allocation.",
+   "opts": [
+    "Dynamic",
+    "Static",
+    "Heap",
+    "Compile time"
+   ],
+   "a": 0,
+   "exp": "العُقد غالبًا تُنشأ عند التشغيل بـnew، فتكون Dynamic allocation."
+  },
+  {
+   "id": "cs212-qz2-m28",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "Inserting an item into the stack when stack is not full is called _____ operation and deletion from nonempty stack is called _____ operation.",
+   "opts": [
+    "Push, Pop",
+    "Pop, Push",
+    "Insert, Delete",
+    "Delete, Insert"
+   ],
+   "a": 0,
+   "exp": "الإضافة Push والحذف Pop."
+  },
+  {
+   "id": "cs212-qz2-m29",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "_____ is very useful when data must be stored and then retrieved in reverse order.",
+   "opts": [
+    "Stack",
+    "Queue",
+    "List",
+    "Linked List"
+   ],
+   "a": 0,
+   "exp": "استرجاع البيانات بعكس ترتيب دخولها هو LIFO."
+  },
+  {
+   "id": "cs212-qz2-m30",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2025 Quiz 1",
+   "q": "In a queue, the initial values of front pointer and rear pointer should be _____ and _____ respectively.",
+   "opts": [
+    "0 and 1",
+    "-1 and -1",
+    "-1 and 0",
+    "1 and 0"
+   ],
+   "a": 1,
+   "exp": "في التنفيذ الخطي المعروض بالمحاضرات، يبدأ front=rear=-1 للصف الفارغ."
+  },
+  {
+   "id": "cs212-qz2-m31",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "What is the value of top for a full array stack of STACK_SIZE = 5 (0-indexed)?",
+   "opts": [
+    "5",
+    "6",
+    "4",
+    "None"
+   ],
+   "a": 2,
+   "exp": "آخر index في Array طولها 5 هو 4."
+  },
+  {
+   "id": "cs212-qz2-m32",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2025 Quiz 1",
+   "q": "_____ is not a basic operation listed for a queue.",
+   "opts": [
+    "Insertion",
+    "Deletion",
+    "Retrieval",
+    "Traversal"
+   ],
+   "a": 3,
+   "exp": "المقصود في النموذج القديم أن عمليات الصف الأساسية enqueue/dequeue/peek؛ أمّا Traversal ليست من الواجهة الأساسية. يمكن برمجة Traversal عند الحاجة."
+  },
+  {
+   "id": "cs212-qz2-m33",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "Which of the following is/are the levels of implementation of data structure?",
+   "opts": [
+    "Abstract level",
+    "Application level",
+    "Implementation level",
+    "All"
+   ],
+   "a": 3,
+   "exp": "النموذج الدراسي يذكر مستويات مجردة وتطبيقية وتنفيذية."
+  },
+  {
+   "id": "cs212-qz2-m34",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "_____ is not a component of a data structure.",
+   "opts": [
+    "Operations",
+    "Storage Structures",
+    "Algorithms",
+    "None"
+   ],
+   "a": 3,
+   "exp": "النموذج القديم اعتبر جميع الاختيارات مكونات مرتبطة بالـData Structure؛ راجع صياغة محاضرتك."
+  },
+  {
+   "id": "cs212-qz2-m35",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "Which data structure cannot directly store non-homogeneous elements in the conventional uniform typed representation?",
+   "opts": [
+    "Arrays",
+    "Records",
+    "Pointers",
+    "Stacks"
+   ],
+   "a": 0,
+   "exp": "الـArray التقليدية عناصرها كلها من نوع واحد؛ Record/struct يحمل حقولاً متعددة الأنواع."
+  },
+  {
+   "id": "cs212-qz2-m36",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2025 Quiz 1",
+   "q": "In a circular queue, rear is updated using:",
+   "opts": [
+    "r = r + 1",
+    "r = (r + 1) % (QUEUE_SIZE - 1)",
+    "r = (r + 1) % QUEUE_SIZE",
+    "r = (r - 1) % QUEUE_SIZE"
+   ],
+   "a": 2,
+   "exp": "استخدم (rear + 1) % capacity للانتقال بشكل دائري."
+  },
+  {
+   "id": "cs212-qz2-m37",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "Which among the following is a linear data structure?",
+   "opts": [
+    "Queue",
+    "Stack",
+    "Linked List",
+    "ALL"
+   ],
+   "a": 3,
+   "exp": "الثلاثة كلها هياكل خطية."
+  },
+  {
+   "id": "cs212-qz2-m38",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "Removing an element from an empty stack is called:",
+   "opts": [
+    "Underflow",
+    "Empty Collection",
+    "Overflow",
+    "Garbage Collection"
+   ],
+   "a": 0,
+   "exp": "Underflow عند Pop من Stack فارغ."
+  },
+  {
+   "id": "cs212-qz2-m39",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "The use of pointers to refer to logically adjacent elements of a data structure is:",
+   "opts": [
+    "Pointers",
+    "Linked allocation",
+    "Stack",
+    "Queue"
+   ],
+   "a": 1,
+   "exp": "Linked allocation تربط عناصر قد تكون بعيدة في الذاكرة بواسطة pointers."
+  },
+  {
+   "id": "cs212-qz2-m40",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2025 Quiz 1",
+   "q": "In a priority queue, insertion and deletion take place at:",
+   "opts": [
+    "Front, Rear End",
+    "Only at Rear End",
+    "Only at Front End",
+    "Any Position"
+   ],
+   "a": 3,
+   "exp": "قد تُدرج العناصر حسب الأولوية وتُزال حسب الأولوية لا حسب موقع ثابت؛ الصياغة عامة وتختلف وفق التنفيذ. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-m41",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "When does the top value of the stack change during deletion?",
+   "opts": [
+    "Before deletion",
+    "While checking underflow",
+    "At the time of deletion",
+    "After deletion"
+   ],
+   "a": 2,
+   "exp": "في Pop المتعارف عليه تتغير قيمة top أثناء تنفيذ عملية الحذف. مفتاح الورقة القديمة صيغته ملتبسة. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-m42",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "_____ does not keep track of the address of every element in the list.",
+   "opts": [
+    "Stack",
+    "String",
+    "Linear Array",
+    "Queue"
+   ],
+   "a": 2,
+   "exp": "في Array تُحسب العناوين من base address وفهرس العنصر، فلا تحتاج Pointer مخزّن لكل عنصر. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-m43",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "A disadvantage of a circular linked list is:",
+   "opts": [
+    "It is possible to get into an infinite loop",
+    "Last node points to first node",
+    "Time consuming",
+    "Requires more memory space"
+   ],
+   "a": 0,
+   "exp": "لأن الـnext لا يصل إلى NULL، يجب التوقف عند العودة إلى head وإلا قد تتكرر الحلقة بلا نهاية."
+  },
+  {
+   "id": "cs212-qz2-m45",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "In Linked List implementation, a node carries information regarding:",
+   "opts": [
+    "Data",
+    "Link",
+    "Data and Link",
+    "Node"
+   ],
+   "a": 2,
+   "exp": "الـNode تحتوي القيمة والمؤشر/الرابط إلى العقدة التالية."
+  },
+  {
+   "id": "cs212-qz2-m46",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "What is the maximum number of open parentheses on the stack while checking (()(())(())) without spaces?",
+   "opts": [
+    "1",
+    "2",
+    "3",
+    "4 or more"
+   ],
+   "a": 2,
+   "exp": "في التعبير (() (()) (())) بعد إزالة المسافات، أقصى عدد من الأقواس المفتوحة المتزامنة هو 3؛ نعمل Push مع ( وPop مع )."
+  },
+  {
+   "id": "cs212-qz2-m47",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2023 Quiz 2",
+   "q": "What is the minimum number of fields in a doubly linked-list node that stores an integer?",
+   "opts": [
+    "1",
+    "2",
+    "3",
+    "4"
+   ],
+   "a": 2,
+   "exp": "لا بد من 3 حقول: data وprev وnext."
+  },
+  {
+   "id": "cs212-qz2-m48",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2023 Quiz 2",
+   "q": "Which type of linked list has pointers to both next and previous nodes?",
+   "opts": [
+    "Singly linked list",
+    "Circular linked list",
+    "Doubly linked list",
+    "All"
+   ],
+   "a": 2,
+   "exp": "Doubly linked list لها next وprev."
+  },
+  {
+   "id": "cs212-qz2-m49",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2023 Quiz 2",
+   "q": "When START = NULL in a linked list, the list is:",
+   "opts": [
+    "Saturated",
+    "Overflow",
+    "Underflow",
+    "None of these"
+   ],
+   "a": 3,
+   "exp": "START=null يعني القائمة فارغة. هذا ليس Underflow بحد ذاته؛ Underflow يحدث عند محاولة الحذف من الفارغ."
+  },
+  {
+   "id": "cs212-qz2-m50",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2023 Quiz 2",
+   "q": "In a circular linked list, insertion of a record involves modification of:",
+   "opts": [
+    "1 pointer",
+    "2 pointers",
+    "3 pointers",
+    "No pointer"
+   ],
+   "a": 1,
+   "exp": "يعتمد عدد المؤشرات المعدّلة على مكان الإدراج والتنفيذ (head/tail). عند الإدراج بين عقدتين في singly circular list يتغير رابطان؛ لكن صياغة السؤال غير محددة. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-m51",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2023 Quiz 2",
+   "q": "A linked list follows:",
+   "opts": [
+    "Random access mechanism",
+    "Sequential access mechanism",
+    "No access mechanism"
+   ],
+   "a": 1,
+   "exp": "نصل للعقد بالمرور التسلسلي على next وليس بفهارس عشوائية."
+  },
+  {
+   "id": "cs212-qz2-fm01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024–25 Final · Page 1",
+   "q": "The data structure required to evaluate a postfix expression is:",
+   "opts": [
+    "Queue",
+    "Stack",
+    "Array",
+    "Linked List"
+   ],
+   "a": 1,
+   "exp": "تقييم Postfix يتم باستخدام Stack: ندفع operands ثم نخرج آخر قيمتين عند operator وندفع النتيجة."
+  },
+  {
+   "id": "cs212-qz2-fm02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024–25 Final · Page 1",
+   "q": "The data structure required to check whether an expression contains balanced parentheses is:",
+   "opts": [
+    "Stack",
+    "Queue",
+    "Tree",
+    "Array"
+   ],
+   "a": 0,
+   "exp": "نحفظ الأقواس المفتوحة في Stack ونطابق آخر قوس فتح مع أول قوس غلق."
+  },
+  {
+   "id": "cs212-qz2-fm03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2024–25 Final · Page 1",
+   "q": "An empty list is the one which has no:",
+   "opts": [
+    "Nodes",
+    "Data",
+    "Both A and B",
+    "Address"
+   ],
+   "a": 2,
+   "exp": "القائمة الفارغة ليس فيها Nodes وبالتالي لا تحتوي على بيانات مخزنة في عقد."
+  },
+  {
+   "id": "cs212-qz2-fm04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024–25 Final · Page 1",
+   "q": "Entries in a stack are “ordered”. What does this statement mean?",
+   "opts": [
+    "A collection of stacks is sortable",
+    "Stack entries may be compared with <",
+    "Entries are stored in a linked list",
+    "There is a sequential entry that is one by one"
+   ],
+   "a": 3,
+   "exp": "المقصود أن ترتيب دخول العناصر له معنى ويحدد ترتيب خروجها بأسلوب LIFO، وليس أنها مرتبة تصاعديًا."
+  },
+  {
+   "id": "cs212-qz2-fm05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.1",
+   "q": "What is the value of the postfix expression: 6 3 2 4 + - * ?",
+   "opts": [
+    "-18",
+    "18",
+    "40",
+    "74"
+   ],
+   "a": 0,
+   "exp": "أولًا 2+4=6 ثم 3-6=-3 ثم 6×(-3)=-18."
+  },
+  {
+   "id": "cs212-qz2-fm06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.1",
+   "q": "A normal linear queue implemented using an array of size 8 becomes full when:",
+   "opts": [
+    "Rear = 7",
+    "Front = (rear + 1) % 8",
+    "Front = rear + 1",
+    "Rear = front"
+   ],
+   "a": 0,
+   "exp": "مع فهرسة تبدأ من صفر، آخر index هو 7، وبالنسبة لـlinear queue البسيطة تمتلئ عندما rear=7."
+  },
+  {
+   "id": "cs212-qz2-fm07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.1",
+   "q": "Linked lists are not suitable for the efficient implementation of:",
+   "opts": [
+    "Binary search",
+    "Polynomial manipulation",
+    "Insertion sort",
+    "Radix sort"
+   ],
+   "a": 0,
+   "exp": "Binary search يحتاج وصولًا عشوائيًا سريعًا للمنتصف؛ Linked List لا تدعم Random Access بكفاءة."
+  },
+  {
+   "id": "cs212-qz2-fm08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.21",
+   "q": "Before deleting an element from a linked queue, which condition must be checked?",
+   "opts": [
+    "Underflow",
+    "Overflow",
+    "Front value",
+    "Rear value"
+   ],
+   "a": 0,
+   "exp": "لا يمكن تنفيذ Dequeue من Queue فارغة، فيلزم فحص Underflow."
+  },
+  {
+   "id": "cs212-qz2-fm09",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.22",
+   "q": "In a linked implementation of a queue, which condition indicates an empty queue?",
+   "opts": [
+    "FRONT is NULL",
+    "REAR is NULL only",
+    "LINK is empty",
+    "FRONT == REAR - 1"
+   ],
+   "a": 0,
+   "exp": "عندما لا توجد أي عقدة Front=nullptr؛ شرط front==rear قد يتحقق في Queue فيها عنصر واحد."
+  },
+  {
+   "id": "cs212-qz2-fm10",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.22",
+   "q": "What is the essential condition checked before insertion in a dynamically linked queue?",
+   "opts": [
+    "Underflow",
+    "Overflow / allocation failure",
+    "Front value",
+    "Rear value"
+   ],
+   "a": 1,
+   "exp": "الورقة تقصد التأكد أن الإدراج ممكن؛ في Linked Queue يكون القيد غالبًا فشل تخصيص Node جديدة، وليس امتلاء Array ثابتة."
+  },
+  {
+   "id": "cs212-qz2-fm11",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.30",
+   "q": "The operation of processing each element in a list is known as:",
+   "opts": [
+    "Sorting",
+    "Merging",
+    "Inserting",
+    "Traversal"
+   ],
+   "a": 3,
+   "exp": "Traversal يعني الانتقال على كل Node ومعالجة بياناتها واحدة تلو الأخرى."
+  },
+  {
+   "id": "cs212-qz2-fm12",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.30",
+   "q": "In which kind of nonempty linked list is the last next link not NULL?",
+   "opts": [
+    "Singly linear linked list",
+    "Linear doubly linked list",
+    "Circular linked list",
+    "All linked lists"
+   ],
+   "a": 2,
+   "exp": "في Circular Linked List آخر Next يشير لأول Node بدل NULL."
+  },
+  {
+   "id": "cs212-qz2-fm13",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.30",
+   "q": "Which kind of linked list can be traversed in both forward and backward directions?",
+   "opts": [
+    "Grounded header list",
+    "Circular singly linked list",
+    "Singly linked list",
+    "Doubly linked list"
+   ],
+   "a": 3,
+   "exp": "وجود next وprev في كل Node هو ما يسمح بالسير في الاتجاهين."
+  },
+  {
+   "id": "cs212-qz2-fm14",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.59",
+   "q": "In a linked stack, deletion (pop) removes which node?",
+   "opts": [
+    "A middle node",
+    "The last node in memory",
+    "The node pointed to by the stack top/start pointer",
+    "Every node"
+   ],
+   "a": 2,
+   "exp": "Pop يحذف أول Node يمثل قمة الـStack ويحدّث الـTop إلى العقدة التالية."
+  },
+  {
+   "id": "cs212-qz2-fm15",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.63",
+   "q": "Which of the following C++ node declarations represents a doubly linked-list node?",
+   "opts": [
+    "struct node { node *prev; int data; node *next; };",
+    "struct node { int data; node *next; };"
+   ],
+   "a": 0,
+   "exp": "الاختيار الأول يحتوي على pointer للـprevious وآخر للـnext إضافةً إلى data."
+  },
+  {
+   "id": "cs212-qz2-fm16",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.64",
+   "q": "The process of adding elements to a data structure at any permitted location is called:",
+   "opts": [
+    "No Correct Answer",
+    "Traversing",
+    "Deletion",
+    "Insertion"
+   ],
+   "a": 3,
+   "exp": "Insertion هي عملية إضافة عنصر؛ المكان المسموح يختلف حسب الـData Structure."
+  },
+  {
+   "id": "cs212-qz2-fm17",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.70",
+   "q": "Data structures are widely used in Computer Science in areas such as:",
+   "opts": [
+    "Compiler Design",
+    "Operating Systems",
+    "Graphics",
+    "All choices"
+   ],
+   "a": 3,
+   "exp": "الـData Structures تُستخدم في هذه المجالات الثلاثة."
+  },
+  {
+   "id": "cs212-qz2-fm18",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.79",
+   "q": "A, B, C, D, E are pushed to a stack in that order. Four items are popped into a FIFO queue. Two queue elements are dequeued and pushed back onto the stack. Which item is popped next?",
+   "opts": [
+    "B",
+    "A",
+    "D"
+   ],
+   "a": 2,
+   "exp": "الـStack يبدأ A B C D E؛ يخرج E D C B للـQueue. يعود E ثم D للـStack، فيصبح D أعلى عنصر."
+  },
+  {
+   "id": "cs212-qz2-fm19",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.85",
+   "q": "A, B, C, D, E, F, G are pushed to a stack in that order. Five items are popped into a FIFO queue. Two queue elements are dequeued and pushed onto the stack. Which item is popped next?",
+   "opts": [
+    "F",
+    "B",
+    "A"
+   ],
+   "a": 0,
+   "exp": "ينتقل G ثم F ثم E ثم D ثم C للـQueue. يرجع G ثم F إلى Stack، فيكون F على القمة."
+  },
+  {
+   "id": "cs212-qz2-fm20",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.80",
+   "q": "Evaluate the postfix expression: 10 5 + 60 6 / * 8 -",
+   "opts": [
+    "284",
+    "213",
+    "142"
+   ],
+   "a": 2,
+   "exp": "10+5=15 و60/6=10؛ 15×10−8=142."
+  },
+  {
+   "id": "cs212-qz2-fm21",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.86",
+   "q": "Which operation adds an item to a queue?",
+   "opts": [
+    "Dequeue",
+    "Enqueue",
+    "Push"
+   ],
+   "a": 1,
+   "exp": "Enqueue تضيف العنصر في Rear، وDequeue تحذف من Front."
+  },
+  {
+   "id": "cs212-qz2-fm22",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.62",
+   "q": "Before inserting into a fixed-capacity stack, which condition must be checked?",
+   "opts": [
+    "Overflow / isFull",
+    "All choices",
+    "Underflow",
+    "Maximum elements is always zero"
+   ],
+   "a": 0,
+   "exp": "نختبر isFull حتى لا نتجاوز سعة الـStack. المصدر يسمّي حالة الفشل Overflow."
+  },
+  {
+   "id": "cs212-qz2-fm23",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.23",
+   "q": "What is the result of the postfix expression ab+cd/- when a=6, b=7, c=9, d=3?",
+   "opts": [
+    "23",
+    "15",
+    "6",
+    "10"
+   ],
+   "a": 3,
+   "exp": "(6+7)−(9/3)=13−3=10."
+  },
+  {
+   "id": "cs212-qz2-fm24",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.23",
+   "q": "What is the result of the postfix expression abc*+de*f+g*+ when a=1, b=2, c=3, d=4, e=5, f=6, g=3?",
+   "opts": [
+    "61",
+    "59",
+    "60",
+    "85"
+   ],
+   "a": 3,
+   "exp": "1+2×3=7 و(4×5+6)×3=78؛ الناتج 85."
+  },
+  {
+   "id": "cs212-qz2-fm25",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.49",
+   "q": "Which statement describes the problem with traversing a circular linked list?",
+   "opts": [
+    "A node cannot be inserted at the end",
+    "There is no NULL at the last node, so stopping needs an explicit check",
+    "Every node needs two new pointers",
+    "Circular lists cannot store data"
+   ],
+   "a": 1,
+   "exp": "آخر Next في القائمة الدائرية يرجع للـHead، ولذلك يجب إيقاف traversal عندما نعود إليه لتجنب Loop لا نهائية. (صياغة الاختيارات مختصرة من لقطة الامتحان)."
+  },
+  {
+   "id": "cs212-qz2-x01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "Given int x = 7; int *p = &x; what is the value of *p?",
+   "opts": [
+    "Address of x",
+    "7",
+    "0",
+    "Undefined"
+   ],
+   "a": 1,
+   "exp": "*p يفك المؤشر ويقرأ القيمة 7."
+  },
+  {
+   "id": "cs212-qz2-x02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "Given int a[] = {3,6,9}; int *p = a; what does *(p+2) evaluate to?",
+   "opts": [
+    "3",
+    "6",
+    "9",
+    "Address of a"
+   ],
+   "a": 2,
+   "exp": "p+2 يشير إلى a[2] وقيمته 9."
+  },
+  {
+   "id": "cs212-qz2-x03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "Which declaration creates a pointer to an integer in C++?",
+   "opts": [
+    "int &p;",
+    "int *p;",
+    "int p*;",
+    "pointer<int> p;"
+   ],
+   "a": 1,
+   "exp": "int *p تعلن متغيرًا من نوع مؤشر إلى int."
+  },
+  {
+   "id": "cs212-qz2-x04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "Given int a=5; int *p=&a; *p=12; what is a now?",
+   "opts": [
+    "5",
+    "12",
+    "Address of p",
+    "Undefined"
+   ],
+   "a": 1,
+   "exp": "تعديل *p يعدّل a مباشرة."
+  },
+  {
+   "id": "cs212-qz2-x05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "Given int a=4; int &r=a; r+=3; what is a?",
+   "opts": [
+    "4",
+    "3",
+    "7",
+    "Undefined"
+   ],
+   "a": 2,
+   "exp": "الـreference اسم آخر للمتغير نفسه."
+  },
+  {
+   "id": "cs212-qz2-x06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "What does p->data mean when p is a pointer to a Node?",
+   "opts": [
+    "The address of p",
+    "(*p).data",
+    "p.data",
+    "A pointer to pointer"
+   ],
+   "a": 1,
+   "exp": "صياغة p->data مكافئة لـ(*p).data."
+  },
+  {
+   "id": "cs212-qz2-x07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "When deleting the head of a nonempty singly linked list, what must be updated?",
+   "opts": [
+    "Only the tail data",
+    "head to the old head->next",
+    "Every node address",
+    "The array capacity"
+   ],
+   "a": 1,
+   "exp": "يحفظ المؤشر التالي ثم يُحدَّث head قبل حذف العقدة القديمة."
+  },
+  {
+   "id": "cs212-qz2-x08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "When inserting after temp in a singly linked list, which assignment must be performed first?",
+   "opts": [
+    "temp->next = newNode",
+    "newNode->next = temp->next",
+    "head = nullptr",
+    "delete temp"
+   ],
+   "a": 1,
+   "exp": "أولًا نحفظ الرابط القديم في newNode->next، بعدها نربط temp->next بالعقدة الجديدة."
+  },
+  {
+   "id": "cs212-qz2-x09",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "In a standard doubly linked-list node, which link points to the previous node?",
+   "opts": [
+    "next",
+    "prev",
+    "head",
+    "rear"
+   ],
+   "a": 1,
+   "exp": "prev يشير إلى العقدة السابقة."
+  },
+  {
+   "id": "cs212-qz2-x10",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "تدريب تكميلي من نفس المنهج — ليس من ورقة قديمة",
+   "q": "What is a valid condition for the end of traversal in a circular singly linked list?",
+   "opts": [
+    "temp == nullptr only",
+    "temp == head after a full cycle",
+    "temp->data == 0 always",
+    "tail == nullptr"
+   ],
+   "a": 1,
+   "exp": "لا تصل للـnullptr في دائرة غير فارغة؛ نتوقف عند العودة للـhead."
+  },
+  {
+   "id": "cs212-qz2-t01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: Items come out of a stack in the same order they go in.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "Stack = LIFO، عكس ترتيب الدخول."
+  },
+  {
+   "id": "cs212-qz2-t02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: The operation for adding an item to a stack is called push.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "إضافة عنصر للـStack اسمها Push."
+  },
+  {
+   "id": "cs212-qz2-t03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: The top operation does not modify the contents of a stack.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "peek/top للقراءة دون حذف."
+  },
+  {
+   "id": "cs212-qz2-t04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: Items come out of the queue in the same order that they go in.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "Queue تقليدية = FIFO."
+  },
+  {
+   "id": "cs212-qz2-t05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: A queue allows for the inspection of items at either end.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "بعض الـQueue implementations توفر peekFront وgetRear، مع بقاء الحذف من Front. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-t06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: The operation to remove an item from the front of the queue is called front.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "الاسم المعتاد Dequeue، أما Front فيعني أول عنصر."
+  },
+  {
+   "id": "cs212-qz2-t07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: A Queue is a data structure in which the items are added and deleted from one end only.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "تضاف عادةً من Rear وتُحذف من Front."
+  },
+  {
+   "id": "cs212-qz2-t08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: The middle elements of a queue should not be accessed directly.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "واجهة الـQueue تعتمد على الطرفين للحفاظ على ترتيب FIFO."
+  },
+  {
+   "id": "cs212-qz2-t09",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: The programmer must know in advance how many nodes will be needed in a linked list.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "القائمة ديناميكية، يمكن إنشاء عقد عند الحاجة."
+  },
+  {
+   "id": "cs212-qz2-t10",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: It is not necessary for each node in a linked list to have a self-referential pointer.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "وفق بنية الـNode القياسية في الكورس يوجد next حتى لو كانت قيمته nullptr في النهاية. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-t11",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: In a linked list, memory allocated for the nodes is sequential.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "العقد غير ملزمة بأن تكون متجاورة في الذاكرة."
+  },
+  {
+   "id": "cs212-qz2-t12",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: A singly linked list can be traversed in either direction.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "Singly بها next فقط فلا يوجد prev للتنقل العكسي مباشرة."
+  },
+  {
+   "id": "cs212-qz2-t13",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: The head pointer of a linked list should not be used to traverse the list.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "الأفضل استخدام temp حتى لا نفقد عنوان البداية؛ ليست قاعدة C++ إلزامية. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-t14",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: A stack is a First In Last Out data structure.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "FILO وصف مكافئ لمعنى LIFO؛ مفتاح قديم وضع False خطأ. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-t15",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: In the array implementation of a stack, Top contains the index of the top element in the stack.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "top يخزن index آخر عنصر في التطبيق المعتاد."
+  },
+  {
+   "id": "cs212-qz2-t16",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: In an array implementation of stack, pop decrements Top by 1 if the stack is nonempty.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "عند Pop يتم تحريك top لأسفل."
+  },
+  {
+   "id": "cs212-qz2-t17",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: In a postfix expression, operands are written after the operations.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "في Postfix العامل يأتي بعد المعاملات."
+  },
+  {
+   "id": "cs212-qz2-t18",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2024 Quiz 1",
+   "q": "True or False: In a linked implementation of a queue, the queue is empty if queueFront == queueRear.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "قد يتساوى الطرفان مع وجود عنصر واحد؛ الحالة الفارغة غالبًا كلاهما nullptr."
+  },
+  {
+   "id": "cs212-qz2-t19",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: When the head pointer points to NULL, it signifies an empty list.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "head=nullptr يعني عدم وجود أول Node."
+  },
+  {
+   "id": "cs212-qz2-t20",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: Deleting a node in a linked list is a simple matter of using delete to free its memory.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "لازم تحديث الروابط والمؤشر head إن لزم قبل delete."
+  },
+  {
+   "id": "cs212-qz2-t21",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: Random access of elements in a linked list is not possible.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "لا يوجد وصول مباشر بالـindex كما في Array؛ لا بد من traversal."
+  },
+  {
+   "id": "cs212-qz2-t22",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: Arrays have better cache locality than linked lists.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "الـArray contiguous عادة، لذلك عناصرها المتجاورة أفضل للـcache."
+  },
+  {
+   "id": "cs212-qz2-t23",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: The size of a linked list is dynamic and can be changed as needed.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "يمكن زيادة أو حذف عدد العقد وقت التشغيل."
+  },
+  {
+   "id": "cs212-qz2-t24",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: Circular Queue is also known as Ring Buffer.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "كلاهما يوظف الالتفاف الدائري للخانات."
+  },
+  {
+   "id": "cs212-qz2-t25",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: The process of removing an element from a stack is called Evaluation.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "الحذف يسمى Pop."
+  },
+  {
+   "id": "cs212-qz2-t26",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: Memory for the components of an array does not need to be contiguous.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "عناصر الـArray في C++ متجاورة في الذاكرة."
+  },
+  {
+   "id": "cs212-qz2-t27",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: If new items are always inserted only at either end and input is unsorted, the resulting linked list must be unsorted.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "لا توجد قاعدة حتمية؛ ربما ينتج ترتيب مصادفة. صياغة الورقة القديمة مطلقة ومفتاحها مختلف. [السؤال محل خلاف في المصدر — راجع الشرح]"
+  },
+  {
+   "id": "cs212-qz2-t28",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: When you build a linked list in the backward manner, a new node is always inserted at the end.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "Backward building المقصود به الإدراج في البداية وليس النهاية."
+  },
+  {
+   "id": "cs212-qz2-t29",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: You deallocate the memory for a linked list by calling an operator named clear.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "يمكن تعريف دالة clear، لكنها ليست operator في C++؛ نمر على العقد ونحذفها."
+  },
+  {
+   "id": "cs212-qz2-t30",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: The length of a linked list is the number of nodes in the list.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "Length تساوي عدد العقد."
+  },
+  {
+   "id": "cs212-qz2-t31",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: It is not possible to create an ordered linked list.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "يمكن الحفاظ على الترتيب بإدراج القيم في مواقعها."
+  },
+  {
+   "id": "cs212-qz2-t32",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "True or False: A doubly linked list can be traversed in either direction.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "لها next وprev."
+  },
+  {
+   "id": "cs212-qz2-t33",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: Queue and Stack are linear data structures.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "كلاهما Linear DS."
+  },
+  {
+   "id": "cs212-qz2-t34",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: Queue is a suitable data structure for tracking customer orders.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "تصل الطلبات وتُعالج بترتيب دخولها في النظام المعتاد."
+  },
+  {
+   "id": "cs212-qz2-t35",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: Parentheses are simply ignored when converting infix to postfix.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "الأقواس تغيّر ترتيب العمليات ولا تُنسخ للناتج النهائي."
+  },
+  {
+   "id": "cs212-qz2-t36",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: Inserting at the beginning of an array is more difficult than inserting at the beginning of a linked list.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "في Array نزيح العناصر غالبًا؛ في linked list نعدّل head والروابط."
+  },
+  {
+   "id": "cs212-qz2-t37",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: It is easier for a computer to process a postfix expression than an infix expression.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "يمكن تقييم Postfix باستخدام Stack بدون قواعد أسبقية أثناء التقييم."
+  },
+  {
+   "id": "cs212-qz2-t38",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: In postfix expressions, the operators come after operands.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "A B + صيغة Postfix."
+  },
+  {
+   "id": "cs212-qz2-t39",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: In a circular doubly linked list with 10 nodes, deleting a nonhead node always requires changing 4 links.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "عادةً نغير رابط prev->next ورابط next->prev، أي رابطين بين الجيران."
+  },
+  {
+   "id": "cs212-qz2-t40",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 4,
+   "src": "Spring 2024 Quiz 2",
+   "q": "True or False: With int x=50,*ptr; the statement *ptr = &x is valid.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "*ptr من نوع int، بينما &x من نوع int*، وفوق ذلك ptr غير مهيأ."
+  },
+  {
+   "id": "cs212-qz2-ft01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Reversing a word or line is an application of a stack.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "الـStack يخرج الحروف بالعكس بنظام LIFO."
+  },
+  {
+   "id": "cs212-qz2-ft02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Insertion and deletion in a stack both take place only at TOP.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "Push وPop يتعاملان مع قمة الـStack."
+  },
+  {
+   "id": "cs212-qz2-ft03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: A queue behaves on the basis of LIFO principle.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "الـQueue العادية FIFO وليست LIFO."
+  },
+  {
+   "id": "cs212-qz2-ft04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: CPU uses queues to implement round-robin scheduling among waiting processes.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "العمليات بتدخل في Queue وتتناوب على وقت المعالج."
+  },
+  {
+   "id": "cs212-qz2-ft05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Deletion of an element from a queue is termed a pop operation.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "الحذف من Queue اسمه Dequeue؛ كلمة Pop تُستخدم عادةً مع Stack."
+  },
+  {
+   "id": "cs212-qz2-ft06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Handling the processes of a network printer is an important application of queues.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "طلبات الطباعة تُخدم عادةً وفق ترتيب الوصول."
+  },
+  {
+   "id": "cs212-qz2-ft07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: An element is added to an ordinary queue from the front end.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "في Queue عادية الإدراج يكون عند Rear."
+  },
+  {
+   "id": "cs212-qz2-ft08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Enqueue and Dequeue are terms related to queue data structure.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "Enqueue للإضافة وDequeue للحذف."
+  },
+  {
+   "id": "cs212-qz2-ft09",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: The circular queue better utilizes the space in a fixed-size queue.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "Circular Queue تعيد استخدام الخانات التي أصبحت متاحة بعد Dequeue."
+  },
+  {
+   "id": "cs212-qz2-ft10",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Pushing into a full fixed-size stack results in an overflow condition.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "لا توجد خانة متاحة لإضافة عنصر جديد إلى Stack ممتلئة."
+  },
+  {
+   "id": "cs212-qz2-ft11",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: For reversing the order of a list of values, queues are the usual LIFO structure.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "Stack مناسبة لعكس الترتيب؛ Queue تحافظ على ترتيب الوصول."
+  },
+  {
+   "id": "cs212-qz2-ft12",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 2,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Popping from an empty stack results in an underflow error.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "الـPop من Stack فارغة يسمى Underflow."
+  },
+  {
+   "id": "cs212-qz2-ft13",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 3,
+   "src": "CCS212 Final Exams Collection · p.24",
+   "q": "True or False: Inserting into a full fixed-size queue results in an overflow condition.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "في Queue ثابتة السعة الإدراج في حالة الامتلاء يؤدي إلى Overflow."
+  },
+  {
+   "id": "cs212-qz2-ft14",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.47",
+   "q": "True or False: The pointer field contains the data stored in that specific node.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "حقل Pointer يخزن عنوان العقدة المرتبطة، أما البيانات فتحفظ في Data field."
+  },
+  {
+   "id": "cs212-qz2-ft15",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.54",
+   "q": "True or False: Every data structure contains a set of data elements.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "التركيب ينظم البيانات وعمليات التعامل معها."
+  },
+  {
+   "id": "cs212-qz2-ft16",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.55",
+   "q": "True or False: Data structures are reusable once implemented and can be used in another place.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "يمكن إعادة استعمال الـimplementation في أكثر من سياق."
+  },
+  {
+   "id": "cs212-qz2-ft17",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.59",
+   "q": "True or False: In a singly linked list, every node contains a link to both the next and the previous nodes.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "Singly بها Next فقط؛ Prev وNext موجودان في Doubly."
+  },
+  {
+   "id": "cs212-qz2-ft18",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "CCS212 Final Exams Collection · p.62",
+   "q": "True or False: The elements of a linked list are called nodes.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "كل عنصر يُمثَّل بعقدة Node تحتوي بيانات وروابط."
+  },
+  {
+   "id": "cs212-qz2-ft19",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.66",
+   "q": "True or False: Arrays, Linked Lists, Stacks and Queues are examples of data structures.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "جميعها Data Structures."
+  },
+  {
+   "id": "cs212-qz2-ft20",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.73",
+   "q": "True or False: Data structures help programmers handle data efficiently.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "اختيار الهيكل يؤثر على سهولة وكفاءة العمليات."
+  },
+  {
+   "id": "cs212-qz2-ft21",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 1,
+   "src": "CCS212 Final Exams Collection · p.74",
+   "q": "True or False: An abstract data type (ADT) provides a level of abstraction for a data structure.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "ADT يحدد العمليات والسلوك بصورة مجردة عن تفاصيل التنفيذ."
   }
  ],
  "written": [
@@ -3088,6 +5295,15 @@ window.DATA = {
    "src": "Section 6 · Parsers, FIRST and FOLLOW Sets",
    "q": "For S ← aBDh, B ← cC, C ← bC | ε, D ← EF, E ← g | ε, F ← f | ε, what are FIRST(D) and FOLLOW(B)?",
    "a": "FIRST(D) = { g , f , ε } (E can be ε so FIRST(F) enters, and F can be ε too); FOLLOW(B) = { g , f , h }, from the section's completed table."
+  },
+  {
+   "id": "cs212-qz2-m44",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 5,
+   "src": "Fall 2025 Quiz 1",
+   "q": "What kind of linked list is best to answer questions like \"What is the item at position n?\" (خيارات في المصدر: Singly linked list، Doubly linked list، Circular linked list، Circular Doubly linked list)",
+   "a": "لا يوجد نوع Linked List يعطي عموماً وصولًا عشوائيًا سريعًا إلى العنصر عند position n؛ الصياغة غير كافية لتحديد اختيار واحد. السؤال ظاهر للمراجعة فقط."
   }
  ],
  "exams": [
@@ -3280,6 +5496,469 @@ window.DATA = {
     "cout prints 14, a space, then 1.",
     "Output: 14 1"
    ]
+  },
+  {
+   "id": "cpqz2-o01",
+   "subj": "cs212",
+   "title": "Stack: for loop and top",
+   "lang": "C++",
+   "code": "int stackArr[100], top = -1;\nfor (int i = 2; i <= 6; i += 2)\n    stackArr[++top] = i;\ntop--;\ncout << stackArr[top] << \" \" << top + 1;",
+   "out": "4 2",
+   "steps": [
+    "نضيف 2,4,6 في المواقع 0,1,2؛ ثم top ينقص من 2 إلى 1. القيمة في stackArr[1]=4 والحجم top+1=2."
+   ]
+  },
+  {
+   "id": "cpqz2-o02",
+   "subj": "cs212",
+   "title": "Queue: isEmpty and size",
+   "lang": "C++",
+   "code": "int queueArr[100];\nint front = -1, rear = -1;\nbool isEmpty() { return (front == -1 || front > rear); }\nint size() { if (isEmpty()) return 0; return rear-front+1; }\nint main() {\n    queueArr[++rear] = 10;\n    front = 0;\n    queueArr[++rear] = 20;\n    front++;\n    front++;\n    cout << isEmpty() << \"\\n\" << size();\n}",
+   "out": "1\n0",
+   "steps": [
+    "rear=1، وبعد رفع front مرتين أصبح 2؛ بما أن front>rear، isEmpty()=true (1) وsize=0."
+   ]
+  },
+  {
+   "id": "cpqz2-o03",
+   "subj": "cs212",
+   "title": "Stack: multiple pushes and pop",
+   "lang": "C++",
+   "code": "int stackArr[100], top = -1;\nstackArr[++top] = 11;\nstackArr[++top] = 22;\nstackArr[++top] = 33;\nstackArr[++top] = 44;\ntop--;\ntop--;\nstackArr[++top] = 55;\ncout << top + 1 << \" \" << stackArr[top];",
+   "out": "3 55",
+   "steps": [
+    "المؤشر كان 3، ثم ينخفض إلى 1، وبعد Push(55) يصبح 2؛ الحجم 3 والـTop=55."
+   ]
+  },
+  {
+   "id": "cpqz2-o04",
+   "subj": "cs212",
+   "title": "Stack: top after pop",
+   "lang": "C++",
+   "code": "int stackArr[100], top = -1;\nstackArr[++top] = 7;\nstackArr[++top] = 14;\nstackArr[++top] = 21;\ncout << stackArr[top] << \"\\n\";\ntop--;\ncout << stackArr[top];",
+   "out": "21\n14",
+   "steps": [
+    "قبل Pop أعلى قيمة 21، وبعد top-- يصبح أعلى عنصر 14."
+   ]
+  },
+  {
+   "id": "cpqz2-o05",
+   "subj": "cs212",
+   "title": "Queue: sum and remaining size",
+   "lang": "C++",
+   "code": "int queueArr[100], front = -1, rear = -1;\nqueueArr[++rear] = 12; front = 0;\nqueueArr[++rear] = 18;\nqueueArr[++rear] = 24;\nqueueArr[++rear] = 30;\nint sum = 0;\nfor (int i=0; i<2; i++) {\n    sum += queueArr[front];\n    front++;\n}\ncout << sum << \" \" << rear-front+1;",
+   "out": "30 2",
+   "steps": [
+    "يُجمَع 12+18=30، ويتبقى 24 و30 فقط، أي عنصران."
+   ]
+  },
+  {
+   "id": "cpqz2-o06",
+   "subj": "cs212",
+   "title": "Stack: empty condition",
+   "lang": "C++",
+   "code": "int stackArr[100], top = -1;\nstackArr[++top] = 5;\nstackArr[++top] = 15;\ntop--; top--;\ncout << (top == -1) << \" \" << top + 1;",
+   "out": "1 0",
+   "steps": [
+    "بعد الحذفين يرجع top=-1؛ الشرط true=1 والحجم صفر."
+   ]
+  },
+  {
+   "id": "cpqz2-o07",
+   "subj": "cs212",
+   "title": "Pointer to pointer (**pp)",
+   "lang": "C++",
+   "code": "int **pp;\nint *p;\nint x = 100;\np = &x;\npp = &p;\ncout << **pp << \"\\n\" << **pp + *p;",
+   "out": "100\n200",
+   "steps": [
+    "p يشير لـx، وpp يشير لـp؛ كلٌّ من *p و**pp يساوي 100، ومجموعهما 200."
+   ]
+  },
+  {
+   "id": "cpqz2-o08",
+   "subj": "cs212",
+   "title": "Stack: push odd numbers",
+   "lang": "C++",
+   "code": "int stack[100], top = -1;\nvoid push(int val) { stack[++top] = val; }\nvoid pop() { top--; }\nvoid display() {\n    for(int i=top; i>=0; i--) cout << stack[i] << \" \";\n}\nint main() {\n    for(int i=1; i<10; i+=2) push(i);\n    pop();\n    display();\n}",
+   "out": "7 5 3 1",
+   "steps": [
+    "ندخل 1,3,5,7,9، ثم نحذف 9؛ الطباعة من الأعلى إلى الأسفل 7 5 3 1."
+   ]
+  },
+  {
+   "id": "cpqz2-o09",
+   "subj": "cs212",
+   "title": "Queue: enqueue/dequeue loop",
+   "lang": "C++",
+   "code": "int queue[5], front=-1, rear=-1;\nvoid enqueue(int v) {\n    if(front==-1) front=0;\n    queue[++rear]=v;\n}\nvoid dequeue() { front++; }\nvoid Display() {\n    for(int i=front; i<=rear; i++) cout<<queue[i]<<\" \";\n}\nint main() {\n    enqueue(1); enqueue(2); enqueue(3);\n    dequeue(); enqueue(4); enqueue(5);\n    dequeue(); dequeue(); Display();\n}",
+   "out": "4 5",
+   "steps": [
+    "الصف يصبح [1,2,3,4,5] وبعد حذف ثلاث قيم يصبح [4,5]."
+   ]
+  },
+  {
+   "id": "cpqz2-o10",
+   "subj": "cs212",
+   "title": "Linked Stack and Queue: move nodes",
+   "lang": "C++",
+   "code": "struct node { char data; node *next; };\n// Stack top T: a -> b -> c -> d -> e -> f -> NULL\n// Queue F..R: a -> b -> c -> d -> e -> NULL\n// pop/dequeue return the removed char.\nx=pop(); enqueue(x);\nx=pop(); enqueue(x);\ncout << T->data << R->data;\nx=dequeue(); push(x);\nx=dequeue(); push(x);\ncout << endl << T->data << F->data;\ncout << endl << T->next->data << R->data;",
+   "out": "cb\nbc\nab",
+   "steps": [
+    "بعد نقل a وb من Stack إلى نهاية Queue، قمة Stack هي c ونهاية Queue هي b؛ ثم نقل a,b من Queue للـStack يجعل Top=b وثاني Top=a.",
+    "Context: الرسمة الأصلية: Stack a→b→c→d→e→f، والـQueue a→b→c→d→e، وكل بنية لها عقدها المنفصلة."
+   ]
+  },
+  {
+   "id": "cpqz2-o11",
+   "subj": "cs212",
+   "title": "Pointers passed into a function",
+   "lang": "C++",
+   "code": "void modify(int *a, int *b) {\n    *a += 2;\n    *b += 3;\n}\nint main() {\n    int x=1, y=2;\n    modify(&x, &y);\n    cout << x << \" \" << y;\n}",
+   "out": "3 5",
+   "steps": [
+    "المؤشر الأول يعدل x من 1 إلى 3، والثاني يعدل y من 2 إلى 5."
+   ]
+  },
+  {
+   "id": "cpqz2-o12",
+   "subj": "cs212",
+   "title": "Stack: push twice and pop once",
+   "lang": "C++",
+   "code": "int stack[100], top = -1;\n// Standard push(), pop(), display(): display from top to bottom.\nint main() {\n    for(int i=1; i<5; i++) {\n        push(i); push(i);\n    }\n    pop(); display();\n}",
+   "out": "4 3 3 2 2 1 1",
+   "steps": [
+    "بعد تكرار 1,1,2,2,3,3,4,4 نحذف آخر 4، ونطبع من القمة.",
+    "Context: الدوال push/pop/display غير مكتوبة في الورقة؛ اتبعت السلوك القياسي الموضح في الـcontext."
+   ]
+  },
+  {
+   "id": "cpqz2-o13",
+   "subj": "cs212",
+   "title": "Stack: double push, two pops",
+   "lang": "C++",
+   "code": "int stack[100], top = -1;\n// Standard push(), pop(), display(): display from top to bottom.\nint main() {\n    for(int i=1; i<5; i++) {\n        push(i); push(i);\n    }\n    for(int i=1; i<5; i+=2) pop();\n    display();\n}",
+   "out": "3 3 2 2 1 1",
+   "steps": [
+    "يتم Push مرتين لكل قيمة من 1 إلى 4 ثم Pop مرتين، فيخرج آخر 4 مرتين."
+   ]
+  },
+  {
+   "id": "cpqz2-o14",
+   "subj": "cs212",
+   "title": "Linked List: info and link",
+   "lang": "C++",
+   "code": "struct Node { int info; Node* link; };\n// list -> 18 -> 32 -> 23 -> 16 -> 43 -> 87 -> 25 -> 44 -> NULL\n// A points to 32; B points to 87.\ncout << list->info << \"\\n\";\ncout << A->info << \"\\n\";\ncout << B->link->info << \"\\n\";\ncout << list->link->link->info;",
+   "out": "18\n32\n25\n23",
+   "steps": [
+    "list->info=18؛ A=32؛ بعد B(87) العقدة 25؛ وlist->link->link هي العقدة 23.",
+    "Context: النموذج يطلب 4 إجابات منفصلة، ونظمناها كسطور متتالية."
+   ]
+  },
+  {
+   "id": "cpqz2-o15",
+   "subj": "cs212",
+   "title": "Stack: pop called twice per iteration",
+   "lang": "C++",
+   "code": "int stack[6], n=6, top=-1;\nvoid push(int val) { /* standard push */ }\nint pop() { /* unspecified underflow behavior */ }\nint main() {\n    for(int i=1; i<n; i+=2) {\n        push(i);\n        cout << pop() << \"-\";\n        cout << pop() << \"-\";\n    }\n}",
+   "out": "1-0-3-0-5-0-",
+   "steps": [
+    "لا يمكن تحديد Output فريد بدون تعريف pop() عند Underflow. رقم 0 في نموذج الورقة هو افتراض غير مذكور في الكود؛ لهذا لا يدخل التصحيح التلقائي. [السؤال محل خلاف في المصدر]",
+    "Context: سؤال مختلف عليه لأن الـpop() تخفي طريقة معالجة underflow."
+   ]
+  },
+  {
+   "id": "cpqz2-o16",
+   "subj": "cs212",
+   "title": "Stack: double pushes with pop()",
+   "lang": "C++",
+   "code": "int stack[6], n=6, top=-1;\n// Standard push() and pop() returning removed value.\nint main() {\n    for(int i=1; i<n; i+=2) {\n        push(i); push(i);\n        cout << pop() << \"-\";\n    }\n    cout << pop() << \"-\";\n}",
+   "out": "1-3-5-5-",
+   "steps": [
+    "كل i يُدفع مرتين ثم يُسحب مرة؛ يبقى [1,3,5] بعد نهاية الحلقة ثم تُسحب 5 ثانية."
+   ]
+  },
+  {
+   "id": "cpqz2-o17",
+   "subj": "cs212",
+   "title": "Linked List: valid or invalid pointers",
+   "lang": "C++",
+   "code": "// List: 18 -> 32 -> 23 -> 16 -> 43 -> 87 -> 25 -> 44 -> NULL\n// list, A, B are shown as pointer labels on the diagram.\n// Decide Valid or Invalid for each statement:\nA = B;\nlist->link = A->link;\nlist->link->info = 45;\n*list = B;\n*A = *B;\nB = A->link->info;",
+   "out": "يعتمد على تعريفات A وB",
+   "steps": [
+    "باستخدام التعريف struct Node{int info; Node*link;}; ومع افتراض أن list وA وB من Node*، فإن بعض التعليمات Valid وبعضها Invalid. لكن ورقة النموذج الأصلية لم توضح التعريفات كاملة ومفتاحها غير منضبط؛ لذلك يُعرض للتدريب بلا درجة. [السؤال محل خلاف في المصدر]",
+    "Context: الصورة الأصلية تتضمن مفتاحاً غير موثوق في نوع المؤشرات؛ معروض للمراجعة فقط."
+   ]
+  },
+  {
+   "id": "cpqz2-o18",
+   "subj": "cs212",
+   "title": "Stack: push descending and display",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint stack[10], top=-1;\nvoid push(int val) { stack[++top]=val; }\nvoid pop() { int val=stack[top]; top--; }\nvoid display() {\n    for(int i=top; i>=0; i--) cout<<stack[i]<<\" \";\n}\nint main() {\n    for(int i=5; i>=0; i--) push(i);\n    display();\n    for(int i=3; i>=0; i--) pop();\n    display();\n}",
+   "out": "0 1 2 3 4 5 4 5",
+   "steps": [
+    "Push 5→0 فيكون 0 أعلى Stack؛ Display تطبع 0..5 ثم 4 Pops وتطبع 4 5."
+   ]
+  },
+  {
+   "id": "cpqz2-o19",
+   "subj": "cs212",
+   "title": "Circular Singly Linked List: links wrap around",
+   "lang": "C++",
+   "code": "struct Node { int D; Node *N; };\n// Circular: 10 -> 20 -> 30 -> 40 -> (back to 10)\n// Initially CSLL points at 10, T points at 40.\ncout << CSLL->N->N->D << T->N->N->D << endl;\nCSLL=T; T=T->N;\ncout << CSLL->N->N->D << T->N->N->D << endl;\nCSLL=T->N; T=CSLL->N;\ncout << CSLL->N->N->D << T->N->N->D;",
+   "out": "3020\n2030\n4010",
+   "steps": [
+    "نتتبع N مرتين مع الالتفاف: من 10 تصل 30، من 40 تصل 20؛ ثم تتغير نقاط البداية بين الأسطر."
+   ]
+  },
+  {
+   "id": "cpqz2-o20",
+   "subj": "cs212",
+   "title": "Queue: front and rear arithmetic",
+   "lang": "C++",
+   "code": "int q[10], f=-1, r=-1;\nvoid Inq(int val) {\n    if(f==-1) f=0;\n    q[++r]=val;\n}\nvoid Deq() { f++; }\nvoid Display() {\n    for(int i=f; i<=r; i++) cout<<q[i]<<\" \";\n}\nint main() {\n    Inq(f-r);\n    Deq();\n    Inq(f-r);\n    Display();\n}",
+   "out": "1",
+   "steps": [
+    "في البداية f-r=0؛ Enqueue(0) ثم Dequeue يجعل f=1، r=0؛ الآن f-r=1، فيضاف 1 ويطبع."
+   ]
+  },
+  {
+   "id": "cpqz2-o21",
+   "subj": "cs212",
+   "title": "Circular Doubly Linked List: right and left",
+   "lang": "C++",
+   "code": "struct Node { int D; Node *L, *R; };\n// Circular DLL: 10 <-> 20 <-> 30 <-> (back to 10)\n// CDLL initially points at node 10.\ncout << CDLL->R->R->D << CDLL->L->L->D << endl;\nCDLL=CDLL->L;\ncout << CDLL->R->R->D << CDLL->L->L->D << endl;\nCDLL=CDLL->L;\ncout << CDLL->R->R->D << CDLL->L->L->D;",
+   "out": "3020\n2010\n1030",
+   "steps": [
+    "من 10، R مرتين 30، L مرتين 20؛ ثم يتحرك CDLL إلى 30 فـ20 مع الالتفاف."
+   ]
+  },
+  {
+   "id": "cpqz2-o22",
+   "subj": "cs212",
+   "title": "Singly Linked List: pointer rewiring",
+   "lang": "C++",
+   "code": "struct node { char data; node* next; };\n// Start: p -> a -> b -> c -> d -> e -> f -> NULL\nq = p->next->next;\np->next->next = q->next->next;\nq->next->next->next->next = q->next;\ncout << p->next->next->data << endl;\ncout << p->next->next->next->next->data << endl;\ncout << q->next->next->next->next->data << endl;",
+   "out": "e\nd\nd",
+   "steps": [
+    "q=c. نغيّر b->next ليربط e؛ ثم f->next يعود إلى d. بعد التعديل المسارات المطلوبة تعطي e ثم d ثم d."
+   ]
+  },
+  {
+   "id": "cpqz2-fo01",
+   "subj": "cs212",
+   "title": "Stack / Final 2025 Q2.3 — push, pop, display",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint st[6], top=-1, n=6;\nvoid push(int val) {\n    if(top>=n-1) cout << \"Stack Overflow\" << endl;\n    else st[++top]=val;\n}\nint pop() {\n    if(top<=-1) return 0;\n    return st[top--];\n}\nvoid display() {\n    if(top>=0) {\n        for(int i=top;i>=0;--i) cout<<st[i]<<\" \";\n        cout<<endl;\n    } else cout<<\"Stack is empty\";\n}\nint main(){\n    for(int i=1; i<n; i++) push(i);\n    pop();\n    display();\n}",
+   "out": "4 3 2 1",
+   "steps": [
+    "Push الأرقام 1 حتى 5 ثم Pop يحذف 5؛ Display يبدأ من أعلى العنصر 4 لحد 1.",
+    "Context: تم نقل أجسام push/pop/display من الجزء (1) في نفس الورقة، ومن ثم أُضيف main الخاص بالجزء 2.3."
+   ]
+  },
+  {
+   "id": "cpqz2-fo02",
+   "subj": "cs212",
+   "title": "Stack / Final 2025 Q2.7 — paired pushes then pops",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint st[6], top=-1, n=6;\nvoid push(int val) {\n    if(top>=n-1) cout << \"Stack Overflow\" << endl;\n    else st[++top]=val;\n}\nint pop() {\n    if(top<=-1) return 0;\n    return st[top--];\n}\nvoid display() {\n    if(top>=0) {\n        for(int i=top;i>=0;--i) cout<<st[i]<<\" \";\n        cout<<endl;\n    } else cout<<\"Stack is empty\";\n}\nint main(){\n    for(int i=1;i<n;i+=2) { push(i); push(i); }\n    for(int i=1;i<n;i+=2) {\n        cout<<pop()<<\"-\"<<pop()<<\"-\";\n    }\n}",
+   "out": "5-5-3-3-1-1-",
+   "steps": [
+    "تم إدراج 1,1,3,3,5,5. Pop يخرج الأزواج بالعكس: 5 ثم 5 ثم 3 ثم 3 ثم 1 ثم 1."
+   ]
+  },
+  {
+   "id": "cpqz2-fo03",
+   "subj": "cs212",
+   "title": "Stack / Final 2025 Q2.8 — triple pushes",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint st[6], top=-1, n=6;\nvoid push(int val) {\n    if(top>=n-1) cout << \"Stack Overflow\" << endl;\n    else st[++top]=val;\n}\nint pop() {\n    if(top<=-1) return 0;\n    return st[top--];\n}\nvoid display() {\n    if(top>=0) {\n        for(int i=top;i>=0;--i) cout<<st[i]<<\" \";\n        cout<<endl;\n    } else cout<<\"Stack is empty\";\n}\nint main(){\n    for(int i=1;i<n;i+=3){ push(i); push(i); push(i); }\n    for(int i=1;i<n;i+=3){\n        cout<<pop()<<\"-\"<<pop()<<\"-\";\n    }\n}",
+   "out": "4-4-4-1-",
+   "steps": [
+    "Push للأرقام 1,1,1,4,4,4؛ أربع عمليات Pop تطبع 4,4,4,1."
+   ]
+  },
+  {
+   "id": "cpqz2-fo04",
+   "subj": "cs212",
+   "title": "Stack / Old Finals — odd push then pop",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint st[100], top=-1;\nvoid push(int val){ st[++top]=val; }\nvoid pop(){ top--; }\nvoid display(){ for(int i=top;i>=0;i--) cout<<st[i]<<\" \"; }\nint main(){\n    for(int i=1;i<10;i+=2) push(i);\n    pop(); display();\n}",
+   "out": "7 5 3 1",
+   "steps": [
+    "تُدفع 1 3 5 7 9، ثم يُحذف 9، فيطبع Display: 7 5 3 1."
+   ]
+  },
+  {
+   "id": "cpqz2-fo05",
+   "subj": "cs212",
+   "title": "Stack / Old Finals — repeated pops then display",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint st[100], top=-1;\nvoid push(int val){ st[++top]=val; }\nvoid pop(){ top--; }\nvoid display(){ for(int i=top;i>=0;i--) cout<<st[i]<<\" \"; }\nint main(){\n    for(int i=1;i<10;i++) push(i);\n    for(int i=1;i<10;i+=2) pop();\n    display();\n}",
+   "out": "4 3 2 1",
+   "steps": [
+    "دفع 1..9 ثم خمس عمليات Pop تحذف 9 و8 و7 و6 و5؛ الباقي يُطبع 4 3 2 1.",
+    "Context: نفس الناتج العددي كسؤال آخر لكن عمليات الـLoop مختلفة؛ يحتفظ به الموقع باعتباره كودًا مختلفًا."
+   ]
+  },
+  {
+   "id": "cpqz2-fo06",
+   "subj": "cs212",
+   "title": "Queue / Old Finals — two dequeues after refill",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint queueArr[5], front=-1, rear=-1;\nvoid enqueue(int val){\n    if(front==-1) front=0;\n    queueArr[++rear]=val;\n}\nvoid dequeue(){ front++; }\nvoid Display(){\n    for(int i=front;i<=rear;i++) cout<<queueArr[i]<<\" \";\n}\nint main(){\n    enqueue(1); enqueue(2); enqueue(3); dequeue();\n    enqueue(4); enqueue(5); dequeue(); dequeue();\n    Display();\n}",
+   "out": "4 5",
+   "steps": [
+    "Front يتحرك بعد حذف 1 ثم حذف 2 ثم 3، فيتبقى 4 و5.",
+    "Context: الكود الموجود في المصدر يستخدم Array بحجم 5، ومفيش أي عملية هنا تتجاوز السعة."
+   ]
+  },
+  {
+   "id": "cpqz2-fo07",
+   "subj": "cs212",
+   "title": "Pointers / Spring 2022 Final — swap through pointers",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nvoid s(int *n1,int *n2){\n    int t=*n1;\n    *n1=*n2;\n    *n2=t;\n}\nint main(){\n    int n1=5,n2=6;\n    s(&n1,&n2);\n    cout<<n1<<n2;\n}",
+   "out": "65",
+   "steps": [
+    "الدالة تبدل قيمتي المتغيرين عن طريق العناوين: n1=6 وn2=5؛ لا توجد مسافة في cout."
+   ]
+  },
+  {
+   "id": "cpqz2-fo08",
+   "subj": "cs212",
+   "title": "Pointers / Spring 2022 Final — pointer arithmetic and sum",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nint main(){\n    int a[5]={1,2,3,2,1},i,s=1;\n    int *p=a;\n    for(i=0;i<5;i++)\n        s=s+*(p+i);\n    cout<<s;\n}",
+   "out": "10",
+   "steps": [
+    "العناصر مجموعها 9؛ s بدأ بقيمة 1 فيصبح الناتج 10."
+   ]
+  },
+  {
+   "id": "cpqz2-fo09",
+   "subj": "cs212",
+   "title": "Queue / Practice screenshots — enqueue/dequeue chain",
+   "lang": "C++",
+   "code": "// Queue starts empty; display() prints front to rear.\nenqueue(5); enqueue(7); dequeue();\nenqueue(0); enqueue(4);\ndequeue(); dequeue();\nenqueue(50); enqueue(70); dequeue();\nenqueue(0); enqueue(40);\ndisplay();",
+   "out": "50 70 0 40",
+   "steps": [
+    "بعد إزالة 5 ثم 7 ثم 0 ثم 4، يتبقى في النهاية 50 و70 و0 و40.",
+    "Context: المصدر عرض العمليات كسؤال نصي لا كبرنامج كامل؛ الكود هنا يكتب نفس التسلسل بالضبط."
+   ]
+  },
+  {
+   "id": "cpqz2-fo10",
+   "subj": "cs212",
+   "title": "Queue / Practice screenshots — front after one dequeue",
+   "lang": "C++",
+   "code": "// Queue initially empty; FIFO display() prints front to rear.\nenqueue(5);\nenqueue(7);\ndequeue();\nenqueue(0);\nenqueue(4);\ndisplay();",
+   "out": "7 0 4",
+   "steps": [
+    "الـDequeue حذف 5، فيتبقى 7 و0 و4. الاختيار المعلّم في لقطة الطالب غير صحيح؛ هذا ناتج تتبع FIFO."
+   ]
+  },
+  {
+   "id": "cpqz2-fo11",
+   "subj": "cs212",
+   "title": "Linked List / delete_position(3)",
+   "lang": "C++",
+   "code": "// List implementation in the source appends each createnode.\nlist obj;\nobj.createnode(25);\nobj.createnode(50);\nobj.createnode(90);\nobj.createnode(40);\nobj.createnode(60);\nobj.createnode(750);\ncout<<\"Before: \"; obj.display();\nobj.delete_position(3);\ncout<<\"\nAfter: \"; obj.display();",
+   "out": "Before: 25 50 90 40 60 750\nAfter: 25 50 90 60 750",
+   "steps": [
+    "الورقة توضح أن delete_position(3) تحذف العنصر ذي الفهرس 3 (zero-based) وهو 40؛ بقية الروابط تظل سليمة.",
+    "Context: كود الدوال createnode/display/delete_position ليس معروضًا في اللقطة؛ الإجابة تتبع سلوكها الظاهر في نتيجة الامتحان: Append + zero-based Delete."
+   ]
+  },
+  {
+   "id": "cpqz2-fo12",
+   "subj": "cs212",
+   "title": "Linked List / insert_position(2,5)",
+   "lang": "C++",
+   "code": "// List implementation appends createnode; position is zero-based.\nlist obj;\nobj.createnode(25);\nobj.createnode(50);\nobj.createnode(90);\nobj.createnode(40);\nobj.createnode(75);\nobj.createnode(888);\nobj.createnode(650);\ncout<<\"Before: \"; obj.display();\nobj.insert_position(2,5);\ncout<<\"\nAfter: \"; obj.display();",
+   "out": "Before: 25 50 90 40 75 888 650\nAfter: 25 50 5 90 40 75 888 650",
+   "steps": [
+    "Insert at index 2 يعني وضع 5 بعد 50 وقبل 90 مع تعديل روابط next.",
+    "Context: الدوال ليست كاملة في اللقطة؛ هذا نفس السلوك المعروض في صورة إجابة الاختبار."
+   ]
+  },
+  {
+   "id": "cpqz2-fo13",
+   "subj": "cs212",
+   "title": "Linked List / delete_position(4)",
+   "lang": "C++",
+   "code": "// Source example: create appends; deletion uses zero-based index.\nlist obj;\nobj.createnode(25);\nobj.createnode(50);\nobj.createnode(90);\nobj.createnode(40);\nobj.createnode(60);\nobj.createnode(10);\nobj.createnode(77);\ncout<<\"Before: \"; obj.displayRF();\nobj.delete_position(4);\ncout<<\"\nAfter: \"; obj.displayRF();",
+   "out": "Before: 25 50 90 40 60 10 77\nAfter: 25 50 90 40 10 77",
+   "steps": [
+    "الحذف بالـZero-based index 4 يزيل 60، ثم تربط Node 40 مباشرة بالعقدة 10.",
+    "Context: اسم displayRF والدالة delete_position وردا في لقطة المصدر. ناتج البرنامج معروض فيها، وإن لم يُعرض تعريف الدوال بالكامل."
+   ]
+  },
+  {
+   "id": "cpqz2-y01",
+   "subj": "cs212",
+   "title": "Pointer and array arithmetic",
+   "lang": "C++",
+   "code": "int a[4]={3,6,9,12};\nint *p=a;\np++;\n*p += 2;\ncout << a[1] << \" \" << *(p+2);",
+   "out": "8 12",
+   "steps": [
+    "p++ ينتقل إلى a[1] ويعدلها من 6 إلى 8، وp+2 عند a[3]=12."
+   ]
+  },
+  {
+   "id": "cpqz2-y02",
+   "subj": "cs212",
+   "title": "Pass by reference and pointer",
+   "lang": "C++",
+   "code": "void f(int *p, int &r) { *p += 2; r += *p; }\nint main() {\n    int x=5, y=10;\n    f(&x,y);\n    cout << x << \" \" << y;\n}",
+   "out": "7 17",
+   "steps": [
+    "x يصبح 7 بواسطة المؤشر، ثم y يزيد بقيمة x الجديدة فيصبح 17."
+   ]
+  },
+  {
+   "id": "cpqz2-y03",
+   "subj": "cs212",
+   "title": "Pointer to pointer update",
+   "lang": "C++",
+   "code": "int x=4;\nint *p=&x;\nint **q=&p;\n**q=10;\ncout << x << \" \" << *p;",
+   "out": "10 10",
+   "steps": [
+    "**q يصل إلى x ويعدله مباشرة، و*p يقرأ القيمة الجديدة."
+   ]
+  },
+  {
+   "id": "cpqz2-y04",
+   "subj": "cs212",
+   "title": "Pointer increment and dereference",
+   "lang": "C++",
+   "code": "int arr[]={2,5,8,11};\nint *p=arr+1;\ncout << *p << \" \";\np += 2;\ncout << *p;",
+   "out": "5 11",
+   "steps": [
+    "p يبدأ عند arr[1]، وبعد التحريك بمقدار عنصرين يصل إلى arr[3]."
+   ]
+  },
+  {
+   "id": "cpqz2-y05",
+   "subj": "cs212",
+   "title": "Singly linked insertAfter",
+   "lang": "C++",
+   "code": "// Initial list: 10 -> 20 -> 30 -> NULL\nNode *temp = head->next; // points to 20\nNode *n = new Node{25,nullptr};\nn->next = temp->next;\ntemp->next = n;\nfor(Node *p=head; p; p=p->next) cout<<p->data<<\" \";",
+   "out": "10 20 25 30",
+   "steps": [
+    "temp يشير إلى 20؛ نربط 25 بالعقدة 30 ثم نجعل 20 تشير إلى 25."
+   ]
+  },
+  {
+   "id": "cpqz2-y06",
+   "subj": "cs212",
+   "title": "Singly linked delete next",
+   "lang": "C++",
+   "code": "// Initial list: 10 -> 20 -> 30 -> 40 -> NULL\nNode *temp = head->next; // points to 20\nNode *gone = temp->next;\ntemp->next = gone->next;\ndelete gone;\nfor(Node *p=head; p; p=p->next) cout<<p->data<<\" \";",
+   "out": "10 20 40",
+   "steps": [
+    "تم حذف العقدة 30 وتعديل next في عقدة 20 لتشير إلى 40."
+   ]
   }
  ]
-}
+};
