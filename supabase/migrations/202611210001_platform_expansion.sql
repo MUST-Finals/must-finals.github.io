@@ -192,11 +192,18 @@ create policy student_resources_update on public.student_resources
   for update using (user_id = auth.uid() and moderation_status = 'pending')
   with check (user_id = auth.uid() and moderation_status = 'pending');
 
+-- Security-definer helper avoids recursive RLS policy evaluation across room tables.
+create or replace function public.is_study_room_member(target_room uuid)
+returns boolean language sql stable security definer set search_path = public
+as $ select exists (select 1 from public.study_room_members m where m.room_id = target_room and m.user_id = auth.uid()) $;
+revoke all on function public.is_study_room_member(uuid) from public;
+grant execute on function public.is_study_room_member(uuid) to authenticated;
+
 -- Study room access: public rooms or rooms the user owns/has joined.
 drop policy if exists study_rooms_read on public.study_rooms;
 create policy study_rooms_read on public.study_rooms for select using (
   visibility = 'public' or owner_id = auth.uid()
-  or exists (select 1 from public.study_room_members m where m.room_id = id and m.user_id = auth.uid())
+  or public.is_study_room_member(id)
 );
 drop policy if exists study_rooms_insert on public.study_rooms;
 create policy study_rooms_insert on public.study_rooms for insert with check (owner_id = auth.uid());
@@ -208,7 +215,7 @@ create policy study_rooms_delete on public.study_rooms for delete using (owner_i
 drop policy if exists study_room_members_read on public.study_room_members;
 create policy study_room_members_read on public.study_room_members for select using (
   user_id = auth.uid() or exists (select 1 from public.study_rooms r where r.id = room_id and (r.visibility = 'public' or r.owner_id = auth.uid()))
-  or exists (select 1 from public.study_room_members m where m.room_id = room_id and m.user_id = auth.uid())
+  or public.is_study_room_member(room_id)
 );
 drop policy if exists study_room_members_join on public.study_room_members;
 create policy study_room_members_join on public.study_room_members for insert with check (
@@ -222,7 +229,7 @@ create policy study_room_members_leave on public.study_room_members for delete u
 
 drop policy if exists study_room_messages_read on public.study_room_messages;
 create policy study_room_messages_read on public.study_room_messages for select using (
-  exists (select 1 from public.study_room_members m where m.room_id = room_id and m.user_id = auth.uid())
+  public.is_study_room_member(room_id)
   or exists (select 1 from public.study_rooms r where r.id = room_id and r.visibility = 'public')
 );
 drop policy if exists study_room_messages_insert on public.study_room_messages;
