@@ -1553,3 +1553,137 @@ document.addEventListener('DOMContentLoaded', () => {
     bm.insertAdjacentHTML('afterend', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a>');
   }
 });
+
+/* ============ MUST Finals - part 7: Boolean evaluator with steps, focus timer ============ */
+
+/* Boolean expression -> RPN, with a real evaluation trace */
+function boolTokens(expr) {
+  const raw = expr.match(/\bAND\b|\bOR\b|\bNOT\b|\bXOR\b|[ABCDabcd()!~'&|^*.+]/gi) || [];
+  const toks = raw.map(t => {
+    const u = t.toUpperCase();
+    if (u === 'AND' || t === '&' || t === '*' || t === '.') return { op: 'and' };
+    if (u === 'OR' || t === '|' || t === '+') return { op: 'or' };
+    if (u === 'XOR' || t === '^') return { op: 'xor' };
+    if (u === 'NOT' || t === '!' || t === '~' || t === "'") return { op: 'not' };
+    if (t === '(') return { op: 'lp' };
+    if (t === ')') return { op: 'rp' };
+    return { var: t.toUpperCase() };
+  });
+  // implicit AND between value/lp followed by value/not/lp
+  const out = [];
+  for (let i = 0; i < toks.length; i++) {
+    const a = toks[i - 1], b = toks[i];
+    if (a && (a.var || a.op === 'rp' || a.op === 'not') && (b.var || b.op === 'lp' || b.op === 'not')) {
+      if (!(a.op === 'not' && false)) out.push({ op: 'and' });
+    }
+    out.push(b);
+  }
+  return out;
+}
+function boolRPN(toks) {
+  const prec = { or: 1, xor: 1, and: 2, not: 3 };
+  const out = [], st = [];
+  for (const t of toks) {
+    if (t.var) out.push(t);
+    else if (t.op === 'lp') st.push(t);
+    else if (t.op === 'rp') { while (st.length && st[st.length - 1].op !== 'lp') out.push(st.pop()); st.pop(); }
+    else { while (st.length && st[st.length - 1].op !== 'lp' && prec[st[st.length - 1].op] >= prec[t.op]) out.push(st.pop()); st.push(t); }
+  }
+  while (st.length) out.push(st.pop());
+  return out;
+}
+function boolSteps(expr, env) {
+  const rpn = boolRPN(boolTokens(expr));
+  const st = [], steps = [];
+  const fmt = t => t.var !== undefined ? t.var : t.op;
+  for (const t of rpn) {
+    if (t.var !== undefined) st.push({ v: env[t.var] ? 1 : 0, label: t.var });
+    else if (t.op === 'not') { const a = st.pop(); const r = { v: a.v ? 0 : 1, label: 'NOT ' + a.label }; steps.push(`NOT ${a.label} = NOT ${a.v} = ${r.v}`); st.push(r); }
+    else { const b = st.pop(), a = st.pop(); const sym = { and: 'AND', or: 'OR', xor: 'XOR' }[t.op];
+      const r = { v: t.op === 'and' ? (a.v & b.v) : t.op === 'or' ? (a.v | b.v) : (a.v ^ b.v), label: `(${a.label} ${sym} ${b.label})` };
+      steps.push(`${a.label} ${sym} ${b.label} = ${a.v} ${sym} ${b.v} = ${r.v}`); st.push(r); }
+  }
+  return { steps, result: st.length === 1 ? st[0].v : null };
+}
+
+/* add evaluator card into the truth table tool */
+const _viewTools = viewTools;
+viewTools = async function (which) {
+  await _viewTools(which);
+  if (which !== 'truthtable') return;
+  const host = $('#app');
+  if (!host || $('#be-card')) return;
+  host.insertAdjacentHTML('beforeend', `
+  <div class="card" id="be-card" style="padding:18px;margin-top:14px">
+    <div class="blk-h"><h2>${ic('cpu')} Boolean evaluator with steps</h2><span class="sp"></span><span class="hint">Practice tool - not course material</span></div>
+    <p class="hint">Enter an expression (variables A-D, AND OR NOT XOR, &, |, !, ^, parentheses), pick values, and see every real evaluation step.</p>
+    <div class="rowflex"><input class="inp" id="be-expr" style="flex:2" placeholder="e.g. (A AND B) OR !C" value="(A AND B) OR !C" aria-label="Boolean expression"></div>
+    <div class="rowflex" style="margin-top:8px" id="be-vars"></div>
+    <div class="rowflex" style="margin-top:8px"><button type="button" class="btn" id="be-run">${ic('play')} Evaluate step by step</button></div>
+    <div id="be-out" style="margin-top:10px"></div>
+  </div>`);
+  const paintVars = () => {
+    const expr = $('#be-expr').value;
+    const vars = [...new Set(boolTokens(expr).filter(t => t.var).map(t => t.var))].sort();
+    $('#be-vars').innerHTML = vars.map(v => `<label class="hint">${v} = <select class="inp be-val" data-v="${v}"><option value="0">0</option><option value="1">1</option></select></label>`).join('') || '<span class="hint">No variables detected</span>';
+  };
+  $('#be-expr').addEventListener('input', paintVars);
+  paintVars();
+  $('#be-run').addEventListener('click', () => {
+    const env = {};
+    $$('.be-val').forEach(s => env[s.dataset.v] = s.value === '1' ? 1 : 0);
+    try {
+      const { steps, result } = boolSteps($('#be-expr').value, env);
+      if (result === null) { $('#be-out').innerHTML = '<p class="hint">Could not parse the expression.</p>'; return; }
+      $('#be-out').innerHTML = `<ol class="notes">${steps.map(s => `<li><code>${esc(s)}</code></li>`).join('')}</ol>
+        <p style="font-weight:800;font-size:16px">Result: <span class="pill ${result ? 'good' : 'bad'}">${result}</span></p>`;
+    } catch (e) { $('#be-out').innerHTML = '<p class="hint">Could not parse the expression.</p>'; }
+  });
+};
+
+/* ---- focus timer (real stopwatch/countdown, logs completed sessions) ---- */
+let FT = null;
+function ensureFocusWidget() {
+  if ($('#focus-widget')) return;
+  const w = document.createElement('div');
+  w.id = 'focus-widget';
+  w.innerHTML = `<button type="button" class="qtool" id="fw-toggle" aria-label="Focus timer">${ic('timer')}<span id="fw-label">Focus</span></button>
+    <div id="fw-panel" style="display:none">
+      <div class="rowflex">${[15, 25, 50].map(m => `<button type="button" class="qtool fw-min" data-m="${m}">${m}m</button>`).join('')}</div>
+      <div id="fw-clock">--:--</div>
+      <div class="rowflex">
+        <button type="button" class="btn sm" id="fw-start">Start</button>
+        <button type="button" class="btn ghost sm" id="fw-reset">Reset</button>
+      </div>
+    </div>`;
+  document.body.appendChild(w);
+  const fmt = s => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+  const paint = () => {
+    $('#fw-clock').textContent = FT && FT.left != null ? fmt(FT.left) : '--:--';
+    $('#fw-label').textContent = FT && FT.running ? fmt(FT.left) : 'Focus';
+    $('#fw-start').textContent = FT && FT.running ? 'Pause' : 'Start';
+    document.body.classList.toggle('focusing', !!(FT && FT.running));
+  };
+  const tick = async () => {
+    if (!FT || !FT.running) return;
+    FT.left--;
+    if (FT.left <= 0) {
+      FT.running = false; FT.left = FT.mins * 60;
+      clearInterval(FT.t); FT.t = null;
+      await logAct(`Focus session: ${FT.mins} minutes`);
+      toast('Focus session done - logged to your activity');
+    }
+    paint();
+  };
+  $('#fw-toggle').addEventListener('click', () => { const p = $('#fw-panel'); p.style.display = p.style.display === 'none' ? 'block' : 'none'; });
+  $$('.fw-min').forEach(b => b.addEventListener('click', () => { FT = { mins: +b.dataset.m, left: +b.dataset.m * 60, running: false, t: null }; paint(); }));
+  $('#fw-start').addEventListener('click', () => {
+    if (!FT) FT = { mins: 25, left: 25 * 60, running: false, t: null };
+    FT.running = !FT.running;
+    if (FT.running && !FT.t) FT.t = setInterval(tick, 1000);
+    if (!FT.running && FT.t) { clearInterval(FT.t); FT.t = null; }
+    paint();
+  });
+  $('#fw-reset').addEventListener('click', () => { if (FT) { FT.running = false; if (FT.t) clearInterval(FT.t); FT.t = null; FT.left = FT.mins * 60; paint(); } });
+}
+document.addEventListener('DOMContentLoaded', ensureFocusWidget);
