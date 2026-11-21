@@ -423,6 +423,38 @@ function wqHtml(w) {
   </div>`;
 }
 
+
+// ---- In-page Drive PDF viewer (with open/download fallback) ----
+function driveFileId(u) { const m = String(u || '').match(/drive\.google\.com\/file\/d\/([\w-]+)/); return m ? m[1] : null; }
+function openDriveViewer(url, title) {
+  const id = driveFileId(url); if (!id) return false;
+  let ov = document.getElementById('pdfview');
+  if (!ov) { ov = document.createElement('div'); ov.id = 'pdfview'; ov.className = 'pdfview'; document.body.appendChild(ov); }
+  const dl = 'https://drive.google.com/uc?export=download&id=' + id;
+  ov.innerHTML = '<div class="pv-backdrop" data-pvclose="1"></div>' +
+    '<div class="pv-box" role="dialog" aria-modal="true" aria-label="' + esc(title || 'PDF') + '">' +
+    '<div class="pv-head"><span class="pv-title">' + esc(title || 'PDF') + '</span><span class="pv-actions">' +
+    '<a class="btn ghost sm" href="' + url + '" target="_blank" rel="noopener">Open in Drive</a>' +
+    '<a class="btn ghost sm" href="' + dl + '" target="_blank" rel="noopener">Download</a>' +
+    '<button type="button" class="btn ghost sm" data-pvclose="1">Close</button>' +
+    '</span></div>' +
+    '<iframe class="pv-frame" src="https://drive.google.com/file/d/' + id + '/preview" title="' + esc(title || 'PDF') + '"></iframe>' +
+    '</div>';
+  ov.style.display = 'block'; document.body.classList.add('noscroll');
+  return true;
+}
+function closeDriveViewer() { const ov = document.getElementById('pdfview'); if (ov) { ov.style.display = 'none'; ov.innerHTML = ''; document.body.classList.remove('noscroll'); } }
+document.addEventListener('click', (e) => {
+  if (e.target.closest('[data-pvclose]')) { closeDriveViewer(); return; }
+  if (e.target.closest('.pdfview')) return;
+  const a = e.target.closest('a[href]');
+  if (a && driveFileId(a.href) && !e.metaKey && !e.ctrlKey && !e.shiftKey) {
+    e.preventDefault();
+    openDriveViewer(a.href, a.dataset.pvtitle || (a.textContent || '').trim());
+  }
+});
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDriveViewer(); });
+
 async function viewSubject(key, focusQid) {
   const s = subjByKey(key);
   if (!s) { nav('/'); return; }
@@ -477,6 +509,7 @@ async function viewSubject(key, focusQid) {
       <a class="btn" href="#/exam/${s.key}">${ic('timer')} Start mock exam</a>
       <a class="btn ghost" href="#/">${ic('al')} Dashboard</a>
     </div>
+    ${(s.banks || []).length ? `<div class="rowflex" style="margin-top:10px">${s.banks.map(b => `<a class="matbtn" href="${b.link}" target="_blank" rel="noopener" data-pvtitle="${esc(b.title)}">${ic('doc') || ''} ${esc(b.title)}</a>`).join('')}</div>` : ''}
   </section>
   <div class="search">${ic('search')}<input id="subj-search" type="search" placeholder="Search lectures, sections and questions in ${esc(s.code)}..." aria-label="Search this subject"></div>
   <div class="blk"><div class="blk-h"><h2>Lectures &amp; ${s.seckind === 'Lab' ? 'Labs' : 'Sections'}</h2></div>${pairs}</div>

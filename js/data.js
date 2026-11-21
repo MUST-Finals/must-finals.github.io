@@ -5,6 +5,12 @@ window.DATA = {
    "code": "CS.212",
    "full": "Data Structures",
    "seckind": "Lab",
+   "banks": [
+    {
+     "title": "بنك أسئلة المحاضرة 6 واللاب 6 (PDF)",
+     "link": "https://drive.google.com/file/d/1_UX0LVJMRM6YbmYU3-g3wq1E26YFktkh/view"
+    }
+   ],
    "lectures": [
     {
      "n": 1,
@@ -4618,12 +4624,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "What is a tree in data structures?",
    "opts": [
-    "A non-linear abstract data type with a hierarchy-based structure of nodes connected by edges",
-    "A linear data structure where each element points to the next",
     "An array stored in sorted order in memory",
-    "A graph that must contain a cycle"
+    "A graph that must contain a cycle",
+    "A non-linear abstract data type with a hierarchy-based structure of nodes connected by edges",
+    "A linear data structure where each element points to the next"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "الشجرة هيكل غير خطي (non-linear) قائم على التسلسل الهرمي: عقد (nodes) متصلة بروابط (edges)."
   },
   {
@@ -4634,12 +4640,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "How many root nodes can a tree have?",
    "opts": [
-    "Exactly one",
     "Two at most",
+    "Exactly one",
     "Any number",
     "Zero - a tree can be rootless"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "أي شجرة لازم يكون ليها جذر واحد بس، ومستحيل يكون فيها أكتر من root."
   },
   {
@@ -4650,12 +4656,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "A tree has 20 nodes. How many edges does it have?",
    "opts": [
+    "10",
     "19",
     "20",
-    "21",
-    "10"
+    "21"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "شجرة فيها n عقدة يبقى فيها بالظبط n-1 رابط: 20-1=19."
   },
   {
@@ -4666,12 +4672,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "Which statement about child nodes is correct?",
    "opts": [
-    "All nodes except the root are child nodes",
-    "Only leaf nodes are child nodes",
     "A node can have two parents",
-    "The root is a child of itself"
+    "The root is a child of itself",
+    "Only leaf nodes are child nodes",
+    "All nodes except the root are child nodes"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "كل العقد ما عدا الـroot تعتبر child لعقدة أب واحدة فقط."
   },
   {
@@ -4682,12 +4688,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "Nodes that belong to the same parent are called:",
    "opts": [
+    "Internal nodes",
     "Siblings",
-    "Ancestors",
     "Leaves",
-    "Internal nodes"
+    "Ancestors"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "العقد اللي ليها نفس الأب اسمها siblings (أشقاء)."
   },
   {
@@ -4698,12 +4704,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "A leaf node is:",
    "opts": [
+    "The top node of the tree",
     "A node with no children",
     "A node with exactly one child",
-    "The top node of the tree",
     "Any node with two children"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "الـleaf مالهاش أطفال، وبتتسمى كمان external أو terminal node."
   },
   {
@@ -4714,12 +4720,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "An internal node is:",
    "opts": [
-    "A node that has at least one child",
-    "A node with no children",
     "Only the root",
-    "The deepest leaf"
+    "The deepest leaf",
+    "A node that has at least one child",
+    "A node with no children"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "أي عقدة عندها طفل واحد على الأقل = internal (non-terminal)؛ يعني كل عقدة مش leaf."
   },
   {
@@ -4731,8 +4737,8 @@ window.DATA = {
    "q": "At which level is the root node?",
    "opts": [
     "Level 0",
-    "Level 1",
     "Level -1",
+    "Level 1",
     "It depends on the tree size"
    ],
    "a": 0,
@@ -4746,12 +4752,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "The degree of a node is:",
    "opts": [
-    "The total number of children of that node",
     "The number of edges from the root to it",
+    "The length of the longest path to a leaf",
     "The number of its siblings",
-    "The length of the longest path to a leaf"
+    "The total number of children of that node"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "degree العقدة = عدد أطفالها. أما degree الشجرة كلها = أعلى degree موجودة في أي عقدة."
   },
   {
@@ -4763,8 +4769,8 @@ window.DATA = {
    "q": "The height of a node is:",
    "opts": [
     "The number of edges on the longest path from that node down to a leaf",
-    "The number of edges from the root to that node",
     "The number of children it has",
+    "The number of edges from the root to that node",
     "Always equal to its depth"
    ],
    "a": 0,
@@ -4778,12 +4784,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "The depth of the root node is:",
    "opts": [
-    "0",
-    "1",
     "The height of the tree",
-    "The number of nodes"
+    "The number of nodes",
+    "0",
+    "1"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "depth العقدة = عدد الـedges من الـroot ليها، والـroot نفسه depth = 0. المصطلحان level وdepth بيستخدموا بالتبادل."
   },
   {
@@ -4794,12 +4800,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "According to the lecture, trees combine which advantages?",
    "opts": [
-    "Searching as fast as an ordered array, with insertion and deletion as fast as a linked list",
-    "Constant-time access to any element like an array index",
     "The memory layout of an array with the size of a file",
-    "Sorting speed of a heap with the printing speed of a list"
+    "Constant-time access to any element like an array index",
+    "Sorting speed of a heap with the printing speed of a list",
+    "Searching as fast as an ordered array, with insertion and deletion as fast as a linked list"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "من مميزات الشجرة: البحث بسرعة المصفوفة المرتبة، والإضافة والحذف بسرعة القائمة المتصلة."
   },
   {
@@ -4810,12 +4816,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "Which of these is NOT one of the tree types listed in the lecture?",
    "opts": [
-    "Trie",
-    "Binary Tree",
     "AVL Tree",
-    "B-Tree"
+    "Trie",
+    "B-Tree",
+    "Binary Tree"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "الأنواع المذكورة في المحاضرة: Binary Tree وBST وAVL Tree وB-Tree وHeap. الـTrie مش منهم."
   },
   {
@@ -4826,12 +4832,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "In a binary tree, each node can have at most:",
    "opts": [
-    "Two children: a left child and a right child",
-    "One child",
     "Three children",
+    "One child",
+    "Two children: a left child and a right child",
     "Any number of children"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "الـbinary tree كل عقدة فيها بحد أقصى طفلين: left child وright child."
   },
   {
@@ -4842,12 +4848,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "A full binary tree is one in which:",
    "opts": [
-    "Every node has either two children or no children",
     "Every level is completely filled and leaves lean left",
-    "All leaves are at the same level and every internal node has two children",
-    "Each node has exactly one child"
+    "Every node has either two children or no children",
+    "Each node has exactly one child",
+    "All leaves are at the same level and every internal node has two children"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "full binary tree: كل عقدة إما ليها طفلين أو صفر. (اللي أوراقها كلها في نفس المستوى وكل الداخليين ليهم طفلين دي perfect.)"
   },
   {
@@ -4859,8 +4865,8 @@ window.DATA = {
    "q": "A complete binary tree:",
    "opts": [
     "Has every level completely filled, with all leaf elements leaning towards the left",
-    "Must always be a full binary tree",
     "Has all nodes with exactly two children",
+    "Must always be a full binary tree",
     "Has exactly one leaf node"
    ],
    "a": 0,
@@ -4875,9 +4881,9 @@ window.DATA = {
    "q": "The main rule of a Binary Search Tree is that for any node:",
    "opts": [
     "All values in the left subtree are smaller, and all values in the right subtree are greater",
-    "All values in the left subtree are greater, and all values in the right subtree are smaller",
+    "The left child must be a leaf",
     "Both subtrees must have equal numbers of nodes",
-    "The left child must be a leaf"
+    "All values in the left subtree are greater, and all values in the right subtree are smaller"
    ],
    "a": 0,
    "exp": "قاعدة الـBST: اللي على الشمال أصغر من العقدة، واللي على اليمين أكبر."
@@ -4891,9 +4897,9 @@ window.DATA = {
    "q": "Which of these is a stated BST property in the lecture?",
    "opts": [
     "A BST does not contain duplicate values",
-    "A BST can hold any number of children per node",
+    "A BST requires all leaves at the same level",
     "A BST sorts values only after a full traversal",
-    "A BST requires all leaves at the same level"
+    "A BST can hold any number of children per node"
    ],
    "a": 0,
    "exp": "من خواص الـBST: مفيش قيم مكررة، وكل subtree فيه تعتبر BST لوحدها (recursive definition)."
@@ -4906,12 +4912,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "Inserting into a BST works by:",
    "opts": [
-    "Following the search path left/right until reaching a null position, then placing the new node there",
-    "Always inserting at the root and shifting the rest",
     "Placing the new value at the first empty leaf on the left",
-    "Rebuilding the whole tree from scratch each time"
+    "Always inserting at the root and shifting the rest",
+    "Rebuilding the whole tree from scratch each time",
+    "Following the search path left/right until reaching a null position, then placing the new node there"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "الإدخال زي البحث: ننزل يمين أو شمال لحد ما نوصل لمكان فاضي (null) ونحط العقدة الجديدة فيه."
   },
   {
@@ -4922,12 +4928,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "How many cases must be handled when deleting a node from a BST?",
    "opts": [
-    "Three: the node is a leaf, has one child, or has two children",
-    "One: simply remove it",
+    "Four: one per traversal",
     "Two: internal or leaf",
-    "Four: one per traversal"
+    "Three: the node is a leaf, has one child, or has two children",
+    "One: simply remove it"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "الحذف في BST ليه 3 حالات: عقدة ورقة (بدون أطفال)، عقدة بطفل واحد، عقدة بطفلين."
   },
   {
@@ -4938,12 +4944,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "Which BST traversal visits nodes in ascending order?",
    "opts": [
-    "In-order",
     "Pre-order",
-    "Post-order",
-    "Level-order"
+    "In-order",
+    "Level-order",
+    "Post-order"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "in-order = شمال، جذر، يمين؛ وفي BST بيطلع القيم مرتبة تصاعديًا."
   },
   {
@@ -4955,9 +4961,9 @@ window.DATA = {
    "q": "Pre-order traversal visits nodes in which order?",
    "opts": [
     "Root node, left subtree, right subtree",
-    "Left subtree, root node, right subtree",
     "Left subtree, right subtree, root node",
-    "Right subtree, root node, left subtree"
+    "Right subtree, root node, left subtree",
+    "Left subtree, root node, right subtree"
    ],
    "a": 0,
    "exp": "pre-order: الجذر الأول، بعدين الشمال، بعدين اليمين."
@@ -4970,12 +4976,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "Post-order traversal visits nodes in which order?",
    "opts": [
-    "Left subtree, right subtree, root node",
     "Root node, left subtree, right subtree",
+    "Root node, right subtree, left subtree",
     "Left subtree, root node, right subtree",
-    "Root node, right subtree, left subtree"
+    "Left subtree, right subtree, root node"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "post-order: الشمال، بعدين اليمين، والجذر في الآخر."
   },
   {
@@ -4986,12 +4992,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "A BST is built by inserting: 45, 15, 79, 90, 10, 55, 12, 20, 50 (the lecture's example). What is the root?",
    "opts": [
-    "45",
     "15",
+    "79",
     "50",
-    "79"
+    "45"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "أول قيمة بتدخل بتبقى هي الجذر: 45."
   },
   {
@@ -5004,8 +5010,8 @@ window.DATA = {
    "opts": [
     "The left child of 55",
     "The right child of 55",
-    "The left child of 45",
-    "The right child of 20"
+    "The right child of 20",
+    "The left child of 45"
    ],
    "a": 0,
    "exp": "50>45 يمين، 50<79 شمال، 50<55 شمال: يبقى 50 الـleft child بتاع 55."
@@ -5020,8 +5026,8 @@ window.DATA = {
    "opts": [
     "10, 12, 15, 20, 45, 50, 55, 79, 90",
     "45, 15, 10, 12, 20, 79, 55, 50, 90",
-    "12, 10, 20, 15, 50, 55, 90, 79, 45",
-    "10, 15, 12, 20, 50, 55, 45, 79, 90"
+    "10, 15, 12, 20, 50, 55, 45, 79, 90",
+    "12, 10, 20, 15, 50, 55, 90, 79, 45"
    ],
    "a": 0,
    "exp": "in-order في BST بيطلع القيم مرتبة تصاعديًا: 10,12,15,20,45,50,55,79,90."
@@ -5034,12 +5040,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "The height of that tree (insert 45, 15, 79, 90, 10, 55, 12, 20, 50) is:",
    "opts": [
+    "8",
     "3",
-    "2",
     "4",
-    "8"
+    "2"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "أطول مسار من الجذر لورقة: 45←15←10←12، يعني 3 edges. الـheight = 3."
   },
   {
@@ -5050,12 +5056,12 @@ window.DATA = {
    "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
    "q": "When searching a BST for a value smaller than the current node, you:",
    "opts": [
-    "Move to the left child",
-    "Move to the right child",
     "Restart from the root",
+    "Move to the right child",
+    "Move to the left child",
     "Visit every node"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "لو القيمة أصغر من العقدة الحالية نروح للشمال؛ لو أكبر نروح لليمين. كده مش محتاجين نزور كل العقد."
   },
   {
@@ -5178,12 +5184,12 @@ window.DATA = {
    "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
    "q": "The lab's find-minimum example relies on which BST fact?",
    "opts": [
-    "The minimum value is found by following left children until reaching NULL",
-    "The minimum is always the root",
+    "You must traverse every node to find the minimum",
     "The minimum is the deepest right node",
-    "You must traverse every node to find the minimum"
+    "The minimum is always the root",
+    "The minimum value is found by following left children until reaching NULL"
    ],
-   "a": 0,
+   "a": 3,
    "exp": "أصغر قيمة في BST دايمًا في أقصى الشمال: نمشي left لحد NULL."
   },
   {
@@ -5195,9 +5201,9 @@ window.DATA = {
    "q": "The lab constructs a BST from its level order traversal using which two approaches?",
    "opts": [
     "Recursion and a queue",
+    "Sorting and binary search",
     "A stack and a heap",
-    "Two arrays",
-    "Sorting and binary search"
+    "Two arrays"
    ],
    "a": 0,
    "exp": "أول مثالين في اللاب: بناء الـBST من الـlevel order مرة بالـrecursion ومرة بالـqueue."
@@ -5210,12 +5216,12 @@ window.DATA = {
    "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
    "q": "According to the lab's deletion note, the deletion process in a BST depends on:",
    "opts": [
-    "The number of children of the node",
-    "The value stored in the root",
     "The height of the tree only",
+    "The value stored in the root",
+    "The number of children of the node",
     "The insertion order of the other nodes"
    ],
-   "a": 0,
+   "a": 2,
    "exp": "ملاحظة اللاب نفسها: الحذف بيعتمد على عدد أطفال العقدة (ورقة / طفل واحد / طفلين)."
   },
   {
@@ -5226,12 +5232,12 @@ window.DATA = {
    "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
    "q": "In the lab's recursive search example (searching for 7), the recursion stops when:",
    "opts": [
-    "The value is found or a NULL subtree is reached",
-    "Every node has been visited",
     "The root is printed",
-    "The leftmost leaf is reached"
+    "The value is found or a NULL subtree is reached",
+    "The leftmost leaf is reached",
+    "Every node has been visited"
    ],
-   "a": 0,
+   "a": 1,
    "exp": "البحث بيقف لما يلاقي القيمة أو يوصل لـNULL (يعني القيمة مش موجودة)."
   }
  ],
