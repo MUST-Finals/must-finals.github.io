@@ -188,6 +188,34 @@ async function viewDashboard() {
     ? weak.map(w => `<div class="act">${ic('alert')}<span>${esc(subjByKey(w.subj).code)} · ${esc(w.src)}</span><span class="pill warn">${Math.round(100 * w.c / w.t)}% · ${w.t} tries</span></div>`).join('')
     : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
 
+  // improvement over time: real mock-exam percentages, chronological
+  const chrono = p.examHistory.slice().reverse();
+  let trendHtml;
+  if (chrono.length < 2) {
+    trendHtml = `<div class="empty">${ic('chart')}<div>Take at least 2 mock exams and your score trend appears here.</div></div>`;
+  } else {
+    const W = 620, H = 170, padL = 38, padR = 14, padT = 16, padB = 26;
+    const pcts = chrono.map(x => Math.round(100 * x.correct / x.count));
+    const n = pcts.length;
+    const xAt = i => padL + (n === 1 ? (W - padL - padR) / 2 : i * (W - padL - padR) / (n - 1));
+    const yAt = v => padT + (100 - v) * (H - padT - padB) / 100;
+    const pts = pcts.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+    const dots = pcts.map((v, i) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="4" fill="var(--accent)"><title>${esc(subjByKey(chrono[i].subj).code)} mock ${i + 1}: ${v}% (${chrono[i].correct}/${chrono[i].count})</title></circle>`).join('');
+    const grid = [0, 50, 100].map(v => `<line x1="${padL}" y1="${yAt(v)}" x2="${W - padR}" y2="${yAt(v)}" stroke="var(--stroke)" stroke-width="1"/><text x="${padL - 8}" y="${yAt(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`).join('');
+    const d0 = new Date(chrono[0].ts), d1 = new Date(chrono[chrono.length - 1].ts);
+    const fmt = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const delta = pcts[pcts.length - 1] - pcts[0];
+    const deltaTxt = delta === 0 ? 'No change so far' : (delta > 0 ? `Up ${delta} points since your first mock` : `Down ${Math.abs(delta)} points since your first mock`);
+    trendHtml = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Mock exam scores over time">
+      ${grid}
+      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+      ${dots}
+      <text x="${padL}" y="${H - 6}" font-size="11" fill="var(--muted)">${fmt(d0)}</text>
+      <text x="${W - padR}" y="${H - 6}" text-anchor="end" font-size="11" fill="var(--muted)">${fmt(d1)}</text>
+    </svg>
+    <p class="hint" style="margin-top:6px">${n} mocks · last ${pcts[pcts.length - 1]}% · ${deltaTxt}. Real results only.</p>`;
+  }
+
   $('#app').innerHTML = `
   <section class="hero">
     <div class="eyebrow">MUST · Finals Prep</div>
@@ -212,7 +240,8 @@ async function viewDashboard() {
     <div class="blk"><div class="blk-h"><h2>Weak topics</h2></div><div class="acts">${weakHtml}</div></div>
     <div class="blk"><div class="blk-h"><h2>Recent mock exams</h2></div><div class="acts">${hist}</div></div>
     <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>
-  </div>`;
+  </div>
+  <div class="blk"><div class="blk-h"><h2>Improvement over time</h2></div>${trendHtml}</div>`;
 }
 /* MUST Finals platform - part 2: subject pages, practice, bookmarks */
 const OPT_LETTERS = ['A', 'B', 'C', 'D'];
@@ -889,8 +918,12 @@ async function viewTools(which) {
       <div class="card" style="padding:18px;margin-bottom:14px">
         <div class="rowflex"><h3 style="margin:0;font-size:15px">${ic('code')} ${esc(c.title)}</h3><span class="sp" style="flex:1"></span><span class="pill">${esc(subjByKey(c.subj).code)}</span><span class="pill">${esc(c.lang)}</span></div>
         <pre class="codeblock">${esc(c.code)}</pre>
-        <button type="button" class="btn ghost sm revealout">${ic('eye')} Reveal output</button>
+        <div class="rowflex" style="gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn ghost sm revealout">${ic('eye')} Reveal output</button>
+          ${c.steps ? `<button type="button" class="btn ghost sm revealsteps">${ic('list')} Step-by-step trace</button>` : ''}
+        </div>
         <div class="model"><div class="inner"><span class="achip">Output</span><span style="font-family:ui-monospace,monospace">${esc(c.out)}</span></div></div>
+        ${c.steps ? `<div class="model stepsmodel"><div class="inner"><span class="achip">Execution trace</span><p class="hint" style="margin:0 0 8px">Practice aid written for this platform - not official course material. The final line always matches the compiled output.</p><ol style="margin:0;padding-left:20px;display:grid;gap:6px">${c.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div></div>` : ''}
       </div>`).join('');
     $('#app').innerHTML = head + notice + `<div class="blk"><div class="blk-h"><h2>Code Output Practice</h2><span class="sp"></span><span class="hint">Predict the output, then reveal. Outputs verified by compiling.</span></div>${items}</div>`;
     $$('.revealout').forEach(b => b.addEventListener('click', () => {
@@ -898,6 +931,12 @@ async function viewTools(which) {
       const open = m.style.display === 'block';
       m.style.display = open ? 'none' : 'block';
       b.innerHTML = open ? ic('eye') + ' Reveal output' : ic('eye') + ' Hide output';
+    }));
+    $$('.revealsteps').forEach(b => b.addEventListener('click', () => {
+      const m = b.parentElement.parentElement.querySelector('.stepsmodel');
+      const open = m.style.display === 'block';
+      m.style.display = open ? 'none' : 'block';
+      b.innerHTML = open ? ic('list') + ' Step-by-step trace' : ic('list') + ' Hide trace';
     }));
     return;
   }
