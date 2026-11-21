@@ -196,7 +196,9 @@ MFB.loadDiscussion = async function (box, qid) {
     const inp = box.querySelector('.disc-in'), v = inp.value.trim();
     if (!v) return;
     const { error: e2 } = await MFB.sb.from('posts').insert({ question_id: qid, author: MFB.user.id, body: v });
-    if (e2) box.querySelector('.disc-msg').textContent = 'Post failed: ' + e2.message;
+    if (e2) box.querySelector('.disc-msg').textContent = (MFB.profile && MFB.profile.role === 'blocked')
+      ? 'Your account is blocked from posting. Contact the site owner if you think this is a mistake.'
+      : 'Post failed: ' + e2.message;
     else MFB.loadDiscussion(box, qid);
   });
 };
@@ -211,11 +213,29 @@ MFB.sendReport = async function (qid, detail) {
 MFB.viewAdmin = async function () {
   if (!MFB.ready || !MFB.user) { nav('/account'); return; }
   if (!MFB.isAdmin()) { $('#app').innerHTML = `<div class="empty">${ic('alert')}<div>Admins only. Your account has the student role.</div></div>`; return; }
-  const [reps, postsN, usersN] = await Promise.all([
+  const [reps, postsN, usersN, posts, anns, profs] = await Promise.all([
     MFB.sb.from('reports').select('id,question_id,detail,status,created_at,profiles(display_name)').order('created_at', { ascending: false }).limit(50),
     MFB.sb.from('posts').select('id', { count: 'exact', head: true }),
     MFB.sb.from('profiles').select('id', { count: 'exact', head: true }),
+    MFB.sb.from('posts').select('id,question_id,body,created_at,author,profiles(display_name,role)').order('created_at', { ascending: false }).limit(50),
+    MFB.sb.from('announcements').select('id,title,body,created_at').order('created_at', { ascending: false }).limit(20),
+    MFB.sb.from('profiles').select('id,display_name,role,created_at').order('created_at', { ascending: false }).limit(50),
   ]);
+  const postList = (posts.data || []).map(p => {
+    const name = (p.profiles && p.profiles.display_name) || 'student';
+    const blocked = p.profiles && p.profiles.role === 'blocked';
+    return `<div class="act"><span style="font-weight:700">${esc(name)}</span><span>${esc(p.body.slice(0, 120))}</span><time>${ago(new Date(p.created_at).getTime())}</time>
+    <button type="button" class="btn ghost sm post-del" data-id="${p.id}">Delete</button>
+    ${p.author === MFB.user.id ? '' : (blocked
+      ? `<button type="button" class="btn ghost sm usr-unblock" data-id="${p.author}">Unblock</button>`
+      : `<button type="button" class="btn ghost sm usr-block" data-id="${p.author}">Block</button>`)}</div>`;
+  }).join('') || '<p class="hint">No discussion posts yet.</p>';
+  const accList = (profs.data || []).map(pf => `<div class="act"><span style="font-weight:700">${esc(pf.display_name || 'student')}</span><span class="pill ${pf.role === 'blocked' ? 'warn' : ''}">${pf.role}</span><time>${ago(new Date(pf.created_at).getTime())}</time>
+    ${pf.id === MFB.user.id || pf.role === 'admin' ? '' : (pf.role === 'blocked'
+      ? `<button type="button" class="btn ghost sm usr-unblock" data-id="${pf.id}">Unblock</button>`
+      : `<button type="button" class="btn ghost sm usr-block" data-id="${pf.id}">Block</button>`)}</div>`).join('') || '<p class="hint">No accounts yet.</p>';
+  const annList = (anns.data || []).map(a => `<div class="act"><span style="font-weight:700">${esc(a.title)}</span><span>${esc(a.body.slice(0, 120))}</span><time>${ago(new Date(a.created_at).getTime())}</time>
+    <button type="button" class="btn ghost sm ann-del" data-id="${a.id}">Delete</button></div>`).join('') || '<p class="hint">No announcements yet.</p>';
   const repList = (reps.data || []).map(r => `<div class="act"><span style="font-weight:700">${esc(r.question_id)}</span><span>${esc(r.detail)}</span><span class="pill ${r.status === 'open' ? 'warn' : ''}">${r.status}</span><time>${ago(new Date(r.created_at).getTime())}</time>
     ${r.status === 'open' ? `<button type="button" class="btn ghost sm rep-res" data-id="${r.id}">Resolve</button><button type="button" class="btn ghost sm rep-dis" data-id="${r.id}">Dismiss</button>` : ''}</div>`).join('') || '<p class="hint">No reports.</p>';
   $('#app').innerHTML = `
@@ -230,7 +250,12 @@ MFB.viewAdmin = async function () {
       <p class="hint" id="an-msg"></p>
     </div>
     <div class="blk"><div class="blk-h"><h2>Question reports</h2></div><div class="acts">${repList}</div></div>
-  </div>`;
+  </div>
+  <div class="grid g2" style="align-items:start;margin-top:16px">
+    <div class="blk"><div class="blk-h"><h2>Community moderation</h2></div><div class="acts">${postList}</div></div>
+    <div class="blk"><div class="blk-h"><h2>Accounts</h2></div><div class="acts">${accList}</div></div>
+  </div>
+  <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Announcements</h2></div><div class="acts">${annList}</div></div>`;
   $('#an-go').addEventListener('click', async () => {
     const t = $('#an-title').value.trim(), b = $('#an-body').value.trim();
     if (!t || !b) { $('#an-msg').textContent = 'Title and body required.'; return; }
@@ -240,4 +265,8 @@ MFB.viewAdmin = async function () {
   });
   $$('.rep-res').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'resolved' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
   $$('.rep-dis').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'dismissed' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.post-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('posts').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.ann-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('announcements').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.usr-block').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'blocked' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.usr-unblock').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'student' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
 };
