@@ -98,7 +98,8 @@ async function recordMcq(qid, correct, pickedIdx) {
   if (!p.mistakes) p.mistakes = {};
   const q = mcqById(qid);
   if (!correct && q) {
-    p.mistakes[qid] = { subj: q.subj, picked: (typeof pickedIdx === 'number' ? pickedIdx : null), ts: Date.now(), understood: false, sinceRight: false };
+    const prevM = p.mistakes[qid];
+    p.mistakes[qid] = { subj: q.subj, picked: (typeof pickedIdx === 'number' ? pickedIdx : null), ts: Date.now(), understood: false, sinceRight: false, n: ((prevM && prevM.n) || 0) + 1 };
   } else if (correct && p.mistakes[qid] && !p.mistakes[qid].understood) {
     p.mistakes[qid].sinceRight = true;
   }
@@ -541,6 +542,16 @@ async function viewBookmarks() {
   }).join('') : `<div class="card empty">${ic('bookmark')}<div>No bookmarks yet. Use the bookmark button on any question.</div></div>`}</div>`;
   const p2 = await prog();
   paintBookmarks(p2);
+  $('#bf-q').addEventListener('input', e => {
+    const t = e.target.value.trim().toLowerCase();
+    let vis = 0;
+    $$('#bank-list [data-search]').forEach(el => {
+      const show = t === '' || el.dataset.search.includes(t);
+      el.classList.toggle('hidden-by-search', !show);
+      if (show) vis++;
+    });
+    $('#bf-count').textContent = t === '' ? `${list.length} question${list.length === 1 ? '' : 's'}` : `${vis} match${vis === 1 ? '' : 'es'}`;
+  });
 }
 
 /* global click delegation for practice interactions */
@@ -739,7 +750,8 @@ async function viewExamRun(key) {
       const right = q.picked === q.correctIdx;
       if (!right) {
         const orig = mcqById(q.id);
-        p.mistakes[q.id] = { subj: key, picked: q.picked === null ? null : q.order[q.picked], ts: Date.now(), understood: false, sinceRight: false, lec: orig && orig.lec };
+        const prevE = p.mistakes[q.id];
+        p.mistakes[q.id] = { subj: key, picked: q.picked === null ? null : q.order[q.picked], ts: Date.now(), understood: false, sinceRight: false, lec: orig && orig.lec, n: ((prevE && prevE.n) || 0) + 1 };
       } else if (p.mistakes[q.id] && !p.mistakes[q.id].understood) {
         p.mistakes[q.id].sinceRight = true;
       }
@@ -1139,7 +1151,7 @@ async function viewMistakes() {
       if (e.picked === oi) extra = ' <span class="hint">(your answer)</span>';
       return `<div class="${cls}"><span class="ol">${OPT_LETTERS[oi]}</span><span>${esc(o)}${extra}</span></div>`;
     }).join('');
-    const note = e.sinceRight ? `<span class="pill ok">answered correctly since</span>` : '';
+    const note = (e.sinceRight ? `<span class="pill ok">answered correctly since</span>` : '') + (e.n > 1 ? `<span class="pill warn">wrong ${e.n} times</span>` : '');
     return `<div class="card" data-qid="${id}">
       <div class="row" style="gap:8px;flex-wrap:wrap">
         <span class="pill pri">${esc(subjByKey(q.subj).code)}</span>
@@ -1225,8 +1237,9 @@ async function viewBank() {
     ${sel('bf-src', f.src, ['all', ...srcs], 'Lecture / section')}
     ${sel('bf-type', f.type, ['all', 'mcq', 'written'], 'Type')}
     ${sel('bf-state', f.state, ['all', 'correct', 'incorrect', 'unanswered'], 'Your answer state')}
-    <span class="pill" style="align-self:end">${list.length} question${list.length === 1 ? '' : 's'}</span>
+    <span class="pill" style="align-self:end" id="bf-count">${list.length} question${list.length === 1 ? '' : 's'}</span>
   </div>
+  <div class="search" style="margin-bottom:12px">${ic('search')}<input id="bf-q" type="search" placeholder="Search inside these questions..." aria-label="Search questions in the bank"></div>
   <div id="bank-list">${list.slice(0, 120).map(x => x.type === 'mcq' ? mcqHtml(x.q) : wqHtml(x.q)).join('')}</div>
   ${list.length > 120 ? `<p class="hint" style="margin-top:10px">Showing the first 120 - narrow the filters to see the rest.</p>` : ''}
   ${!list.length ? `<div class="empty">${ic('search')} No questions match these filters.</div>` : ''}`;
@@ -1235,6 +1248,16 @@ async function viewBank() {
   }
   const p2 = await prog();
   paintBookmarks(p2);
+  $('#bf-q').addEventListener('input', e => {
+    const t = e.target.value.trim().toLowerCase();
+    let vis = 0;
+    $$('#bank-list [data-search]').forEach(el => {
+      const show = t === '' || el.dataset.search.includes(t);
+      el.classList.toggle('hidden-by-search', !show);
+      if (show) vis++;
+    });
+    $('#bf-count').textContent = t === '' ? `${list.length} question${list.length === 1 ? '' : 's'}` : `${vis} match${vis === 1 ? '' : 'es'}`;
+  });
 }
 
 /* routes */
