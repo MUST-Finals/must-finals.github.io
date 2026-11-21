@@ -1,5 +1,6 @@
-/* MUST Finals service worker: offline app shell. Data stays local; analytics untouched. */
-const CACHE = 'must-finals-v13';
+/* MUST Finals service worker: offline app shell. Data stays local; analytics untouched.
+   Bump CACHE on every deploy so old shells are dropped. */
+const CACHE = 'must-finals-v20';
 const SHELL = ['./', 'index.html', 'css/styles.css', 'js/data.js', 'js/app.js', 'manifest.webmanifest', 'icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -10,6 +11,15 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin) return;
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
+        return res;
+      }).catch(() => caches.match(e.request).then(hit => hit || caches.match('./')))
+    );
+    return;
+  }
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
