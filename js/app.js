@@ -1225,7 +1225,7 @@ async function viewMistakes() {
 }
 
 /* ---- question bank: filter every question by subject, source, type and answer state ---- */
-const _bankF = { subj: 'all', src: 'all', type: 'all', state: 'all' };
+const _bankF = { subj: 'all', src: 'all', type: 'all', state: 'all', q: '' };
 async function viewBank() {
   const p = await prog();
   const f = _bankF;
@@ -1238,7 +1238,8 @@ async function viewBank() {
   let list = pool.filter(x =>
     (f.subj === 'all' || x.q.subj === f.subj) &&
     (f.src === 'all' || x.q.src === f.src) &&
-    (f.type === 'all' || x.type === f.type));
+    (f.type === 'all' || x.type === f.type) &&
+    (f.q === '' || (x.q.q + ' ' + x.q.src).toLowerCase().includes(f.q)));
   const stateOf = x => {
     if (x.type !== 'mcq') return 'unanswered';
     const s = p.mcq[x.q.id];
@@ -1259,7 +1260,7 @@ async function viewBank() {
     ${sel('bf-state', f.state, ['all', 'correct', 'incorrect', 'unanswered'], 'Your answer state')}
     <span class="pill" style="align-self:end" id="bf-count">${list.length} question${list.length === 1 ? '' : 's'}</span>
   </div>
-  <div class="search" style="margin-bottom:12px">${ic('search')}<input id="bf-q" type="search" placeholder="Search inside these questions..." aria-label="Search questions in the bank"></div>
+  <div class="search" style="margin-bottom:12px">${ic('search')}<input id="bf-q" type="search" value="${esc(f.q)}" placeholder="Search all ${pool.length} questions..." aria-label="Search questions in the bank"></div>
   <div id="bank-list">${list.slice(0, 120).map(x => x.type === 'mcq' ? mcqHtml(x.q) : wqHtml(x.q)).join('')}</div>
   ${list.length > 120 ? `<p class="hint" style="margin-top:10px">Showing the first 120 - narrow the filters to see the rest.</p>` : ''}
   ${!list.length ? `<div class="empty">${ic('search')} No questions match these filters.</div>` : ''}`;
@@ -1268,15 +1269,15 @@ async function viewBank() {
   }
   const p2 = await prog();
   paintBookmarks(p2);
+  let bfT;
   $('#bf-q').addEventListener('input', e => {
-    const t = e.target.value.trim().toLowerCase();
-    let vis = 0;
-    $$('#bank-list [data-search]').forEach(el => {
-      const show = t === '' || el.dataset.search.includes(t);
-      el.classList.toggle('hidden-by-search', !show);
-      if (show) vis++;
-    });
-    $('#bf-count').textContent = t === '' ? `${list.length} question${list.length === 1 ? '' : 's'}` : `${vis} match${vis === 1 ? '' : 'es'}`;
+    const v = e.target.value;
+    clearTimeout(bfT);
+    bfT = setTimeout(async () => {
+      _bankF.q = v.trim().toLowerCase();
+      await viewBank();
+      const i = $('#bf-q'); i.value = v; i.focus(); i.setSelectionRange(v.length, v.length);
+    }, 250);
   });
 }
 
