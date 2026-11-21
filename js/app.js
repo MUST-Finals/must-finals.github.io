@@ -1205,4 +1205,351 @@ window.addEventListener('hashchange', render);
 /* PWA service worker */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+}
+
+/* ============ MUST Finals - part 6: SRS, planner, gamification, archive, global search ============ */
+
+/* ---- spaced repetition (SM-2 lite, real scheduling in local store) ---- */
+async function srsAll() { return await store.get('srs', {}); }
+async function srsGrade(cardId, grade) { // grade: 0 again, 1 good, 2 easy
+  const all = await srsAll();
+  const c = all[cardId] || { ivl: 0, rep: 0 };
+  const now = Date.now(), DAY = 86400000;
+  if (grade === 0) { c.ivl = 0.5; c.rep = 0; }
+  else if (grade === 1) { c.ivl = c.ivl ? c.ivl * 2 : 1; c.rep++; }
+  else { c.ivl = c.ivl ? c.ivl * 3 : 3; c.rep++; }
+  c.due = now + Math.round(c.ivl * DAY);
+  c.last = grade;
+  all[cardId] = c;
+  await store.set('srs', all);
+}
+async function srsDue(key) {
+  const all = await srsAll(), now = Date.now();
+  return Object.keys(all).filter(id => all[id].due <= now && (!key || id.startsWith(key + ':')));
+}
+function fcId(s, kind, i) { return s + ':' + kind + ':' + i; }
+
+/* extend flashcards with grading + due-review sessions */
+const _viewFlashcards = viewFlashcards;
+viewFlashcards = async function (key, dueOnly) {
+  const s = subjByKey(key); if (!s) { nav('/'); return; }
+  if (!FC || FC.key !== key || !!FC.dueOnly !== !!dueOnly) {
+    let cards = [];
+    subjMcqs(key).forEach((q, i) => cards.push({ id: fcId(key, 'm', i), front: q.q, back: OPT_LETTERS[q.a] + ' · ' + q.opts[q.a], tag: 'MCQ · ' + q.src }));
+    subjWritten(key).forEach((w, i) => cards.push({ id: fcId(key, 'w', i), front: w.q, back: w.a, tag: 'Written · ' + w.src }));
+    if (dueOnly) {
+      const due = await srsDue(key);
+      const set = new Set(due);
+      cards = cards.filter(c => set.has(c.id));
+      if (!cards.length) { toast('No cards due right now'); nav('/subject/' + key + '/flashcards'); return; }
+      cards = shuffled(cards);
+    } else cards = shuffled(cards);
+    FC = { key, cards, i: 0, flipped: false, dueOnly: !!dueOnly };
+  }
+  const c = FC.cards[FC.i];
+  const all = await srsAll();
+  const st = all[c.id];
+  const dueIn = st && st.due > Date.now() ? Math.max(1, Math.round((st.due - Date.now()) / 86400000)) : null;
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">${esc(s.code)} · Flashcards${FC.dueOnly ? ' · Due review' : ''}</div>
+    <h1 style="font-size:26px">${esc(s.full)}</h1>
+    <p class="sub">Spaced repetition over the real ${esc(s.code)} bank. Card ${FC.i + 1} of ${FC.cards.length}.${dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : ''}</p>
+  </section>
+  <div class="fcwrap">
+    <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="Flashcard, activate to flip">
+      <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">Click to flip</p></div>
+      <div class="fface fback"><span class="pill good">Answer</span><p class="ftext">${esc(c.back)}</p><p class="hint">How well did you know it?</p></div>
+    </div>
+    ${FC.flipped ? `<div class="rowflex" style="justify-content:center;margin-top:14px" id="fc-grade">
+      <button type="button" class="btn ghost" data-g="0">Again · &lt;1d</button>
+      <button type="button" class="btn" data-g="1">Good · ${st && st.ivl ? Math.round(st.ivl * 2) : 1}d</button>
+      <button type="button" class="btn" data-g="2">Easy · ${st && st.ivl ? Math.round(st.ivl * 3) : 3}d</button>
+    </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
+      <button type="button" class="btn ghost" id="fc-prev">${ic('al')} Previous</button>
+      <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} Shuffle</button>
+      <button type="button" class="btn" id="fc-next">Flip ${ic('ar')}</button>
+    </div>`}
+  </div>`;
+  const flip = () => { FC.flipped = !FC.flipped; viewFlashcards(key, dueOnly); };
+  $('#fcard').addEventListener('click', flip);
+  $('#fcard').addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
+  const next = () => { FC.i = (FC.i + 1) % FC.cards.length; FC.flipped = false; viewFlashcards(key, dueOnly); };
+  const gr = $('#fc-grade');
+  if (gr) gr.addEventListener('click', async e => {
+    const b = e.target.closest('button[data-g]'); if (!b) return;
+    await srsGrade(c.id, +b.dataset.g);
+    next();
+  });
+  else {
+    $('#fc-next').addEventListener('click', flip);
+    $('#fc-prev').addEventListener('click', () => { FC.i = (FC.i - 1 + FC.cards.length) % FC.cards.length; FC.flipped = false; viewFlashcards(key, dueOnly); });
+    $('#fc-shuffle').addEventListener('click', () => { FC.cards = shuffled(FC.cards); FC.i = 0; FC.flipped = false; viewFlashcards(key, dueOnly); });
+  }
+};
+
+/* revision page: add due-review launcher at top */
+const _viewRevision = viewRevision;
+viewRevision = async function () {
+  await _viewRevision();
+  const due = await srsDue();
+  const counts = {};
+  due.forEach(id => { const k = id.split(':')[0]; counts[k] = (counts[k] || 0) + 1; });
+  $('#app .hero').insertAdjacentHTML('afterend', `
+  <div class="card" style="padding:16px;margin-bottom:14px">
+    <div class="rowflex"><h3 style="margin:0;font-size:15px">${ic('cards')} Spaced repetition</h3><span class="sp" style="flex:1"></span>
+    <span class="pill ${due.length ? 'warn' : 'good'}">${due.length} card${due.length === 1 ? '' : 's'} due</span></div>
+    <p class="hint" style="margin:8px 0">Grade each card Again / Good / Easy and it comes back on its own schedule. Scheduled cards live in your browser only.</p>
+    <div class="rowflex">${Object.keys(counts).map(k => `<a class="btn ghost sm" href="#/subject/${k}/flashcards/due">Review ${esc(subjByKey(k).code)} (${counts[k]})</a>`).join('') || '<span class="hint">Nothing due. Grade cards in any subject\'s flashcards to start scheduling.</span>'}</div>
+  </div>`);
+};
+
+/* ---- smart study planner (user-entered dates, real tasks) ---- */
+async function plan() { return Object.assign({ exams: {}, tasks: [] }, await store.get('plan', {})); }
+async function savePlan(pl) { await store.set('plan', pl); }
+function daysUntil(dateStr) { const d = new Date(dateStr + 'T00:00:00'); return Math.ceil((d - new Date(new Date().toDateString())) / 86400000); }
+
+async function viewPlanner() {
+  const pl = await plan();
+  const p = await prog();
+  const today = new Date(); const dow = (today.getDay() + 6) % 7; // Mon=0
+  const weekStart = new Date(today); weekStart.setDate(today.getDate() - dow);
+  const days = [...Array(7)].map((_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
+  const iso = d => d.toISOString().slice(0, 10);
+
+  const examCards = D.subjects.map(s => {
+    const dstr = pl.exams[s.key];
+    const du = dstr ? daysUntil(dstr) : null;
+    return `<div class="card" style="padding:14px">
+      <div class="rowflex"><b>${esc(s.code)}</b><span class="sp" style="flex:1"></span>
+      ${du === null ? '' : (du < 0 ? '<span class="pill">passed</span>' : `<span class="pill ${du <= 3 ? 'bad' : du <= 7 ? 'warn' : 'pri'}">${du} day${du === 1 ? '' : 's'} left</span>`)}</div>
+      <div class="rowflex" style="margin-top:8px"><input type="date" class="inp exam-date" data-k="${s.key}" value="${dstr || ''}" aria-label="${esc(s.code)} exam date"></div>
+      <p class="hint" style="margin:6px 0 0;font-size:11px">You set this date. General window: ${esc((D.exams.find(e => e.name.includes(s.code.replace('CS.', 'CS.'))) || {}).window || 'see dashboard')}</p>
+    </div>`;
+  }).join('');
+
+  const taskRow = t => `<div class="act taskrow ${t.done ? 'done' : ''}">
+    <button type="button" class="qtool task-check ${t.done ? 'on' : ''}" data-id="${t.id}" aria-label="Toggle done">${ic('check')}</button>
+    <span style="flex:1">${esc(t.text)}</span>
+    ${t.subj ? `<span class="pill">${esc(subjByKey(t.subj).code)}</span>` : ''}
+    <button type="button" class="qtool task-del" data-id="${t.id}" aria-label="Delete task">${ic('x')}</button>
+  </div>`;
+
+  const cal = days.map(d => {
+    const list = pl.tasks.filter(t => t.date === iso(d));
+    const isToday = iso(d) === iso(today);
+    return `<div class="calday ${isToday ? 'today' : ''}">
+      <div class="calh">${d.toLocaleDateString('en-GB', { weekday: 'short' })} <b>${d.getDate()}</b></div>
+      ${list.map(taskRow).join('') || '<div class="hint" style="font-size:11px">No tasks</div>'}
+    </div>`;
+  }).join('');
+
+  const noDate = pl.tasks.filter(t => !t.date);
+  const recs = [];
+  for (const s of D.subjects) {
+    const dstr = pl.exams[s.key];
+    if (!dstr) continue;
+    const du = daysUntil(dstr);
+    if (du === null || du < 0) continue;
+    const c = subjCompletion(p, s.key);
+    const left = c.total - c.done;
+    if (left > 0) recs.push(`${s.code}: ${left} lecture${left === 1 ? '' : 's'} left, ${du} day${du === 1 ? '' : 's'} - about ${Math.max(1, Math.ceil(left / Math.max(1, du)))} per day`);
+  }
+
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Planner</div><h1 style="font-size:26px">Study planner</h1>
+    <p class="sub">Enter your real exam dates when the university publishes them - nothing here invents dates for you.</p>
+  </section>
+  <div class="blk"><div class="blk-h"><h2>Exam countdown</h2><span class="sp"></span><span class="hint">Set each date yourself</span></div>
+    <div class="grid g3">${examCards}</div></div>
+  <div class="blk"><div class="blk-h"><h2>Add a study task</h2></div>
+    <div class="card" style="padding:16px"><div class="rowflex">
+      <input type="text" class="inp" id="task-text" placeholder="e.g. Revise Lecture 4 and do its MCQs" style="flex:2" aria-label="Task text">
+      <select class="inp" id="task-subj" aria-label="Subject"><option value="">No subject</option>${D.subjects.map(s => `<option value="${s.key}">${esc(s.code)}</option>`).join('')}</select>
+      <input type="date" class="inp" id="task-date" aria-label="Task date">
+      <button type="button" class="btn" id="task-add">${ic('play')} Add</button>
+    </div></div></div>
+  <div class="blk"><div class="blk-h"><h2>This week</h2></div><div class="calweek">${cal}</div></div>
+  ${noDate.length ? `<div class="blk"><div class="blk-h"><h2>Unscheduled</h2></div><div class="card" style="padding:8px 14px">${noDate.map(taskRow).join('')}</div></div>` : ''}
+  ${recs.length ? `<div class="blk"><div class="blk-h"><h2>Revision recommendations</h2><span class="sp"></span><span class="hint">From your dates and real completion</span></div>
+    <div class="card" style="padding:14px">${recs.map(r => `<div class="act">${ic('target')}<span>${esc(r)}</span></div>`).join('')}</div></div>` : ''}`;
+
+  $$('.exam-date').forEach(inp => inp.addEventListener('change', async () => {
+    const pl2 = await plan();
+    if (inp.value) pl2.exams[inp.dataset.k] = inp.value; else delete pl2.exams[inp.dataset.k];
+    await savePlan(pl2); viewPlanner();
+  }));
+  $('#task-add').addEventListener('click', async () => {
+    const text = $('#task-text').value.trim(); if (!text) { toast('Write the task first'); return; }
+    const pl2 = await plan();
+    pl2.tasks.push({ id: 't' + Date.now(), text, subj: $('#task-subj').value || null, date: $('#task-date').value || null, done: false });
+    await savePlan(pl2); viewPlanner();
+  });
+  $('#app').addEventListener('click', async e => {
+    const chk = e.target.closest('.task-check');
+    if (chk) { const pl2 = await plan(); const t = pl2.tasks.find(x => x.id === chk.dataset.id); if (t) { t.done = !t.done; await savePlan(pl2); viewPlanner(); } return; }
+    const del = e.target.closest('.task-del');
+    if (del) { const pl2 = await plan(); pl2.tasks = pl2.tasks.filter(x => x.id !== del.dataset.id); await savePlan(pl2); viewPlanner(); }
+  });
+}
+
+/* ---- gamification: XP, streak, badges - all computed from real state ---- */
+async function gameState() {
+  const p = await prog();
+  const days = await store.get('days', {});
+  let att = 0, corr = 0;
+  for (const k in p.mcq) { att += p.mcq[k].t; corr += p.mcq[k].c; }
+  const lecs = Object.keys(p.completed).length;
+  const exams = p.examHistory.length;
+  const examCorr = p.examHistory.reduce((n, x) => n + x.correct, 0);
+  const xp = corr * 2 + att + lecs * 5 + exams * 10 + examCorr * 2;
+  // streak: consecutive days with activity ending today or yesterday
+  let streak = 0;
+  const d = new Date();
+  if (!days[d.toISOString().slice(0, 10)]) d.setDate(d.getDate() - 1);
+  while (days[d.toISOString().slice(0, 10)] > 0) { streak++; d.setDate(d.getDate() - 1); }
+  // week answers
+  const now = new Date(); const dow = (now.getDay() + 6) % 7;
+  const ws = new Date(now); ws.setDate(now.getDate() - dow);
+  let weekN = 0;
+  for (let i = 0; i < 7; i++) { const dd = new Date(ws); dd.setDate(ws.getDate() + i); weekN += days[dd.toISOString().slice(0, 10)] || 0; }
+  const badges = [
+    { id: 'first', name: 'First steps', desc: 'Answer your first question', got: att >= 1 },
+    { id: 'ten', name: 'Warming up', desc: 'Answer 25 questions', got: att >= 25 },
+    { id: 'hundred', name: 'Centurion', desc: 'Answer 100 questions', got: att >= 100 },
+    { id: 'sharp', name: 'Sharpshooter', desc: '80%+ accuracy over 20+ answers', got: att >= 20 && corr / att >= 0.8 },
+    { id: 'exam', name: 'First mock', desc: 'Finish a mock exam', got: exams >= 1 },
+    { id: 'perfect', name: 'Perfect paper', desc: 'Score 100% on a mock', got: p.examHistory.some(x => x.correct === x.count && x.count > 0) },
+    { id: 'streak3', name: 'On fire', desc: '3-day study streak', got: streak >= 3 },
+    { id: 'streak7', name: 'Unstoppable', desc: '7-day study streak', got: streak >= 7 },
+    { id: 'half', name: 'Halfway there', desc: 'Finish half of all lectures', got: lecs >= Math.ceil(D.subjects.reduce((n, s) => n + s.lectures.filter(l => !l.missing).length, 0) / 2) },
+  ];
+  return { xp, streak, weekN, badges, level: Math.floor(xp / 100) + 1 };
+}
+
+async function gamifyCardHtml() {
+  const on = await store.get('gamify', true);
+  if (!on) return '';
+  const g = await gameState();
+  const goal = 40;
+  return `<div class="blk"><div class="blk-h"><h2>${ic('flame')} Your momentum</h2><span class="sp"></span>
+    <button type="button" class="qtool" id="gamify-off">Hide</button></div>
+    <div class="grid g4">
+      <div class="card stat"><span class="v">${g.xp}</span><span class="l">${ic('zap')} XP · level ${g.level}</span></div>
+      <div class="card stat"><span class="v">${g.streak}</span><span class="l">${ic('flame')} day streak</span></div>
+      <div class="card stat"><span class="v">${g.weekN}/${goal}</span><span class="l">${ic('target')} weekly challenge</span></div>
+      <div class="card stat"><span class="v">${g.badges.filter(b => b.got).length}/${g.badges.length}</span><span class="l">${ic('cap')} badges</span></div>
+    </div>
+    <div class="badge-row">${g.badges.map(b => `<span class="badge ${b.got ? 'got' : ''}" title="${esc(b.desc)}">${b.got ? ic('check') : ic('x')} ${esc(b.name)}</span>`).join('')}</div>
+    <p class="hint" style="margin-top:6px">XP, streaks and badges are computed only from your real practice on this device.</p></div>`;
+}
+
+/* record per-day counts for streaks (extends dailyBump) */
+const _dailyBump = dailyBump;
+dailyBump = async function () {
+  await _dailyBump();
+  const days = await store.get('days', {});
+  const k = todayKey();
+  days[k] = (days[k] || 0) + 1;
+  await store.set('days', days);
+};
+
+/* ---- past-exam & assessment archive (real provenance only) ---- */
+async function viewPastExams() {
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Archive</div><h1 style="font-size:26px">Past exams &amp; assessment info</h1>
+    <p class="sub">Everything verifiable about past assessments from your course pack. No standalone past-exam PDFs exist in the shared Drive folder - where that is the case, it says so instead of inventing papers.</p>
+    <div class="search" style="margin-top:12px">${ic('search')}<input id="pe-search" type="search" placeholder="Search assessment notes and related questions..." aria-label="Search the archive"></div>
+  </section>
+  ${D.subjects.map(s => `
+  <div class="blk" data-pe="${esc((s.code + ' ' + s.full).toLowerCase())}">
+    <div class="blk-h"><h2>${esc(s.code)} · ${esc(s.full)}</h2></div>
+    <div class="card" style="padding:16px">
+      <p class="cap">Verified assessment notes (course pack, Fall 2026)</p>
+      <ul class="notes" dir="rtl" lang="ar">${(s.examForm || []).map(x => `<li data-pe="${esc(x.toLowerCase())}">${esc(x)}</li>`).join('')}</ul>
+      ${s.sectionsNote ? `<p class="hint" dir="rtl" lang="ar" data-pe="${esc(s.sectionsNote.toLowerCase())}">${esc(s.sectionsNote)}</p>` : ''}
+      <div class="rowflex" style="margin-top:10px">
+        <a class="btn ghost sm" href="#/subject/${s.key}">${ic('file')} Practice this subject's bank</a>
+        <a class="btn ghost sm" href="#/exam/${s.key}">${ic('timer')} Mock exam from real questions</a>
+      </div>
+      <p class="hint" style="margin:8px 0 0;font-size:11px">Answer keys: only the solved items already inside the question bank. Full past papers: not present in the shared folder.</p>
+    </div>
+  </div>`).join('')}`;
+  $('#pe-search').addEventListener('input', e => {
+    const t = e.target.value.trim().toLowerCase();
+    $$('#app [data-pe]').forEach(el => {
+      if (el.classList.contains('blk')) { el.classList.toggle('hidden-by-search', t !== '' && !el.dataset.pe.includes(t) && ![...el.querySelectorAll('[data-pe]')].some(x => x.dataset.pe.includes(t))); }
+      else el.classList.toggle('hidden-by-search', t !== '' && !el.dataset.pe.includes(t));
+    });
+  });
+}
+
+/* ---- global search across everything real ---- */
+async function viewSearch(q) {
+  q = (q || '').trim();
+  const t = q.toLowerCase();
+  const lecHits = [], qHits = [], noteHits = [];
+  if (t) {
+    for (const s of D.subjects) {
+      s.lectures.forEach(l => { if (l.topic.toLowerCase().includes(t)) lecHits.push({ s, l }); });
+      s.sections.forEach(x => { if (x.title.toLowerCase().includes(t)) lecHits.push({ s, l: { n: x.n, topic: s.seckind + ': ' + x.title } }); });
     }
+    for (const qq of D.mcq) { if (qq.q.toLowerCase().includes(t)) qHits.push({ q: qq, type: 'MCQ' }); }
+    for (const w of D.written) { if (w.q.toLowerCase().includes(t)) qHits.push({ q: w, type: 'Written' }); }
+    for (const s of D.subjects) (s.examForm || []).forEach(x => { if (x.toLowerCase().includes(t)) noteHits.push({ s, x }); });
+  }
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Search</div><h1 style="font-size:26px">Global search</h1>
+    <div class="search" style="margin-top:12px">${ic('search')}<input id="gs" type="search" value="${esc(q)}" placeholder="Search lectures, questions and notes..." aria-label="Global search"></div>
+  </section>
+  ${t ? `
+  <div class="blk"><div class="blk-h"><h2>Lectures &amp; sections</h2><span class="pill pri">${lecHits.length}</span></div>
+    ${lecHits.slice(0, 12).map(h => `<a class="act rec" href="#/subject/${h.s.key}">${ic('book')}<span><b>${esc(h.s.code)}</b> · ${esc(h.l.topic)}</span></a>`).join('') || '<div class="empty">No matches</div>'}</div>
+  <div class="blk"><div class="blk-h"><h2>Questions</h2><span class="pill pri">${qHits.length}</span></div>
+    ${qHits.slice(0, 15).map(h => `<a class="act rec" href="#/subject/${h.q.subj}/q/${h.q.id}">${ic('file')}<span><b>${esc(subjByKey(h.q.subj).code)}</b> ${h.type} · ${esc(h.q.q.slice(0, 110))}${h.q.q.length > 110 ? '…' : ''}</span></a>`).join('') || '<div class="empty">No matches</div>'}</div>
+  <div class="blk"><div class="blk-h"><h2>Assessment notes</h2><span class="pill pri">${noteHits.length}</span></div>
+    ${noteHits.map(h => `<div class="act">${ic('clipb')}<span><b>${esc(h.s.code)}</b> · <span dir="rtl" lang="ar">${esc(h.x)}</span></span></div>`).join('') || '<div class="empty">No matches</div>'}</div>`
+  : '<div class="empty" style="padding:30px">Type above to search the whole platform.</div>'}`;
+  $('#gs').addEventListener('input', e => { const v = e.target.value; clearTimeout(window._gst); window._gst = setTimeout(() => { history.replaceState(null, '', '#/search/' + encodeURIComponent(v)); viewSearch(v); }, 250); });
+}
+
+/* dashboard: add global search box + gamification card */
+const _viewDashboard2 = viewDashboard;
+viewDashboard = async function () {
+  await _viewDashboard2();
+  const heroRow = $('#app .hero .rowflex');
+  if (heroRow && !$('#gs-home')) {
+    heroRow.insertAdjacentHTML('afterend', `<div class="search" style="margin-top:14px">${ic('search')}<input id="gs-home" type="search" placeholder="Search everything: lectures, questions, notes..." aria-label="Global search"></div>`);
+    $('#gs-home').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) nav('/search/' + encodeURIComponent(e.target.value.trim())); });
+  }
+  const gh = await gamifyCardHtml();
+  if (gh) {
+    $('#app').insertAdjacentHTML('beforeend', gh);
+    const off = $('#gamify-off');
+    if (off) off.addEventListener('click', async () => { await store.set('gamify', false); render(); });
+  }
+};
+
+/* repoint existing registrations at p6 wrappers */
+patchRoute('^\\/$', viewDashboard);
+patchRoute('^\\/revision$', viewRevision);
+patchRoute('^\\/subject\\/([a-z0-9]+)\\/flashcards$', viewFlashcards);
+Object.assign(AR_NAV, { 'Planner': '\u0627\u0644\u0645\u062e\u0637\u0637', 'Past exams': '\u0627\u0645\u062a\u062d\u0627\u0646\u0627\u062a \u0633\u0627\u0628\u0642\u0629' });
+
+/* routes */
+route(/^\/planner$/, viewPlanner);
+route(/^\/past-exams$/, viewPastExams);
+route(/^\/search(?:\/(.*))?$/, (q) => viewSearch(decodeURIComponent(q || '')));
+route(/^\/subject\/([a-z0-9]+)\/flashcards\/due$/, (k) => viewFlashcards(k, true));
+
+/* sidebar links (added once) */
+document.addEventListener('DOMContentLoaded', () => {
+  const nav = $('.snav');
+  if (nav && !nav.querySelector('a[href="#/planner"]')) {
+    const bm = nav.querySelector('a[href="#/bookmarks"]');
+    bm.insertAdjacentHTML('afterend', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a>');
+  }
+});
