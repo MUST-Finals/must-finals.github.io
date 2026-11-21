@@ -363,3 +363,14 @@ code { background: var(--surface3); border-radius: 6px; padding: 2px 6px; }
 /* Arabic UI translates chrome only; page content is English, so keep it LTR under the RTL shell. Explicit dir attributes (Arabic notes) still win. */
 html[dir="rtl"] #app { direction: ltr; text-align: left; }
 html[dir="rtl"] #app [dir="rtl"] { direction: rtl; text-align: right; }
+
+/* In-page Drive PDF viewer */
+body.noscroll{overflow:hidden}
+.pdfview{display:none;position:fixed;inset:0;z-index:999}
+.pv-backdrop{position:absolute;inset:0;background:rgba(0,0,0,.72)}
+.pv-box{position:absolute;inset:18px;max-width:1040px;margin:auto;background:var(--surface);border:1px solid var(--stroke);border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden;box-shadow:var(--shadow)}
+.pv-head{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--stroke);background:var(--surface2)}
+.pv-title{font-weight:600;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv-actions{display:flex;gap:8px;flex-shrink:0}
+.pv-frame{flex:1;border:0;width:100%;min-height:0;background:#525659}
+@media(max-width:640px){.pv-box{inset:8px}.pv-head{flex-wrap:wrap}}
