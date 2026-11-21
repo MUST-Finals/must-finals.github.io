@@ -289,28 +289,21 @@ async function viewDashboard() {
     : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
 
   $('#app').innerHTML = `
-  <section class="dz-top">
+  <section class="dz-top dz-hero">
     <div class="dz-top-h">
       <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
       <div class="rowflex">${continueBtn || '<span class="hint">Pick a subject below to start.</span>'}</div>
     </div>
+    <p class="dz-cap dz-subj-cap">Your subjects</p>
+    <div class="dz-hero-row">
+      <div class="dz-courses">${subjCards}</div>
+      <div class="card dz-band-r">
+        <p class="dz-cap">Activity this week</p>
+        <div class="dz-bars">${bars}</div>
+        <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
+      </div>
+    </div>
   </section>
-  <div class="dz-band">
-    <div class="card dz-ring-card">
-      <p class="dz-cap">Overall completion</p>
-      <div class="dz-ring-wrap">${ringSvg}<div class="dz-ring-legend">${ringLegend}</div></div>
-    </div>
-    <div class="dz-metric-col">
-      <div class="card dz-metric"><p class="dz-cap">Practice answers</p><div class="dz-big">${att}</div><div class="dz-minibars">${miniBars}</div><p class="hint" style="margin:6px 0 0">This week, day by day</p></div>
-      <div class="card dz-metric"><p class="dz-cap">MCQ accuracy</p><div class="dz-big">${acc === null ? '—' : acc + '<span class="u">%</span>'}</div><p class="hint" style="margin:6px 0 0">${acc === null ? 'No attempts yet - start any practice set' : corr + ' correct out of ' + att}</p></div>
-    </div>
-    <div class="card dz-band-r">
-      <p class="dz-cap">Activity this week</p>
-      <div class="dz-bars">${bars}</div>
-      <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
-    </div>
-  </div>
-  <div class="dz-courses" style="margin-bottom:16px">${subjCards}</div>
   <div class="dz-low"><div class="dz-bottom">
     <div class="dz-col-main card" style="padding:18px"><h2 style="margin-top:0">${ic('trend')} Your progress</h2>${trendHtml}</div>
     <div class="dz-col-mid"><div id="dz-goal"></div><div id="dz-recs"></div></div>
