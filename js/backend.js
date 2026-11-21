@@ -1,0 +1,243 @@
+/* MUST Finals platform - backend: Supabase auth, sync, community, reports, announcements, admin.
+   Publishable key only; all access is enforced by Postgres row-level security server-side. */
+'use strict';
+const MFB = {
+  url: 'https://ziczpsbryyjdwjoedtdb.supabase.co',
+  key: 'sb_publishable_njRhgbia6C91Ce3RKg03Eg_vgnXxt7O',
+  sb: null,
+  user: null,
+  profile: null,
+  ready: false,
+};
+
+MFB.init = async function () {
+  if (!window.supabase || !MFB.url || !MFB.key) return;
+  MFB.sb = window.supabase.createClient(MFB.url, MFB.key);
+  const { data: { session } } = await MFB.sb.auth.getSession();
+  MFB.user = session ? session.user : null;
+  if (MFB.user) await MFB.loadProfile();
+  MFB.sb.auth.onAuthStateChange(async (_e, s) => {
+    MFB.user = s ? s.user : null;
+    MFB.profile = null;
+    if (MFB.user) { await MFB.loadProfile(); await MFB.syncDown(); }
+    MFB.paintNav();
+  });
+  MFB.ready = true;
+  MFB.paintNav();
+};
+
+MFB.loadProfile = async function () {
+  const { data } = await MFB.sb.from('profiles').select('*').eq('id', MFB.user.id).maybeSingle();
+  MFB.profile = data;
+};
+
+MFB.isAdmin = () => !!(MFB.profile && MFB.profile.role === 'admin');
+
+/* ---- nav badge ---- */
+MFB.paintNav = function () {
+  const a = document.getElementById('nav-account');
+  if (!a) return;
+  a.innerHTML = MFB.user ? (MFB.isAdmin() ? 'Admin · ' : '') + 'Account' : 'Sign in';
+  const ad = document.getElementById('nav-admin');
+  if (ad) ad.style.display = MFB.isAdmin() ? '' : 'none';
+};
+
+/* ---- progress sync: per-key last-writer-wins against progress.state {data,ts} ---- */
+const SYNC_SKIP = new Set(['syncedAt']);
+MFB.localState = function () {
+  const data = {}, ts = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (!k.startsWith('mf.')) continue;
+    const key = k.slice(3);
+    if (key.startsWith('t.')) { ts[key.slice(2)] = JSON.parse(localStorage.getItem(k)); continue; }
+    if (SYNC_SKIP.has(key)) continue;
+    try { data[key] = JSON.parse(localStorage.getItem(k)); } catch {}
+  }
+  return { data, ts };
+};
+let pushTimer = null;
+MFB.schedulePush = function () {
+  if (!MFB.user) return;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(() => MFB.syncUp(), 2500);
+};
+MFB.syncUp = async function () {
+  if (!MFB.user) return;
+  const state = MFB.localState();
+  const { error } = await MFB.sb.from('progress').upsert({ user_id: MFB.user.id, state, updated_at: new Date().toISOString() });
+  if (!error) { await store.set('syncedAt', Date.now()); MFB.paintSync && MFB.paintSync(); }
+  return error;
+};
+MFB.syncDown = async function () {
+  if (!MFB.user) return;
+  const { data: row, error } = await MFB.sb.from('progress').select('state').eq('user_id', MFB.user.id).maybeSingle();
+  if (error || !row || !row.state) { await MFB.syncUp(); return; }
+  const remote = row.state, local = MFB.localState();
+  for (const k of Object.keys(remote.data || {})) {
+    const rts = (remote.ts && remote.ts[k]) || 0;
+    const lts = local.ts[k] || 0;
+    if (rts > lts) {
+      try { localStorage.setItem('mf.' + k, JSON.stringify(remote.data[k])); localStorage.setItem('mf.t.' + k, String(rts)); } catch {}
+    }
+  }
+  await MFB.syncUp();
+  if (Object.keys(remote.data || {}).length) location.reload();
+};
+MFB.paintSync = function () {
+  const el = document.getElementById('sync-status');
+  if (el) store.get('syncedAt', null).then(t => { el.textContent = t ? 'Last synced ' + new Date(t).toLocaleString() : 'Not synced yet'; });
+};
+
+/* ---- account page ---- */
+MFB.viewAccount = async function () {
+  if (!MFB.ready) { $('#app').innerHTML = '<div class="empty"><div>Backend not configured.</div></div>'; return; }
+  if (!MFB.user) {
+    $('#app').innerHTML = `
+    <section class="hero"><div class="eyebrow">Account</div><h1>Sign in to sync and join discussions</h1>
+    <p class="sub">Your progress, planner and bookmarks sync across devices. Discussion posts show your display name to other students.</p></section>
+    <div class="grid g2" style="align-items:start">
+      <div class="card" style="padding:18px">
+        <h2 style="margin-top:0">Sign in</h2>
+        <label class="hint">Email</label><input id="si-email" type="email" autocomplete="email" style="width:100%">
+        <label class="hint">Password</label><input id="si-pass" type="password" autocomplete="current-password" style="width:100%">
+        <button type="button" class="btn" id="si-go" style="margin-top:12px">${ic('play')} Sign in</button>
+        <p class="hint" id="si-msg"></p>
+      </div>
+      <div class="card" style="padding:18px">
+        <h2 style="margin-top:0">Create account</h2>
+        <label class="hint">Display name (shown on discussion posts)</label><input id="su-name" maxlength="40" style="width:100%">
+        <label class="hint">Email</label><input id="su-email" type="email" autocomplete="email" style="width:100%">
+        <label class="hint">Password (8+ characters)</label><input id="su-pass" type="password" autocomplete="new-password" style="width:100%">
+        <button type="button" class="btn" id="su-go" style="margin-top:12px">${ic('check')} Sign up</button>
+        <p class="hint" id="su-msg"></p>
+      </div>
+    </div>`;
+    $('#si-go').addEventListener('click', async () => {
+      $('#si-msg').textContent = 'Signing in...';
+      const { error } = await MFB.sb.auth.signInWithPassword({ email: $('#si-email').value.trim(), password: $('#si-pass').value });
+      $('#si-msg').textContent = error ? ('Could not sign in: ' + error.message) : 'Signed in.';
+      if (!error) MFB.viewAccount();
+    });
+    $('#su-go').addEventListener('click', async () => {
+      const name = $('#su-name').value.trim();
+      if (!name) { $('#su-msg').textContent = 'Pick a display name first.'; return; }
+      $('#su-msg').textContent = 'Creating account...';
+      const { error } = await MFB.sb.auth.signUp({
+        email: $('#su-email').value.trim(), password: $('#su-pass').value,
+        options: { data: { display_name: name } },
+      });
+      $('#su-msg').textContent = error ? ('Could not sign up: ' + error.message)
+        : 'Account created. If email confirmation is on, confirm from your inbox, then sign in.';
+      if (!error) { const { data: s } = await MFB.sb.auth.getSession(); if (s.session) MFB.viewAccount(); }
+    });
+    return;
+  }
+  const name = MFB.profile ? MFB.profile.display_name : '';
+  $('#app').innerHTML = `
+  <section class="hero"><div class="eyebrow">Account</div><h1>${esc(name || MFB.user.email)}</h1>
+  <p class="sub">${esc(MFB.user.email)} · ${MFB.isAdmin() ? 'Admin' : 'Student'}</p></section>
+  <div class="grid g2" style="align-items:start">
+    <div class="card" style="padding:18px">
+      <h2 style="margin-top:0">Sync</h2>
+      <p class="hint" id="sync-status">...</p>
+      <div class="rowflex" style="gap:8px">
+        <button type="button" class="btn sm" id="sync-now">${ic('retry')} Sync now</button>
+        <button type="button" class="btn ghost sm" id="pull-now">Pull from cloud</button>
+      </div>
+    </div>
+    <div class="card" style="padding:18px">
+      <h2 style="margin-top:0">Profile</h2>
+      <label class="hint">Display name</label><input id="pf-name" maxlength="40" value="${esc(name)}" style="width:100%">
+      <button type="button" class="btn sm" id="pf-save" style="margin-top:12px">${ic('check')} Save</button>
+      <p class="hint" id="pf-msg"></p>
+      <hr style="border-color:var(--stroke);margin:16px 0">
+      <button type="button" class="btn ghost sm" id="sign-out">Sign out</button>
+    </div>
+  </div>`;
+  MFB.paintSync();
+  $('#sync-now').addEventListener('click', async () => { const e = await MFB.syncUp(); toast(e ? 'Sync failed: ' + e.message : 'Synced'); MFB.paintSync(); });
+  $('#pull-now').addEventListener('click', async () => { await MFB.syncDown(); toast('Pulled'); });
+  $('#pf-save').addEventListener('click', async () => {
+    const v = $('#pf-name').value.trim();
+    if (!v) return;
+    const { error } = await MFB.sb.from('profiles').update({ display_name: v }).eq('id', MFB.user.id);
+    $('#pf-msg').textContent = error ? ('Save failed: ' + error.message) : 'Saved.';
+    if (!error) { await MFB.loadProfile(); MFB.paintNav(); }
+  });
+  $('#sign-out').addEventListener('click', async () => { await MFB.sb.auth.signOut(); MFB.viewAccount(); });
+};
+
+/* ---- announcements (public read) ---- */
+MFB.announcementsHtml = async function () {
+  if (!MFB.ready) return '';
+  const { data } = await MFB.sb.from('announcements').select('title,body,created_at').order('created_at', { ascending: false }).limit(3);
+  if (!data || !data.length) return '';
+  return `<div class="blk"><div class="blk-h"><h2>${ic('flag')} Announcements</h2></div><div class="acts">` +
+    data.map(a => `<div class="act"><span style="font-weight:700">${esc(a.title)}</span><span>${esc(a.body)}</span><time>${ago(new Date(a.created_at).getTime())}</time></div>`).join('') +
+    `</div></div>`;
+};
+
+/* ---- community discussion per question ---- */
+MFB.discussionHtml = function (qid) {
+  return `<div class="disc" data-disc="${esc(qid)}"><button type="button" class="qtool disc-toggle">${ic('list')}<span>Discussion</span></button><div class="disc-body" style="display:none"></div></div>`;
+};
+MFB.loadDiscussion = async function (box, qid) {
+  if (!MFB.ready) { box.innerHTML = '<p class="hint">Backend not configured.</p>'; return; }
+  const { data, error } = await MFB.sb.from('posts').select('id,body,created_at,author,profiles(display_name)').eq('question_id', qid).is('parent_id', null).order('created_at', { ascending: true }).limit(50);
+  const list = error ? `<p class="hint">Could not load discussion${MFB.user ? '' : ' - sign in to read and post'}.</p>`
+    : (data && data.length ? data.map(p => `<div class="act"><span style="font-weight:700">${esc((p.profiles && p.profiles.display_name) || 'Student')}</span><span>${esc(p.body)}</span><time>${ago(new Date(p.created_at).getTime())}</time></div>`).join('')
+      : '<p class="hint">No posts yet. Be the first to ask about this question.</p>');
+  box.innerHTML = `<div class="acts" style="margin:8px 0">${list}</div>` + (MFB.user
+    ? `<div class="rowflex" style="gap:8px"><input class="disc-in" maxlength="4000" placeholder="Ask or answer..." style="flex:1"><button type="button" class="btn sm disc-send">Post</button></div><p class="hint disc-msg"></p>`
+    : `<p class="hint"><a href="#/account">Sign in</a> to join the discussion.</p>`);
+  const send = box.querySelector('.disc-send');
+  if (send) send.addEventListener('click', async () => {
+    const inp = box.querySelector('.disc-in'), v = inp.value.trim();
+    if (!v) return;
+    const { error: e2 } = await MFB.sb.from('posts').insert({ question_id: qid, author: MFB.user.id, body: v });
+    if (e2) box.querySelector('.disc-msg').textContent = 'Post failed: ' + e2.message;
+    else MFB.loadDiscussion(box, qid);
+  });
+};
+
+/* ---- reports: send to backend when signed in (clipboard fallback stays) ---- */
+MFB.sendReport = async function (qid, detail) {
+  if (!MFB.user) return { error: { message: 'not signed in' } };
+  return await MFB.sb.from('reports').insert({ question_id: qid, author: MFB.user.id, detail });
+};
+
+/* ---- admin page ---- */
+MFB.viewAdmin = async function () {
+  if (!MFB.ready || !MFB.user) { nav('/account'); return; }
+  if (!MFB.isAdmin()) { $('#app').innerHTML = `<div class="empty">${ic('alert')}<div>Admins only. Your account has the student role.</div></div>`; return; }
+  const [reps, postsN, usersN] = await Promise.all([
+    MFB.sb.from('reports').select('id,question_id,detail,status,created_at,profiles(display_name)').order('created_at', { ascending: false }).limit(50),
+    MFB.sb.from('posts').select('id', { count: 'exact', head: true }),
+    MFB.sb.from('profiles').select('id', { count: 'exact', head: true }),
+  ]);
+  const repList = (reps.data || []).map(r => `<div class="act"><span style="font-weight:700">${esc(r.question_id)}</span><span>${esc(r.detail)}</span><span class="pill ${r.status === 'open' ? 'warn' : ''}">${r.status}</span><time>${ago(new Date(r.created_at).getTime())}</time>
+    ${r.status === 'open' ? `<button type="button" class="btn ghost sm rep-res" data-id="${r.id}">Resolve</button><button type="button" class="btn ghost sm rep-dis" data-id="${r.id}">Dismiss</button>` : ''}</div>`).join('') || '<p class="hint">No reports.</p>';
+  $('#app').innerHTML = `
+  <section class="hero"><div class="eyebrow">Admin</div><h1>Site administration</h1>
+  <p class="sub">${usersN.count || 0} accounts · ${postsN.count || 0} discussion posts · ${(reps.data || []).filter(r => r.status === 'open').length} open reports</p></section>
+  <div class="grid g2" style="align-items:start">
+    <div class="card" style="padding:18px">
+      <h2 style="margin-top:0">Post announcement</h2>
+      <label class="hint">Title</label><input id="an-title" maxlength="200" style="width:100%">
+      <label class="hint">Body</label><textarea id="an-body" rows="3" maxlength="4000" style="width:100%"></textarea>
+      <button type="button" class="btn sm" id="an-go" style="margin-top:12px">${ic('check')} Publish</button>
+      <p class="hint" id="an-msg"></p>
+    </div>
+    <div class="blk"><div class="blk-h"><h2>Question reports</h2></div><div class="acts">${repList}</div></div>
+  </div>`;
+  $('#an-go').addEventListener('click', async () => {
+    const t = $('#an-title').value.trim(), b = $('#an-body').value.trim();
+    if (!t || !b) { $('#an-msg').textContent = 'Title and body required.'; return; }
+    const { error } = await MFB.sb.from('announcements').insert({ author: MFB.user.id, title: t, body: b });
+    $('#an-msg').textContent = error ? ('Failed: ' + error.message) : 'Published.';
+    if (!error) { $('#an-title').value = ''; $('#an-body').value = ''; }
+  });
+  $$('.rep-res').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'resolved' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.rep-dis').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'dismissed' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
+};
