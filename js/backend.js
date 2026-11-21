@@ -99,9 +99,12 @@ MFB.viewAccount = async function () {
     <div class="grid g2" style="align-items:start">
       <div class="card" style="padding:18px">
         <h2 style="margin-top:0">Sign in</h2>
+        <button type="button" class="btn" id="google-go" style="width:100%;justify-content:center">${ic('play')} Continue with Google</button>
+        <p class="hint" id="google-msg" style="margin-top:6px">Fastest way - uses your Google account securely. We only receive your name, email and profile picture.</p>
+        <hr style="border-color:var(--stroke);margin:14px 0">
         <label class="hint">Email</label><input id="si-email" type="email" autocomplete="email" style="width:100%">
         <label class="hint">Password</label><input id="si-pass" type="password" autocomplete="current-password" style="width:100%">
-        <button type="button" class="btn" id="si-go" style="margin-top:12px">${ic('play')} Sign in</button>
+        <button type="button" class="btn ghost" id="si-go" style="margin-top:12px">Sign in with email</button>
         <p class="hint" id="si-msg"></p>
       </div>
       <div class="card" style="padding:18px">
@@ -113,6 +116,14 @@ MFB.viewAccount = async function () {
         <p class="hint" id="su-msg"></p>
       </div>
     </div>`;
+    $('#google-go').addEventListener('click', async () => {
+      $('#google-msg').textContent = 'Opening Google sign-in...';
+      const { error } = await MFB.sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: location.origin + location.pathname + '#/account', scopes: 'openid email profile' },
+      });
+      if (error) $('#google-msg').textContent = 'Could not start Google sign-in: ' + error.message;
+    });
     $('#si-go').addEventListener('click', async () => {
       $('#si-msg').textContent = 'Signing in...';
       const { error } = await MFB.sb.auth.signInWithPassword({ email: $('#si-email').value.trim(), password: $('#si-pass').value });

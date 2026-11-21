@@ -179,7 +179,7 @@ async function viewDashboard() {
     `<div class="dz-bar ${i === todayIdx ? 'today' : ''}" style="height:${Math.max(6, Math.round(100 * c / maxC))}%"><title>${'MTWTFSS'[i]}: ${c} study action${c === 1 ? '' : 's'}</title></div>`).join('');
 
   /* purple reference: concentric completion rings + metric cards (real data) */
-  const ringCols = ['#3ddc97', '#a78bfa', '#5ec5f8'];
+  const ringCols = ['#f0b64a', '#d4883a', '#4ade80'];
   const comps = D.subjects.map(s => ({ s, c: subjCompletion(p, s.key) }));
   const overallPct = totalLecs ? Math.round(100 * doneLecs / totalLecs) : 0;
   const ringSvg = (() => {
@@ -214,7 +214,7 @@ async function viewDashboard() {
     const xAt = i => padL + (n === 1 ? (W - padL - padR) / 2 : i * (W - padL - padR) / (n - 1));
     const yAt = v => padT + (100 - v) * (H - padT - padB) / 100;
     const pts = pcts.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
-    const dots = pcts.map((v, i) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="4" fill="#a795ff"><title>${esc(subjByKey(chrono[i].subj).code)} mock ${i + 1}: ${v}% (${chrono[i].correct}/${chrono[i].count})</title></circle>`).join('');
+    const dots = pcts.map((v, i) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="4" fill="#f0b64a"><title>${esc(subjByKey(chrono[i].subj).code)} mock ${i + 1}: ${v}% (${chrono[i].correct}/${chrono[i].count})</title></circle>`).join('');
     const grid = [0, 50, 100].map(v => `<line x1="${padL}" y1="${yAt(v)}" x2="${W - padR}" y2="${yAt(v)}" stroke="var(--stroke)" stroke-width="1"/><text x="${padL - 8}" y="${yAt(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`).join('');
     const d0 = new Date(chrono[0].ts), d1 = new Date(chrono[chrono.length - 1].ts);
     const fmt = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -222,9 +222,9 @@ async function viewDashboard() {
     const deltaTxt = delta === 0 ? 'No change so far' : (delta > 0 ? `Up ${delta} points since your first mock` : `Down ${Math.abs(delta)} points since your first mock`);
     trendHtml = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Mock exam scores over time">
       ${grid}
-      <defs><linearGradient id="tpur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f7bff" stop-opacity=".32"/><stop offset="1" stop-color="#8f7bff" stop-opacity="0"/></linearGradient></defs>
+      <defs><linearGradient id="tpur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0b64a" stop-opacity=".32"/><stop offset="1" stop-color="#f0b64a" stop-opacity="0"/></linearGradient></defs>
       <path d="M${padL},${H - padB} L${pts.replace(/ /g, ' L')} L${W - padR},${H - padB} Z" fill="url(#tpur)"/>
-      <polyline points="${pts}" fill="none" stroke="#a795ff" stroke-width="2.5" stroke-linejoin="round"/>
+      <polyline points="${pts}" fill="none" stroke="#f0b64a" stroke-width="2.5" stroke-linejoin="round"/>
       ${dots}
       <text x="${padL}" y="${H - 6}" font-size="11" fill="var(--muted)">${fmt(d0)}</text>
       <text x="${W - padR}" y="${H - 6}" text-anchor="end" font-size="11" fill="var(--muted)">${fmt(d1)}</text>
@@ -288,6 +288,31 @@ async function viewDashboard() {
     ? weak.map(w => `<div class="act">${ic('alert')}<span>${esc(subjByKey(w.subj).code)} · ${esc(w.src)}</span><span class="pill warn">${Math.round(100 * w.c / w.t)}% · ${w.t} tries</span></div>`).join('')
     : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
 
+
+  /* gold reference structure: stats mini-rings, big score ring, subject progress, recent-exam table (real data only) */
+  const mocksChrono = p.examHistory.slice().reverse();
+  const nMocks = mocksChrono.length;
+  const nPass = mocksChrono.filter(x => x.correct / x.count >= 0.5).length;
+  const nFail = nMocks - nPass;
+  const ongoingN = (resumeExam && !resumeExam.submitted) ? 1 : 0;
+  const avgScore = nMocks ? Math.round(mocksChrono.reduce((a, x) => a + 100 * x.correct / x.count, 0) / nMocks) : null;
+  const miniRing = (pct, col, label, val) => {
+    const r = 15.5, C = 2 * Math.PI * r;
+    return `<div class="dz-mini"><svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="${r}" fill="none" stroke="var(--surface3)" stroke-width="5"/><circle cx="20" cy="20" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-linecap="round" stroke-dasharray="${(pct / 100 * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 20 20)"/></svg><div><b>${val}</b><span>${label}</span></div></div>`;
+  };
+  const bigRingSvg = (() => {
+    const pct = avgScore === null ? 0 : avgScore;
+    const r = 52, C = 2 * Math.PI * r;
+    return `<svg viewBox="0 0 120 120" class="dz-bigring"><defs><linearGradient id="goldg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f0b64a"/><stop offset="1" stop-color="#d4883a"/></linearGradient></defs><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--surface3)" stroke-width="9"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="url(#goldg)" stroke-width="9" stroke-linecap="round" stroke-dasharray="${(pct / 100 * C).toFixed(1)} ${C.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="58" text-anchor="middle" font-size="24" font-weight="800" fill="var(--ink)">${avgScore === null ? '&mdash;' : avgScore + '%'}</text><text x="60" y="74" text-anchor="middle" font-size="9" fill="var(--muted)">avg mock score</text></svg>`;
+  })();
+  const subjProgRows = comps.map(o => `<a class="dz-sprog" href="#/subject/${o.s.key}">
+    <div class="dz-sprog-h"><span class="pill ${o.c.pct > 0 ? 'goldpill' : ''}">${o.c.pct > 0 ? 'Active' : 'Not started'}</span><b>${esc(o.s.code)}</b><span class="hint">${o.c.pct}%</span></div>
+    <div class="dz-pbar"><i style="width:${o.c.pct}%"></i></div></a>`).join('');
+  const histTable = nMocks ? `<table class="dz-table"><thead><tr><th>Mock exam</th><th>Date</th><th>Score</th><th>Status</th></tr></thead><tbody>${mocksChrono.slice(-6).reverse().map(x => {
+    const pc = Math.round(100 * x.correct / x.count);
+    return `<tr><td>${esc(subjByKey(x.subj).code)} mock</td><td>${new Date(x.ts).toLocaleDateString('en-GB')}</td><td>${pc}%</td><td><span class="pill ${pc >= 50 ? 'ok' : 'bad'}">${pc >= 50 ? 'Passed' : 'Below 50%'}</span></td></tr>`;
+  }).join('')}</tbody></table>` : `<div class="empty">${ic('target')}<div>No mock exams yet. Your results will appear here.</div></div>`;
+
   $('#app').innerHTML = `
   <section class="dz-top dz-hero">
     <div class="dz-top-h">
@@ -304,6 +329,35 @@ async function viewDashboard() {
       </div>
     </div>
   </section>
+  <div class="dz-ref">
+    <div class="card dz-ref-stats">
+      <div class="dz-big">${nMocks}<span class="u"> mocks</span></div>
+      <div class="hint">mock exams taken</div>
+      <div class="dz-minirow">
+        ${miniRing(nMocks ? Math.round(100 * nPass / nMocks) : 0, '#4ade80', 'Passed', nPass)}
+        ${ongoingN ? miniRing(100, '#f0b64a', 'In progress', ongoingN) : ''}
+        ${miniRing(nMocks ? Math.round(100 * nFail / nMocks) : 0, '#f87171', 'Below 50%', nFail)}
+      </div>
+      <p class="hint" style="margin:6px 0 0;font-size:11px">Pass mark shown as 50% - check your faculty for official thresholds.</p>
+    </div>
+    <div class="card dz-ref-center">
+      <p class="dz-cap" style="text-align:center">Overall Score</p>
+      ${bigRingSvg}
+      <div class="dz-minirow" style="justify-content:center">
+        ${miniRing(overallPct, '#f0b64a', 'Lectures', overallPct + '%')}
+        ${acc === null ? '' : miniRing(acc, '#d4883a', 'MCQ accuracy', acc + '%')}
+        ${miniRing(Math.round(100 * doneLecs / Math.max(1, totalLecs)), '#4ade80', 'Done', doneLecs + '/' + totalLecs)}
+      </div>
+    </div>
+    <div class="card dz-ref-subjects">
+      <p class="dz-cap">Subjects in progress</p>
+      ${subjProgRows}
+    </div>
+  </div>
+  <div class="card" style="padding:16px;margin-bottom:14px">
+    <div class="rowflex"><h2 style="margin:0;font-size:15px">Recent exam history</h2><span class="sp"></span><span class="hint">real results only</span></div>
+    ${histTable}
+  </div>
   <div class="dz-low"><div class="dz-bottom">
     <div class="dz-col-main card" style="padding:18px"><h2 style="margin-top:0">${ic('trend')} Your progress</h2>${trendHtml}</div>
     <div class="dz-col-mid"><div id="dz-goal"></div><div id="dz-recs"></div></div>
@@ -328,7 +382,6 @@ async function viewDashboard() {
     <div class="blk"><div class="blk-h"><h2>Upcoming exams</h2></div><div class="acts">${examsHtml}</div>
       <p class="hint" style="margin-top:8px">Windows are general and unofficial until the university posts exact dates.</p></div>
     <div class="blk"><div class="blk-h"><h2>Weak topics</h2></div><div class="acts">${weakHtml}</div></div>
-    <div class="blk"><div class="blk-h"><h2>Recent mock exams</h2></div><div class="acts">${hist}</div></div>
     <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>
   </div>`;
 }
