@@ -213,4 +213,24 @@ main#app{flex:1;min-width:0;padding:8px 26px 40px;max-width:1180px}
   body.navopen #side{transform:none}
   #menu-btn{display:inline-flex;position:fixed;top:10px;left:10px;z-index:50;background:var(--surface3)}
   main#app{padding:8px 14px 40px;padding-top:52px}
-      }
+}
+
+/* wave 2 */
+.goalbar { height: 10px; }
+.goalbar i { background: linear-gradient(90deg, #7c6cf6, #38bdf8); }
+a.rec { text-decoration: none; color: inherit; }
+a.rec:hover { background: var(--surface3); }
+.fcwrap { max-width: 640px; margin: 0 auto; }
+.fcard { position: relative; height: 300px; cursor: pointer; perspective: 1200px; }
+.fface { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 28px; text-align: center; background: var(--surface2); border: 1px solid var(--line); border-radius: 16px; backface-visibility: hidden; transition: transform .45s; }
+.fface .ftext { font-size: 17px; font-weight: 600; line-height: 1.55; overflow: auto; max-height: 200px; }
+.fback { transform: rotateY(180deg); background: var(--surface3); }
+.fcard.flipped .ffront { transform: rotateY(180deg); }
+.fcard.flipped .fback { transform: rotateY(360deg); }
+ul.notes { margin: 0; padding-inline-start: 20px; line-height: 1.9; }
+ul.notes li { margin-bottom: 4px; }
+.notedet { padding: 0; overflow: hidden; margin-bottom: 8px; }
+.notedet summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+.notedet summary:hover { background: var(--surface3); }
+.notedet ul { padding: 4px 16px 14px; }
+html[dir="rtl"] .snav a { text-align: right; }
