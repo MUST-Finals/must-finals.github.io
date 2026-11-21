@@ -195,7 +195,7 @@ create policy student_resources_update on public.student_resources
 -- Security-definer helper avoids recursive RLS policy evaluation across room tables.
 create or replace function public.is_study_room_member(target_room uuid)
 returns boolean language sql stable security definer set search_path = public
-as $ select exists (select 1 from public.study_room_members m where m.room_id = target_room and m.user_id = auth.uid()) $;
+as $func$ select exists (select 1 from public.study_room_members m where m.room_id = target_room and m.user_id = auth.uid()) $func$;
 revoke all on function public.is_study_room_member(uuid) from public;
 grant execute on function public.is_study_room_member(uuid) to authenticated;
 
@@ -219,8 +219,10 @@ create policy study_room_members_read on public.study_room_members for select us
 );
 drop policy if exists study_room_members_join on public.study_room_members;
 create policy study_room_members_join on public.study_room_members for insert with check (
-  user_id = auth.uid() and exists (select 1 from public.study_rooms r where r.id = room_id and r.visibility = 'public')
-  or exists (select 1 from public.study_rooms r where r.id = room_id and r.owner_id = auth.uid())
+  user_id = auth.uid() and (
+    exists (select 1 from public.study_rooms r where r.id = room_id and r.visibility = 'public')
+    or exists (select 1 from public.study_rooms r where r.id = room_id and r.owner_id = auth.uid())
+  )
 );
 drop policy if exists study_room_members_leave on public.study_room_members;
 create policy study_room_members_leave on public.study_room_members for delete using (
@@ -235,8 +237,9 @@ create policy study_room_messages_read on public.study_room_messages for select 
 drop policy if exists study_room_messages_insert on public.study_room_messages;
 create policy study_room_messages_insert on public.study_room_messages for insert with check (
   user_id = auth.uid() and (
-    exists (select 1 from public.study_room_members m where m.room_id = room_id and m.user_id = auth.uid())
+    public.is_study_room_member(room_id)
     or exists (select 1 from public.study_rooms r where r.id = room_id and r.visibility = 'public')
+    or exists (select 1 from public.study_rooms r where r.id = room_id and r.owner_id = auth.uid())
   )
 );
 drop policy if exists study_room_messages_delete on public.study_room_messages;
