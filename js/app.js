@@ -1073,8 +1073,36 @@ async function applyTheme() {
   const b = $('#theme-btn');
   if (b) b.innerHTML = t === 'dark' ? ic('sun') : ic('moon');
 }
+
+/* ---- admin content overlay: merge DB content_items over baked data (public read, fail-silent) ---- */
+async function loadContentOverlay() {
+  const SB = 'https://ziczpsbryyjdwjoedtdb.supabase.co';
+  const KEY = 'sb_publishable_njRhgbia6C91Ce3RKg03Eg_vgnXxt7O';
+  try {
+    const ctl = new AbortController(); const to = setTimeout(() => ctl.abort(), 3500);
+    const res = await fetch(SB + '/rest/v1/content_items?select=kind,subj,ref_id,payload&order=id.asc', {
+      headers: { apikey: KEY, Authorization: 'Bearer ' + KEY }, signal: ctl.signal });
+    clearTimeout(to);
+    if (!res.ok) return;
+    const items = await res.json();
+    let added = 0;
+    for (const it of items) {
+      const p = it.payload || {};
+      if (it.kind === 'mcq') {
+        if (it.ref_id) { const q = D.mcq.find(x => x.id === it.ref_id); if (q) Object.assign(q, p); }
+        else if (p.id && p.q && Array.isArray(p.opts) && typeof p.a === 'number' && !D.mcq.find(x => x.id === p.id)) { D.mcq.push(p); added++; }
+      } else if (it.kind === 'written') {
+        if (it.ref_id) { const q = D.written.find(x => x.id === it.ref_id); if (q) Object.assign(q, p); }
+        else if (p.id && p.q && p.a && !D.written.find(x => x.id === p.id)) { D.written.push(p); added++; }
+      }
+    }
+    if (added) console.log('content overlay: ' + added + ' admin items merged');
+  } catch (e) { /* offline or no backend: baked content stands */ }
+}
+
 async function boot() {
   if (window.MFB) MFB.init();
+  await loadContentOverlay();
   await applyTheme();
   $('#theme-btn').addEventListener('click', async () => {
     const t = (await store.get('theme', 'dark')) === 'dark' ? 'light' : 'dark';
