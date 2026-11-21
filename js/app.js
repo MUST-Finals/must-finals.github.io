@@ -1036,8 +1036,11 @@ route(/^\/exam\/([a-z0-9]+)$/, viewExamConfig);
 route(/^\/exam\/([a-z0-9]+)\/run$/, viewExamRun);
 route(/^\/bookmarks$/, viewBookmarks);
 route(/^\/tools(?:\/([a-z]+))?$/, viewTools);
-route(/^\/account$/, () => window.MFB && MFB.viewAccount());
-route(/^\/admin$/, () => window.MFB && MFB.viewAdmin());
+function viewBackendSoon(kind) {
+  $('#app').innerHTML = `<div class="card empty">${ic('user')}<div><b>${kind === 'admin' ? 'Admin' : 'Accounts'} are not available yet.</b><br>Sign-in, sync and community features are being set up. Everything on the site works offline without an account.</div></div>`;
+}
+route(/^\/account$/, () => (window.MFB && MFB.ready) ? MFB.viewAccount() : viewBackendSoon('account'));
+route(/^\/admin$/, () => (window.MFB && MFB.ready && MFB.isAdmin()) ? MFB.viewAdmin() : viewBackendSoon('admin'));
 
 /* theme */
 async function applyTheme() {
@@ -1063,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', boot);
 
 /* extra icons */
 Object.assign(IC, {
+  user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
   flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
   compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
   bookopen: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
