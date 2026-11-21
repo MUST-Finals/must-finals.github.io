@@ -296,3 +296,10 @@ code { background: var(--surface3); border-radius: 6px; padding: 2px 6px; }
 .dz-up-t{font-weight:600;font-size:13px}
 @media (max-width:1100px){.dz-band{grid-template-columns:1fr}.dz-bottom{grid-template-columns:1fr 1fr}.dz-col-main{grid-column:1/-1}}
 @media (max-width:760px){.dz-courses{grid-template-columns:1fr}.dz-bottom{grid-template-columns:1fr}.dz-top{padding:16px}}
+
+/* dashboard light lower zone (reference: light area under the dark band) */
+.dz-low{background:#eef0f7;border:1px solid #dde1ef;border-radius:26px;padding:16px;margin-bottom:4px;color:#171c38;
+  --surface:#ffffff;--surface2:#f4f5fb;--surface3:#e8ebf5;--stroke:#e0e4f0;--stroke2:#c9cfe6;--ink:#171c38;--ink3:#8a90ad;--muted:#5d6484;--shadow:0 1px 3px rgba(23,28,56,.06)}
+.dz-low .card{color:#171c38}
+.dz-low ::-webkit-calendar-picker-indicator{filter:none}
+@media (max-width:760px){.dz-low{padding:12px}}
