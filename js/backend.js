@@ -9,6 +9,7 @@ const MFB = {
   profile: null,
   ready: false,
 };
+window.MFB = MFB;  // classic-script const doesn't attach to window; boot() guards on window.MFB
 
 MFB.init = async function () {
   if (!window.supabase || !MFB.url || !MFB.key) return;
