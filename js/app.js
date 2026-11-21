@@ -1176,6 +1176,8 @@ async function boot() {
   $('#menu-btn').addEventListener('click', () => document.body.classList.toggle('navopen'));
   $('#side').addEventListener('click', e => { if (e.target.closest('a')) document.body.classList.remove('navopen'); });
   await render();
+  window.__MF_BOOTED = true;
+  try { sessionStorage.removeItem('mf.reloaded'); } catch (e) {}
 }
 document.addEventListener('DOMContentLoaded', boot);
 
