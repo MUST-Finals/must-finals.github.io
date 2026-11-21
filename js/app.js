@@ -52,7 +52,7 @@ const store = {
     try { const v = localStorage.getItem('mf.' + key); return v === null ? fallback : JSON.parse(v); }
     catch { return fallback; }
   },
-  async set(key, val) { try { localStorage.setItem('mf.' + key, JSON.stringify(val)); } catch {} },
+  async set(key, val) { try { localStorage.setItem('mf.' + key, JSON.stringify(val)); localStorage.setItem('mf.t.' + key, String(Date.now())); } catch {} if (window.MFB) MFB.schedulePush(); },
   async del(key) { try { localStorage.removeItem('mf.' + key); } catch {} },
 };
 
@@ -149,46 +149,36 @@ async function viewDashboard() {
     continueBtn += ` <a class="btn ghost" href="#/exam/${resumeExam.subj}/run">${ic('timer')} Resume exam in progress</a>`;
   }
 
-  const subjCards = D.subjects.map(s => {
+  /* pastel subject cards (reference layout) - real completion data */
+  const pastel = ['pc-a', 'pc-b', 'pc-c'];
+  const subjCards = D.subjects.map((s, i) => {
     const comp = subjCompletion(p, s.key);
-    const ac = subjAccuracy(p, s.key);
+    const left = s.lectures.filter(l => !l.missing && !p.completed[s.key + '-lec' + l.n]).length;
     const nq = subjMcqs(s.key).length;
-    return `<a class="scard" href="#/subject/${s.key}">
-      <span class="code">${esc(s.code)}</span>
-      <div class="name">${esc(s.full)}</div>
-      <div class="meta"><span>${s.lectures.length} lectures</span><span>${s.sections.length} ${s.seckind === 'Lab' ? 'labs' : 'sections'}</span><span>${nq} MCQs</span></div>
-      <div class="pbar" role="progressbar" aria-valuenow="${comp.pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${comp.pct}%"></i></div>
-      <div class="meta" style="margin-top:6px"><span>${comp.done}/${comp.total} lectures done</span>${ac ? `<span>${ac.pct}% MCQ accuracy</span>` : '<span>No attempts yet</span>'}</div>
+    const ac = subjAccuracy(p, s.key);
+    return `<a class="dz-course ${pastel[i % 3]}" href="#/subject/${s.key}">
+      <div class="dz-course-h"><span class="dz-course-t">${esc(s.full)}</span><span class="dz-course-ic">${ic('book')}</span></div>
+      <div class="dz-course-m"><span>${left} lectures left</span><span>${nq} MCQs</span>${ac ? `<span>${ac.pct}% accuracy</span>` : '<span>No attempts yet</span>'}</div>
+      <div class="dz-course-pct">${comp.pct}<span>%</span></div>
+      <div class="dz-pbar"><i style="width:${comp.pct}%"></i></div>
     </a>`;
   }).join('');
 
-  const examsHtml = D.exams.map(e => `
-    <div class="act"><span style="font-weight:700">${esc(e.name)}</span>
-    ${e.light ? '<span class="pill">Light review</span>' : ''}
-    <span class="hint">${esc(e.window)} · ${esc(e.note)}</span></div>`).join('');
-
-  const acts = p.activity.length
-    ? p.activity.slice(0, 8).map(a => `<div class="act">${ic('check')}<span>${esc(a.text)}</span><time>${ago(a.ts)}</time></div>`).join('')
-    : `<div class="empty">${ic('chart')}<div>No activity yet. Answer a question or finish a lecture and it shows up here.</div></div>`;
-
-  const hist = p.examHistory.length
-    ? p.examHistory.slice(0, 5).map(x => `<div class="act">${ic('target')}<span>${esc(subjByKey(x.subj).code)} mock · ${x.correct}/${x.count} correct</span><time>${ago(x.ts)}</time></div>`).join('')
-    : `<div class="empty">${ic('target')}<div>No mock exams yet. Your results will appear here.</div></div>`;
-
-  // weak topics: lowest accuracy per source with >=3 attempts
-  const bySrc = {};
-  for (const q of D.mcq) {
-    const s = p.mcq[q.id]; if (!s || !s.t) continue;
-    const key = q.subj + '|' + q.src;
-    bySrc[key] = bySrc[key] || { t: 0, c: 0, subj: q.subj, src: q.src };
-    bySrc[key].t += s.t; bySrc[key].c += s.c;
+  /* weekly activity bars - real activity log, current week (Mon start) */
+  const now = new Date();
+  const monday = new Date(now); monday.setHours(0, 0, 0, 0);
+  monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  const dayCounts = [0, 0, 0, 0, 0, 0, 0];
+  for (const a of p.activity) {
+    const d = Math.floor((a.ts - monday.getTime()) / 86400000);
+    if (d >= 0 && d < 7) dayCounts[d]++;
   }
-  const weak = Object.values(bySrc).filter(x => x.t >= 3).sort((a, b) => a.c / a.t - b.c / b.t).slice(0, 3);
-  const weakHtml = weak.length
-    ? weak.map(w => `<div class="act">${ic('alert')}<span>${esc(subjByKey(w.subj).code)} · ${esc(w.src)}</span><span class="pill warn">${Math.round(100 * w.c / w.t)}% · ${w.t} tries</span></div>`).join('')
-    : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
+  const maxC = Math.max(1, ...dayCounts);
+  const todayIdx = (now.getDay() + 6) % 7;
+  const bars = dayCounts.map((c, i) =>
+    `<div class="dz-bar ${i === todayIdx ? 'today' : ''}" style="height:${Math.max(6, Math.round(100 * c / maxC))}%"><title>${'MTWTFSS'[i]}: ${c} study action${c === 1 ? '' : 's'}</title></div>`).join('');
 
-  // improvement over time: real mock-exam percentages, chronological
+  /* improvement over time: real mock-exam percentages, chronological */
   const chrono = p.examHistory.slice().reverse();
   let trendHtml;
   if (chrono.length < 2) {
@@ -216,13 +206,89 @@ async function viewDashboard() {
     <p class="hint" style="margin-top:6px">${n} mocks · last ${pcts[pcts.length - 1]}% · ${deltaTxt}. Real results only.</p>`;
   }
 
+  /* upcoming: mini month calendar with real planner dates + upcoming tasks */
+  const pl = Object.assign({ exams: {}, tasks: [] }, await store.get('plan', {}));
+  const examDates = Object.values(pl.exams).filter(Boolean);
+  const y = now.getFullYear(), mo = now.getMonth();
+  const first = new Date(y, mo, 1);
+  const lead = (first.getDay() + 6) % 7;
+  const dim = new Date(y, mo + 1, 0).getDate();
+  const moName = now.toLocaleDateString('en-GB', { month: 'long' });
+  let calCells = '';
+  for (let i = 0; i < lead; i++) calCells += '<span class="dz-cal-e"></span>';
+  for (let dnum = 1; dnum <= dim; dnum++) {
+    const iso = `${y}-${String(mo + 1).padStart(2, '0')}-${String(dnum).padStart(2, '0')}`;
+    const isToday = dnum === now.getDate();
+    const hasExam = examDates.includes(iso);
+    const hasTask = pl.tasks.some(t => t.date === iso && !t.done);
+    calCells += `<span class="dz-cal-d ${isToday ? 'today' : ''} ${hasExam ? 'exam' : ''} ${hasTask ? 'task' : ''}" ${hasExam ? 'title="Exam day (your planner)"' : hasTask ? 'title="Study task due"' : ''}>${dnum}</span>`;
+  }
+  const upcoming = [];
+  for (const s of D.subjects) {
+    const iso = pl.exams[s.key];
+    if (iso) {
+      const days = Math.ceil((new Date(iso + 'T09:00:00') - now) / 86400000);
+      upcoming.push({ t: `${s.code} exam`, d: days >= 0 ? `in ${days} day${days === 1 ? '' : 's'}` : 'date passed', sub: new Date(iso).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) });
+    }
+  }
+  pl.tasks.filter(t => !t.done && t.date && t.date >= todayKey2()).sort((a, b) => a.date < b.date ? -1 : 1).slice(0, 4)
+    .forEach(t => upcoming.push({ t: t.text, d: new Date(t.date + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }), sub: t.subj ? subjByKey(t.subj).code : 'Task' }));
+  const upcomingHtml = upcoming.length
+    ? upcoming.slice(0, 6).map(u => `<div class="dz-up"><span class="dz-up-dot"></span><div><div class="dz-up-t">${esc(u.t)}</div><div class="hint">${esc(u.sub)} · ${esc(u.d)}</div></div></div>`).join('')
+    : '<p class="hint">No dates yet - add your exam dates and tasks in the <a href="#/planner">Planner</a>.</p>';
+
+  const examsHtml = D.exams.map(e => `
+    <div class="act"><span style="font-weight:700">${esc(e.name)}</span>
+    ${e.light ? '<span class="pill">Light review</span>' : ''}
+    <span class="hint">${esc(e.window)} · ${esc(e.note)}</span></div>`).join('');
+
+  const acts = p.activity.length
+    ? p.activity.slice(0, 8).map(a => `<div class="act">${ic('check')}<span>${esc(a.text)}</span><time>${ago(a.ts)}</time></div>`).join('')
+    : `<div class="empty">${ic('chart')}<div>No activity yet. Answer a question or finish a lecture and it shows up here.</div></div>`;
+
+  const hist = p.examHistory.length
+    ? p.examHistory.slice(0, 5).map(x => `<div class="act">${ic('target')}<span>${esc(subjByKey(x.subj).code)} mock · ${x.correct}/${x.count} correct</span><time>${ago(x.ts)}</time></div>`).join('')
+    : `<div class="empty">${ic('target')}<div>No mock exams yet. Your results will appear here.</div></div>`;
+
+  const bySrc = {};
+  for (const q of D.mcq) {
+    const s = p.mcq[q.id]; if (!s || !s.t) continue;
+    const key = q.subj + '|' + q.src;
+    bySrc[key] = bySrc[key] || { t: 0, c: 0, subj: q.subj, src: q.src };
+    bySrc[key].t += s.t; bySrc[key].c += s.c;
+  }
+  const weak = Object.values(bySrc).filter(x => x.t >= 3).sort((a, b) => a.c / a.t - b.c / b.t).slice(0, 3);
+  const weakHtml = weak.length
+    ? weak.map(w => `<div class="act">${ic('alert')}<span>${esc(subjByKey(w.subj).code)} · ${esc(w.src)}</span><span class="pill warn">${Math.round(100 * w.c / w.t)}% · ${w.t} tries</span></div>`).join('')
+    : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
+
   $('#app').innerHTML = `
-  <section class="hero">
-    <div class="eyebrow">MUST · Finals Prep</div>
-    <h1>${greet}, Mazen</h1>
-    <p class="sub">Lectures, materials, MCQ practice, written questions and timed mock exams for your three finals subjects.</p>
-    <div class="rowflex" style="margin-top:16px">${continueBtn || '<span class="hint">Pick a subject below to start.</span>'}</div>
+  <section class="dz-top">
+    <div class="dz-top-h">
+      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1></div>
+      <div class="rowflex">${continueBtn || '<span class="hint" style="color:#aab">Pick a subject below to start.</span>'}</div>
+    </div>
+    <div class="dz-band">
+      <div class="dz-band-l">
+        <p class="dz-cap">Your subjects</p>
+        <div class="dz-courses">${subjCards}</div>
+      </div>
+      <div class="dz-band-r">
+        <p class="dz-cap">Activity this week</p>
+        <div class="dz-bars">${bars}</div>
+        <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
+      </div>
+    </div>
   </section>
+  <div class="dz-bottom">
+    <div class="dz-col-main card" style="padding:18px"><h2 style="margin-top:0">${ic('trend')} Your progress</h2>${trendHtml}</div>
+    <div class="dz-col-mid"><div id="dz-goal"></div><div id="dz-recs"></div></div>
+    <div class="dz-col-right card" style="padding:18px">
+      <div class="rowflex"><h2 style="margin:0;font-size:15px">Upcoming</h2><span class="sp"></span><span class="hint">${moName}</span></div>
+      <div class="dz-cal"><div class="dz-cal-h">${'Mo Tu We Th Fr Sa Su'.split(' ').map(d => `<span>${d}</span>`).join('')}</div><div class="dz-cal-g">${calCells}</div></div>
+      <div style="margin-top:10px;display:grid;gap:8px">${upcomingHtml}</div>
+    </div>
+  </div>
   <div class="grid g4" style="margin:16px 0">
     <div class="card stat"><span class="v">${D.subjects.length}</span><span class="l">${ic('book')} Subjects</span></div>
     <div class="card stat"><span class="v">${totalLecs}</span><span class="l">${ic('layers')} Lectures</span></div>
@@ -233,16 +299,16 @@ async function viewDashboard() {
     <div class="card stat"><span class="v">${p.examHistory.length}</span><span class="l">${ic('timer')} Mock exams taken</span></div>
     <div class="card stat"><span class="v">${bms}</span><span class="l">${ic('bookmark')} Bookmarks</span></div>
   </div>
-  <div class="blk"><div class="blk-h"><h2>Subjects</h2></div><div class="grid g3">${subjCards}</div></div>
+  <div id="dz-announce"></div>
   <div class="grid g2" style="align-items:start">
     <div class="blk"><div class="blk-h"><h2>Upcoming exams</h2></div><div class="acts">${examsHtml}</div>
       <p class="hint" style="margin-top:8px">Windows are general and unofficial until the university posts exact dates.</p></div>
     <div class="blk"><div class="blk-h"><h2>Weak topics</h2></div><div class="acts">${weakHtml}</div></div>
     <div class="blk"><div class="blk-h"><h2>Recent mock exams</h2></div><div class="acts">${hist}</div></div>
     <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>
-  </div>
-  <div class="blk"><div class="blk-h"><h2>Improvement over time</h2></div>${trendHtml}</div>`;
+  </div>`;
 }
+function todayKey2() { return new Date().toISOString().slice(0, 10); }
 /* MUST Finals platform - part 2: subject pages, practice, bookmarks */
 const OPT_LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -251,7 +317,8 @@ function qToolsHtml(qid, type) {
     <button type="button" class="qtool bm-btn" data-qid="${qid}" data-type="${type}">${ic('bookmark')}<span>Bookmark</span></button>
     <button type="button" class="qtool share-btn" data-qid="${qid}">${ic('share')}<span>Share</span></button>
     <button type="button" class="qtool report-btn" data-qid="${qid}" data-type="${type}">${ic('flag')}<span>Report error</span></button>
-  </div>`;
+    <button type="button" class="qtool disc-btn" data-qid="${qid}">${ic('list')}<span>Discussion</span></button>
+  </div><div class="disc-body" data-disc="${esc(qid)}" style="display:none"></div>`;
 }
 
 function mcqHtml(q) {
@@ -448,8 +515,25 @@ document.addEventListener('click', async e => {
   if (rp) {
     const q = mcqById(rp.dataset.qid) || wrById(rp.dataset.qid);
     const txt = `Question report\nID: ${q.id}\nSource: ${q.src}\nQuestion: ${q.q}\n\nWhat looks wrong: `;
+    if (window.MFB && MFB.user) {
+      const note = prompt('What looks wrong with this question?', '');
+      if (note !== null) {
+        const r = await MFB.sendReport(q.id, note || '(no detail)');
+        toast(r && r.error ? 'Report failed: ' + r.error.message : 'Report sent - thank you');
+      }
+      return;
+    }
     try { await navigator.clipboard.writeText(txt); toast('Question info copied - send it to Mazen'); }
     catch { prompt('Copy and send to Mazen:', txt); }
+    return;
+  }
+  const db = e.target.closest('.disc-btn');
+  if (db) {
+    const body = document.querySelector(`.disc-body[data-disc="${db.dataset.qid}"]`);
+    if (!body) return;
+    const open = body.style.display === 'block';
+    body.style.display = open ? 'none' : 'block';
+    if (!open && window.MFB) MFB.loadDiscussion(body, db.dataset.qid);
     return;
   }
 });
@@ -952,6 +1036,8 @@ route(/^\/exam\/([a-z0-9]+)$/, viewExamConfig);
 route(/^\/exam\/([a-z0-9]+)\/run$/, viewExamRun);
 route(/^\/bookmarks$/, viewBookmarks);
 route(/^\/tools(?:\/([a-z]+))?$/, viewTools);
+route(/^\/account$/, () => window.MFB && MFB.viewAccount());
+route(/^\/admin$/, () => window.MFB && MFB.viewAdmin());
 
 /* theme */
 async function applyTheme() {
@@ -961,6 +1047,7 @@ async function applyTheme() {
   if (b) b.innerHTML = t === 'dark' ? ic('sun') : ic('moon');
 }
 async function boot() {
+  if (window.MFB) MFB.init();
   await applyTheme();
   $('#theme-btn').addEventListener('click', async () => {
     const t = (await store.get('theme', 'dark')) === 'dark' ? 'light' : 'dark';
@@ -1029,21 +1116,24 @@ viewDashboard = async function () {
   const d = await dailyGet(), g = await goalTarget();
   const pct = Math.min(100, Math.round(100 * d.count / g));
   const recs = await recommendations(p);
-  $('#app').insertAdjacentHTML('beforeend', `
-  <div class="grid g2" style="align-items:start">
-    <div class="blk"><div class="blk-h"><h2>${ic('flame')} Today's goal</h2></div>
-      <div class="card" style="padding:16px">
-        <div class="pbar goalbar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
-        <p style="margin:10px 0 8px;font-weight:700">${d.count} / ${g} practice answers today</p>
-        <div class="rowflex"><span class="hint">Daily target:</span>
-          ${[10, 20, 40].map(n => `<button type="button" class="qtool goalchip ${g === n ? 'on' : ''}" data-g="${n}">${n}</button>`).join('')}
-        </div>
-      </div></div>
-    <div class="blk"><div class="blk-h"><h2>${ic('compass')} Recommended next</h2></div>
-      <div class="acts">${recs.map(r => `<a class="act rec" href="${r.act}">${ic(r.icon)}<span>${esc(r.text)}</span></a>`).join('')}</div>
-    </div>
-  </div>`);
+  const goalEl = document.getElementById('dz-goal');
+  if (!goalEl) return;
+  goalEl.innerHTML = `<div class="card" style="padding:16px">
+    <h2 style="margin:0 0 8px;font-size:15px">${ic('flame')} Today's goal</h2>
+    <div class="pbar goalbar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
+    <p style="margin:10px 0 8px;font-weight:700">${d.count} / ${g} practice answers today</p>
+    <div class="rowflex"><span class="hint">Daily target:</span>
+      ${[10, 20, 40].map(n => `<button type="button" class="qtool goalchip ${g === n ? 'on' : ''}" data-g="${n}">${n}</button>`).join('')}
+    </div></div>`;
+  document.getElementById('dz-recs').innerHTML = `<div class="card" style="padding:16px">
+    <h2 style="margin:0 0 8px;font-size:15px">${ic('compass')} Recommended next</h2>
+    <div class="acts">${recs.map(r => `<a class="act rec" href="${r.act}">${ic(r.icon)}<span>${esc(r.text)}</span></a>`).join('')}</div></div>`;
   $$('.goalchip').forEach(b => b.addEventListener('click', async () => { await store.set('goal', +b.dataset.g); render(); }));
+  if (window.MFB && MFB.ready) {
+    const ann = await MFB.announcementsHtml();
+    const slot = document.getElementById('dz-announce');
+    if (slot && ann) slot.innerHTML = ann;
+  }
 };
 
 /* ---- retry missed questions (reuses the real exam runner) ---- */
@@ -1589,7 +1679,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav = $('.snav');
   if (nav && !nav.querySelector('a[href="#/planner"]')) {
     const bm = nav.querySelector('a[href="#/bookmarks"]');
-    bm.insertAdjacentHTML('afterend', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a>');
+    bm.insertAdjacentHTML('afterend', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
   }
 });
 
