@@ -670,7 +670,7 @@ async function viewExamResults(key) {
 
 /* Boolean expression evaluator: vars A-D, ops AND(& * .) OR(| +) XOR(^) NOT(! ~ ') parens */
 function boolEval(expr, env) {
-  const toks = expr.match(/[ABCDabcd()!~'&|^*.+]|\bAND\b|\bOR\b|\bNOT\b|\bXOR\b/gi) || [];
+  const toks = expr.match(/\bAND\b|\bOR\b|\bNOT\b|\bXOR\b|[ABCDabcd()!~'&|^*.+]/gi) || [];
   let pos = 0;
   const peek = () => toks[pos];
   function parseOr() {
@@ -932,3 +932,277 @@ async function boot() {
   await render();
 }
 document.addEventListener('DOMContentLoaded', boot);
+
+/* ============ MUST Finals - part 5: flashcards, retry, revision, goals, AR UI, notes, PWA ============ */
+
+/* extra icons */
+Object.assign(IC, {
+  flame: '<path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/>',
+  compass: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+  bookopen: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  sparkle: '<path d="M12 3v3m0 12v3M5.6 5.6l2.2 2.2m8.4 8.4 2.2 2.2M3 12h3m12 0h3M5.6 18.4l2.2-2.2m8.4-8.4 2.2-2.2"/>',
+  notebook: '<path d="M2 6h4"/><path d="M2 10h4"/><path d="M2 14h4"/><path d="M2 18h4"/><rect width="16" height="20" x="4" y="2" rx="2"/><path d="M16 2v20"/>',
+  clipb: '<rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h6"/>',
+  shuffle: '<path d="M2 18h1.4c1.3 0 2.5-.6 3.3-1.7l6.1-8.6c.8-1.1 2-1.7 3.3-1.7H22"/><path d="m18 2 4 4-4 4"/><path d="M2 6h1.9c1.5 0 2.9.9 3.6 2.2"/><path d="M22 18h-5.9c-1.3 0-2.6-.7-3.3-1.8l-.5-.8"/><path d="m18 14 4 4-4 4"/>',
+  cards: '<rect width="14" height="18" x="7" y="3" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h9"/>',
+  globe: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+});
+
+/* ---- daily goal ---- */
+function todayKey() { return new Date().toISOString().slice(0, 10); }
+async function dailyGet() { const d = await store.get('daily', null); return (d && d.date === todayKey()) ? d : { date: todayKey(), count: 0 }; }
+async function dailyBump() { const d = await dailyGet(); d.count++; await store.set('daily', d); }
+async function goalTarget() { return await store.get('goal', 20); }
+
+const _recordMcq = recordMcq;
+recordMcq = async function (qid, correct) { await _recordMcq(qid, correct); await dailyBump(); };
+
+/* ---- recommendations from real state only ---- */
+async function recommendations(p) {
+  const recs = [];
+  const last = p.examHistory[0];
+  if (last) {
+    const wrong = last.count - last.correct;
+    if (wrong > 0) recs.push({ icon: 'retry', text: `Retry the ${wrong} question${wrong > 1 ? 's' : ''} you missed in your last ${subjByKey(last.subj).code} mock`, act: '#/exam/' + last.subj });
+  }
+  let worst = null, worstPct = 101;
+  for (const s of D.subjects) {
+    const a = subjAccuracy(p, s.key);
+    if (a && a.t >= 5 && a.pct < worstPct) { worstPct = a.pct; worst = s; }
+  }
+  if (worst) recs.push({ icon: 'target', text: `Weakest practice area: ${worst.code} at ${worstPct}% accuracy - work its question bank`, act: '#/subject/' + worst.key });
+  for (const s of D.subjects) {
+    const c = subjCompletion(p, s.key);
+    if (c.done > 0 && c.done < c.total) {
+      const next = s.lectures.find(l => !l.missing && !p.completed[s.key + '-lec' + l.n]);
+      if (next) { recs.push({ icon: 'bookopen', text: `Continue ${s.code} - Lecture ${next.n}: ${next.topic}`, act: '#/subject/' + s.key }); break; }
+    }
+  }
+  if (!recs.length) recs.push({ icon: 'sparkle', text: 'Pick a subject and mark lectures done as you study them', act: '#/' });
+  return recs.slice(0, 3);
+}
+
+/* ---- dashboard extras ---- */
+const _viewDashboard = viewDashboard;
+viewDashboard = async function () {
+  await _viewDashboard();
+  const p = await prog();
+  const d = await dailyGet(), g = await goalTarget();
+  const pct = Math.min(100, Math.round(100 * d.count / g));
+  const recs = await recommendations(p);
+  $('#app').insertAdjacentHTML('beforeend', `
+  <div class="grid g2" style="align-items:start">
+    <div class="blk"><div class="blk-h"><h2>${ic('flame')} Today's goal</h2></div>
+      <div class="card" style="padding:16px">
+        <div class="pbar goalbar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${pct}%"></i></div>
+        <p style="margin:10px 0 8px;font-weight:700">${d.count} / ${g} practice answers today</p>
+        <div class="rowflex"><span class="hint">Daily target:</span>
+          ${[10, 20, 40].map(n => `<button type="button" class="qtool goalchip ${g === n ? 'on' : ''}" data-g="${n}">${n}</button>`).join('')}
+        </div>
+      </div></div>
+    <div class="blk"><div class="blk-h"><h2>${ic('compass')} Recommended next</h2></div>
+      <div class="acts">${recs.map(r => `<a class="act rec" href="${r.act}">${ic(r.icon)}<span>${esc(r.text)}</span></a>`).join('')}</div>
+    </div>
+  </div>`);
+  $$('.goalchip').forEach(b => b.addEventListener('click', async () => { await store.set('goal', +b.dataset.g); render(); }));
+};
+
+/* ---- retry missed questions (reuses the real exam runner) ---- */
+async function startRetryExam(key) {
+  const p = await prog();
+  const pool = subjMcqs(key).filter(q => { const st = p.mcq[q.id]; return st && st.t > 0 && st.c < st.t; });
+  if (pool.length < 3) { toast('Fewer than 3 missed questions in this subject yet - practice more first'); return; }
+  const picked = shuffled(pool).slice(0, Math.min(15, pool.length));
+  const exam = {
+    subj: key, started: Date.now(), deadline: Date.now() + picked.length * 90 * 1000,
+    qs: picked.map(q => { const order = shuffled(q.opts.map((_, i) => i)); return { id: q.id, order, correctIdx: order.indexOf(q.a), picked: null, marked: false }; }),
+    cur: 0, submitted: false,
+  };
+  await store.set('exam', exam);
+  await logAct(`Started retry exam in ${subjByKey(key).code} (${picked.length} missed questions)`);
+  nav('/exam/' + key + '/run');
+}
+
+const _viewExamConfig = viewExamConfig;
+viewExamConfig = async function (key) {
+  await _viewExamConfig(key);
+  const p = await prog();
+  const missed = subjMcqs(key).filter(q => { const st = p.mcq[q.id]; return st && st.t > 0 && st.c < st.t; }).length;
+  if (missed >= 3) {
+    const btn = document.createElement('button');
+    btn.type = 'button'; btn.className = 'btn ghost'; btn.style.marginTop = '10px';
+    btn.innerHTML = ic('retry') + ` Retry my ${missed} missed questions`;
+    btn.addEventListener('click', () => startRetryExam(key));
+    $('#ex-start').parentElement.appendChild(btn);
+  }
+};
+
+const _viewExamResults = viewExamResults;
+viewExamResults = async function (key) {
+  await _viewExamResults(key);
+  const exam = await store.get('exam', null);
+  if (!exam || !exam.qs) return;
+  const missed = exam.qs.filter(q => q.picked !== q.correctIdx).length;
+  if (missed > 0) {
+    const row = $('.score-hero .rowflex');
+    if (row) {
+      const a = document.createElement('button');
+      a.type = 'button'; a.className = 'btn ghost';
+      a.innerHTML = ic('retry') + ` Retry the ${missed} I missed`;
+      a.addEventListener('click', () => startRetryExam(key));
+      row.appendChild(a);
+    }
+  }
+};
+
+/* ---- revision: bookmarked + missed, one place ---- */
+async function viewRevision() {
+  const p = await prog();
+  const items = [];
+  for (const q of D.mcq) {
+    const st = p.mcq[q.id]; const missed = st && st.t > 0 && st.c < st.t;
+    if (missed || p.bookmarks[q.id]) items.push({ q, missed, bm: !!p.bookmarks[q.id] });
+  }
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Revision</div><h1 style="font-size:26px">Bookmarked &amp; missed questions</h1>
+    <p class="sub">Everything you saved or got wrong, collected from your real practice history.</p>
+  </section>
+  <div class="blk">${items.length ? items.map(it =>
+    `<p class="cap">${esc(subjByKey(it.q.subj).code)} · ${esc(it.q.src)} ${it.missed ? '<span class="pill warn">missed before</span>' : ''} ${it.bm ? '<span class="pill">bookmarked</span>' : ''}</p>` + mcqHtml(it.q)
+  ).join('') : `<div class="card empty">${ic('bookmark')}<div>Nothing here yet. Bookmark questions or miss a few in practice and they collect here.</div></div>`}</div>`;
+  const p2 = await prog();
+  for (const it of items) { const st = p2.mcq[it.q.id]; if (st && st.t) { const el = $('#q-' + it.q.id); if (el) { el.classList.add('answered'); paintMcq(el, null); } } }
+  paintBookmarks(p2);
+}
+
+/* ---- flashcards (real question bank only) ---- */
+let FC = null;
+async function viewFlashcards(key) {
+  const s = subjByKey(key); if (!s) { nav('/'); return; }
+  if (!FC || FC.key !== key) {
+    const cards = [];
+    subjMcqs(key).forEach(q => cards.push({ front: q.q, back: OPT_LETTERS[q.a] + ' · ' + q.opts[q.a], tag: 'MCQ · ' + q.src }));
+    subjWritten(key).forEach(w => cards.push({ front: w.q, back: w.a, tag: 'Written · ' + w.src }));
+    FC = { key, cards: shuffled(cards), i: 0, flipped: false };
+  }
+  const c = FC.cards[FC.i];
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">${esc(s.code)} · Flashcards</div>
+    <h1 style="font-size:26px">${esc(s.full)}</h1>
+    <p class="sub">Built from the real ${esc(s.code)} question bank. Card ${FC.i + 1} of ${FC.cards.length}.</p>
+  </section>
+  <div class="fcwrap">
+    <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="Flashcard, activate to flip">
+      <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">Click to flip</p></div>
+      <div class="fface fback"><span class="pill good">Answer</span><p class="ftext">${esc(c.back)}</p><p class="hint">Click to flip back</p></div>
+    </div>
+    <div class="rowflex" style="justify-content:center;margin-top:14px">
+      <button type="button" class="btn ghost" id="fc-prev">${ic('al')} Previous</button>
+      <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} Shuffle</button>
+      <button type="button" class="btn" id="fc-next">Next ${ic('ar')}</button>
+    </div>
+  </div>`;
+  const flip = () => { FC.flipped = !FC.flipped; viewFlashcards(key); };
+  $('#fcard').addEventListener('click', flip);
+  $('#fcard').addEventListener('keydown', e => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); } });
+  $('#fc-next').addEventListener('click', () => { FC.i = (FC.i + 1) % FC.cards.length; FC.flipped = false; viewFlashcards(key); });
+  $('#fc-prev').addEventListener('click', () => { FC.i = (FC.i - 1 + FC.cards.length) % FC.cards.length; FC.flipped = false; viewFlashcards(key); });
+  $('#fc-shuffle').addEventListener('click', () => { FC.cards = shuffled(FC.cards); FC.i = 0; FC.flipped = false; viewFlashcards(key); });
+}
+
+/* ---- subject page extras: flashcards button + real notes from the course pack ---- */
+function notesBlockHtml(s) {
+  let h = '';
+  if (s.examForm && s.examForm.length) {
+    h += `<div class="blk"><div class="blk-h"><h2>${ic('clipb')} Exam format &amp; past-exam notes</h2><span class="sp"></span><span class="hint">From your course pack, in Arabic</span></div>
+      <div class="card" style="padding:16px"><ul class="notes" dir="rtl" lang="ar">${s.examForm.map(x => `<li>${esc(x)}</li>`).join('')}</ul>
+      ${s.sectionsNote ? `<p class="hint" dir="rtl" lang="ar" style="margin-top:8px">${esc(s.sectionsNote)}</p>` : ''}</div></div>`;
+  }
+  const withNotes = s.lectures.map((l, i) => ({ l, notes: (s.lecNotes && s.lecNotes[i]) || [] })).filter(x => x.notes.length);
+  if (withNotes.length) {
+    h += `<div class="blk"><div class="blk-h"><h2>${ic('notebook')} Study notes per lecture</h2><span class="sp"></span><span class="hint">Key points from the course pack, in Arabic</span></div>
+      ${withNotes.map(x => `<details class="card notedet"><summary>Lecture ${x.l.n} · ${esc(x.l.topic)}</summary><ul class="notes" dir="rtl" lang="ar">${x.notes.map(n => `<li>${esc(n)}</li>`).join('')}</ul></details>`).join('')}</div>`;
+  }
+  return h;
+}
+const _viewSubject = viewSubject;
+viewSubject = async function (key, focusQid) {
+  await _viewSubject(key, focusQid);
+  const s = subjByKey(key); if (!s) return;
+  const hero = $('#app .hero .rowflex:last-of-type');
+  if (hero && !$('#fc-link')) {
+    const a = document.createElement('a');
+    a.className = 'btn ghost'; a.href = '#/subject/' + key + '/flashcards'; a.id = 'fc-link';
+    a.innerHTML = ic('cards') + ' Flashcards';
+    hero.appendChild(a);
+  }
+  const mcqH = $$('#app .blk-h h2').find(h => h.textContent.startsWith('MCQ Practice'));
+  if (mcqH) mcqH.closest('.blk').insertAdjacentHTML('beforebegin', notesBlockHtml(s));
+};
+
+/* ---- Arabic UI toggle: chrome only, course content stays English ---- */
+const AR_NAV = {
+  'Dashboard': 'الرئيسية', 'Subjects': 'المواد', 'Practice': 'التدريب', 'Lab': 'المعمل',
+  'CS.212 · Data Structures': 'CS.212 · هياكل البيانات', 'ECE202 · Logic Design': 'ECE202 · التصميم المنطقي',
+  'CS.211 · Concepts': 'CS.211 · مفاهيم لغات البرمجة',
+  'Exam · CS.212': 'امتحان · CS.212', 'Exam · ECE202': 'امتحان · ECE202', 'Exam · CS.211': 'امتحان · CS.211',
+  'Bookmarks': 'المحفوظات', 'Revision': 'المراجعة', 'Interactive tools': 'الأدوات التفاعلية',
+};
+async function applyLang() {
+  const ar = (await store.get('lang', 'en')) === 'ar';
+  document.documentElement.dir = ar ? 'rtl' : 'ltr';
+  document.documentElement.lang = ar ? 'ar' : 'en';
+  $$('.snav a, .snav .cat').forEach(el => {
+    if (!el.dataset.en) el.dataset.en = el.textContent.trim();
+    el.textContent = ar ? (AR_NAV[el.dataset.en] || el.dataset.en) : el.dataset.en;
+  });
+  const b = $('#lang-btn');
+  if (b) { b.innerHTML = ic('globe') + '<span style="font-size:12px;font-weight:700">' + (ar ? 'EN' : 'ع') + '</span>'; b.setAttribute('aria-label', ar ? 'Switch to English' : 'التبديل إلى العربية'); }
+  const note = $('#ar-note');
+  if (note) note.style.display = ar ? 'block' : 'none';
+}
+async function toggleLang() {
+  const cur = await store.get('lang', 'en');
+  await store.set('lang', cur === 'ar' ? 'en' : 'ar');
+  await applyLang(); await render();
+}
+
+/* wire the lang button + revision link once at load */
+document.addEventListener('DOMContentLoaded', () => {
+  const foot = $('#side .foot');
+  if (foot && !$('#lang-btn')) {
+    const lb = document.createElement('button');
+    lb.type = 'button'; lb.className = 'iconbtn'; lb.id = 'lang-btn';
+    lb.addEventListener('click', toggleLang);
+    foot.insertBefore(lb, foot.firstChild);
+  }
+  if (foot && !$('#ar-note')) {
+    const n = document.createElement('p');
+    n.id = 'ar-note'; n.className = 'hint'; n.style.cssText = 'display:none;font-size:11px;margin:6px 8px 0';
+    n.dir = 'rtl'; n.lang = 'ar'; n.textContent = 'واجهة عربية تجريبية - محتوى المواد يبقى بالإنجليزية.';
+    foot.appendChild(n);
+  }
+  applyLang();
+});
+
+/* routes: add new ones and repoint existing registrations at the wrappers */
+route(/^\/revision$/, viewRevision);
+route(/^\/subject\/([a-z0-9]+)\/flashcards$/, viewFlashcards);
+function patchRoute(src, fn) { for (const r of routes) { if (r[0].source === src) r[1] = fn; } }
+patchRoute('^\\/$', viewDashboard);
+patchRoute('^\\/subject\\/([a-z0-9]+)$', viewSubject);
+patchRoute('^\\/subject\\/([a-z0-9]+)\\/q\\/([\\w-]+)$', viewSubject);
+patchRoute('^\\/exam\\/([a-z0-9]+)$', viewExamConfig);
+
+/* apply stored language after every render (repoint the live listener) */
+const _render = render;
+window.removeEventListener('hashchange', _render);
+render = async function () { await _render(); await applyLang(); };
+window.addEventListener('hashchange', render);
+
+/* PWA service worker */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js').catch(() => {}); });
+    }
