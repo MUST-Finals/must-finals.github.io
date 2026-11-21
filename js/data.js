@@ -38,9 +38,9 @@ window.DATA = {
     },
     {
      "n": 6,
-     "topic": "Lecture 6",
-     "link": null,
-     "missing": true
+     "topic": "Trees and Binary Search Trees",
+     "link": "https://drive.google.com/file/d/1260o62xHgJR-CTduHMG7WsQWI3RNaeYy/view",
+     "missing": false
     },
     {
      "n": 7,
@@ -82,9 +82,9 @@ window.DATA = {
     },
     {
      "n": 6,
-     "title": "Lab 6",
-     "link": null,
-     "missing": true
+     "title": "Lab 6 · Binary Search Tree (BST) Operations",
+     "link": "https://drive.google.com/file/d/1rgbIreMqrz0Nq74dmBjT7XxCMX_i55H9/view",
+     "missing": false
     },
     {
      "n": 7,
@@ -4609,6 +4609,630 @@ window.DATA = {
    ],
    "a": 0,
    "exp": "ADT يحدد العمليات والسلوك بصورة مجردة عن تفاصيل التنفيذ."
+  },
+  {
+   "id": "cs212-lec6-p01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "What is a tree in data structures?",
+   "opts": [
+    "A non-linear abstract data type with a hierarchy-based structure of nodes connected by edges",
+    "A linear data structure where each element points to the next",
+    "An array stored in sorted order in memory",
+    "A graph that must contain a cycle"
+   ],
+   "a": 0,
+   "exp": "الشجرة هيكل غير خطي (non-linear) قائم على التسلسل الهرمي: عقد (nodes) متصلة بروابط (edges)."
+  },
+  {
+   "id": "cs212-lec6-p02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "How many root nodes can a tree have?",
+   "opts": [
+    "Exactly one",
+    "Two at most",
+    "Any number",
+    "Zero - a tree can be rootless"
+   ],
+   "a": 0,
+   "exp": "أي شجرة لازم يكون ليها جذر واحد بس، ومستحيل يكون فيها أكتر من root."
+  },
+  {
+   "id": "cs212-lec6-p03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "A tree has 20 nodes. How many edges does it have?",
+   "opts": [
+    "19",
+    "20",
+    "21",
+    "10"
+   ],
+   "a": 0,
+   "exp": "شجرة فيها n عقدة يبقى فيها بالظبط n-1 رابط: 20-1=19."
+  },
+  {
+   "id": "cs212-lec6-p04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Which statement about child nodes is correct?",
+   "opts": [
+    "All nodes except the root are child nodes",
+    "Only leaf nodes are child nodes",
+    "A node can have two parents",
+    "The root is a child of itself"
+   ],
+   "a": 0,
+   "exp": "كل العقد ما عدا الـroot تعتبر child لعقدة أب واحدة فقط."
+  },
+  {
+   "id": "cs212-lec6-p05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Nodes that belong to the same parent are called:",
+   "opts": [
+    "Siblings",
+    "Ancestors",
+    "Leaves",
+    "Internal nodes"
+   ],
+   "a": 0,
+   "exp": "العقد اللي ليها نفس الأب اسمها siblings (أشقاء)."
+  },
+  {
+   "id": "cs212-lec6-p06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "A leaf node is:",
+   "opts": [
+    "A node with no children",
+    "A node with exactly one child",
+    "The top node of the tree",
+    "Any node with two children"
+   ],
+   "a": 0,
+   "exp": "الـleaf مالهاش أطفال، وبتتسمى كمان external أو terminal node."
+  },
+  {
+   "id": "cs212-lec6-p07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "An internal node is:",
+   "opts": [
+    "A node that has at least one child",
+    "A node with no children",
+    "Only the root",
+    "The deepest leaf"
+   ],
+   "a": 0,
+   "exp": "أي عقدة عندها طفل واحد على الأقل = internal (non-terminal)؛ يعني كل عقدة مش leaf."
+  },
+  {
+   "id": "cs212-lec6-p08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "At which level is the root node?",
+   "opts": [
+    "Level 0",
+    "Level 1",
+    "Level -1",
+    "It depends on the tree size"
+   ],
+   "a": 0,
+   "exp": "العدّ بيبدأ من صفر: الـroot في level 0، وكل خطوة لتحت بتزود 1."
+  },
+  {
+   "id": "cs212-lec6-p09",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "The degree of a node is:",
+   "opts": [
+    "The total number of children of that node",
+    "The number of edges from the root to it",
+    "The number of its siblings",
+    "The length of the longest path to a leaf"
+   ],
+   "a": 0,
+   "exp": "degree العقدة = عدد أطفالها. أما degree الشجرة كلها = أعلى degree موجودة في أي عقدة."
+  },
+  {
+   "id": "cs212-lec6-p10",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "The height of a node is:",
+   "opts": [
+    "The number of edges on the longest path from that node down to a leaf",
+    "The number of edges from the root to that node",
+    "The number of children it has",
+    "Always equal to its depth"
+   ],
+   "a": 0,
+   "exp": "الـheight بيتقاس نازلًا: أطول مسار (عدد edges) من العقدة لورقة. كل الأوراق height = 0."
+  },
+  {
+   "id": "cs212-lec6-p11",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "The depth of the root node is:",
+   "opts": [
+    "0",
+    "1",
+    "The height of the tree",
+    "The number of nodes"
+   ],
+   "a": 0,
+   "exp": "depth العقدة = عدد الـedges من الـroot ليها، والـroot نفسه depth = 0. المصطلحان level وdepth بيستخدموا بالتبادل."
+  },
+  {
+   "id": "cs212-lec6-p12",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "According to the lecture, trees combine which advantages?",
+   "opts": [
+    "Searching as fast as an ordered array, with insertion and deletion as fast as a linked list",
+    "Constant-time access to any element like an array index",
+    "The memory layout of an array with the size of a file",
+    "Sorting speed of a heap with the printing speed of a list"
+   ],
+   "a": 0,
+   "exp": "من مميزات الشجرة: البحث بسرعة المصفوفة المرتبة، والإضافة والحذف بسرعة القائمة المتصلة."
+  },
+  {
+   "id": "cs212-lec6-p13",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Which of these is NOT one of the tree types listed in the lecture?",
+   "opts": [
+    "Trie",
+    "Binary Tree",
+    "AVL Tree",
+    "B-Tree"
+   ],
+   "a": 0,
+   "exp": "الأنواع المذكورة في المحاضرة: Binary Tree وBST وAVL Tree وB-Tree وHeap. الـTrie مش منهم."
+  },
+  {
+   "id": "cs212-lec6-p14",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "In a binary tree, each node can have at most:",
+   "opts": [
+    "Two children: a left child and a right child",
+    "One child",
+    "Three children",
+    "Any number of children"
+   ],
+   "a": 0,
+   "exp": "الـbinary tree كل عقدة فيها بحد أقصى طفلين: left child وright child."
+  },
+  {
+   "id": "cs212-lec6-p15",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "A full binary tree is one in which:",
+   "opts": [
+    "Every node has either two children or no children",
+    "Every level is completely filled and leaves lean left",
+    "All leaves are at the same level and every internal node has two children",
+    "Each node has exactly one child"
+   ],
+   "a": 0,
+   "exp": "full binary tree: كل عقدة إما ليها طفلين أو صفر. (اللي أوراقها كلها في نفس المستوى وكل الداخليين ليهم طفلين دي perfect.)"
+  },
+  {
+   "id": "cs212-lec6-p16",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "A complete binary tree:",
+   "opts": [
+    "Has every level completely filled, with all leaf elements leaning towards the left",
+    "Must always be a full binary tree",
+    "Has all nodes with exactly two children",
+    "Has exactly one leaf node"
+   ],
+   "a": 0,
+   "exp": "complete binary tree: كل المستويات ممتلئة والأوراق مائلة للشمال، ومش شرط تكون full."
+  },
+  {
+   "id": "cs212-lec6-p17",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "The main rule of a Binary Search Tree is that for any node:",
+   "opts": [
+    "All values in the left subtree are smaller, and all values in the right subtree are greater",
+    "All values in the left subtree are greater, and all values in the right subtree are smaller",
+    "Both subtrees must have equal numbers of nodes",
+    "The left child must be a leaf"
+   ],
+   "a": 0,
+   "exp": "قاعدة الـBST: اللي على الشمال أصغر من العقدة، واللي على اليمين أكبر."
+  },
+  {
+   "id": "cs212-lec6-p18",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Which of these is a stated BST property in the lecture?",
+   "opts": [
+    "A BST does not contain duplicate values",
+    "A BST can hold any number of children per node",
+    "A BST sorts values only after a full traversal",
+    "A BST requires all leaves at the same level"
+   ],
+   "a": 0,
+   "exp": "من خواص الـBST: مفيش قيم مكررة، وكل subtree فيه تعتبر BST لوحدها (recursive definition)."
+  },
+  {
+   "id": "cs212-lec6-p19",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Inserting into a BST works by:",
+   "opts": [
+    "Following the search path left/right until reaching a null position, then placing the new node there",
+    "Always inserting at the root and shifting the rest",
+    "Placing the new value at the first empty leaf on the left",
+    "Rebuilding the whole tree from scratch each time"
+   ],
+   "a": 0,
+   "exp": "الإدخال زي البحث: ننزل يمين أو شمال لحد ما نوصل لمكان فاضي (null) ونحط العقدة الجديدة فيه."
+  },
+  {
+   "id": "cs212-lec6-p20",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "How many cases must be handled when deleting a node from a BST?",
+   "opts": [
+    "Three: the node is a leaf, has one child, or has two children",
+    "One: simply remove it",
+    "Two: internal or leaf",
+    "Four: one per traversal"
+   ],
+   "a": 0,
+   "exp": "الحذف في BST ليه 3 حالات: عقدة ورقة (بدون أطفال)، عقدة بطفل واحد، عقدة بطفلين."
+  },
+  {
+   "id": "cs212-lec6-p21",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Which BST traversal visits nodes in ascending order?",
+   "opts": [
+    "In-order",
+    "Pre-order",
+    "Post-order",
+    "Level-order"
+   ],
+   "a": 0,
+   "exp": "in-order = شمال، جذر، يمين؛ وفي BST بيطلع القيم مرتبة تصاعديًا."
+  },
+  {
+   "id": "cs212-lec6-p22",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Pre-order traversal visits nodes in which order?",
+   "opts": [
+    "Root node, left subtree, right subtree",
+    "Left subtree, root node, right subtree",
+    "Left subtree, right subtree, root node",
+    "Right subtree, root node, left subtree"
+   ],
+   "a": 0,
+   "exp": "pre-order: الجذر الأول، بعدين الشمال، بعدين اليمين."
+  },
+  {
+   "id": "cs212-lec6-p23",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "Post-order traversal visits nodes in which order?",
+   "opts": [
+    "Left subtree, right subtree, root node",
+    "Root node, left subtree, right subtree",
+    "Left subtree, root node, right subtree",
+    "Root node, right subtree, left subtree"
+   ],
+   "a": 0,
+   "exp": "post-order: الشمال، بعدين اليمين، والجذر في الآخر."
+  },
+  {
+   "id": "cs212-lec6-p24",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "A BST is built by inserting: 45, 15, 79, 90, 10, 55, 12, 20, 50 (the lecture's example). What is the root?",
+   "opts": [
+    "45",
+    "15",
+    "50",
+    "79"
+   ],
+   "a": 0,
+   "exp": "أول قيمة بتدخل بتبقى هي الجذر: 45."
+  },
+  {
+   "id": "cs212-lec6-p25",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "In that same tree (insert 45, 15, 79, 90, 10, 55, 12, 20, 50), the value 50 ends up as:",
+   "opts": [
+    "The left child of 55",
+    "The right child of 55",
+    "The left child of 45",
+    "The right child of 20"
+   ],
+   "a": 0,
+   "exp": "50>45 يمين، 50<79 شمال، 50<55 شمال: يبقى 50 الـleft child بتاع 55."
+  },
+  {
+   "id": "cs212-lec6-p26",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "The in-order traversal of that tree (45, 15, 79, 90, 10, 55, 12, 20, 50) is:",
+   "opts": [
+    "10, 12, 15, 20, 45, 50, 55, 79, 90",
+    "45, 15, 10, 12, 20, 79, 55, 50, 90",
+    "12, 10, 20, 15, 50, 55, 90, 79, 45",
+    "10, 15, 12, 20, 50, 55, 45, 79, 90"
+   ],
+   "a": 0,
+   "exp": "in-order في BST بيطلع القيم مرتبة تصاعديًا: 10,12,15,20,45,50,55,79,90."
+  },
+  {
+   "id": "cs212-lec6-p27",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "The height of that tree (insert 45, 15, 79, 90, 10, 55, 12, 20, 50) is:",
+   "opts": [
+    "3",
+    "2",
+    "4",
+    "8"
+   ],
+   "a": 0,
+   "exp": "أطول مسار من الجذر لورقة: 45←15←10←12، يعني 3 edges. الـheight = 3."
+  },
+  {
+   "id": "cs212-lec6-p28",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "When searching a BST for a value smaller than the current node, you:",
+   "opts": [
+    "Move to the left child",
+    "Move to the right child",
+    "Restart from the root",
+    "Visit every node"
+   ],
+   "a": 0,
+   "exp": "لو القيمة أصغر من العقدة الحالية نروح للشمال؛ لو أكبر نروح لليمين. كده مش محتاجين نزور كل العقد."
+  },
+  {
+   "id": "cs212-lec6-t01",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: A tree can have multiple root nodes.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "مستحيل: في أي شجرة root واحد بس."
+  },
+  {
+   "id": "cs212-lec6-t02",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: In a tree with n nodes, there are exactly (n-1) edges.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "قاعدة ثابتة: عدد الـedges = n-1."
+  },
+  {
+   "id": "cs212-lec6-t03",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: Leaf nodes are also called external or terminal nodes.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "الورقة = external = terminal: عقدة بدون أطفال."
+  },
+  {
+   "id": "cs212-lec6-t04",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: The height of all leaf nodes is 0.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "الورقة مفيش تحتها حاجة، فأطول مسار نازل منها = 0 edges."
+  },
+  {
+   "id": "cs212-lec6-t05",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: The terms level and depth are used interchangeably.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "زي ما جاء في المحاضرة: level وdepth بيستخدموا بالتبادل، والاتنين بيعدّوا الـedges من الـroot."
+  },
+  {
+   "id": "cs212-lec6-t06",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: A complete binary tree has to be a full binary tree.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "غلط: المحاضرة بتقول صراحة إن الـcomplete مش لازم تكون full."
+  },
+  {
+   "id": "cs212-lec6-t07",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: A BST can contain duplicate values.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 1,
+   "exp": "غلط: من خواص الـBST إن كل قيمة لازم تكون فريدة (no duplicates)."
+  },
+  {
+   "id": "cs212-lec6-t08",
+   "subj": "cs212",
+   "kind": "lec",
+   "n": 6,
+   "src": "Platform-authored · Lecture 6 · Trees and BST (unofficial practice)",
+   "q": "True or False: Each subtree of a BST is also a BST.",
+   "opts": [
+    "True",
+    "False"
+   ],
+   "a": 0,
+   "exp": "دي الـrecursive definition: أبناء أي عقدة شمال ويمين هم جذور لأشجار بحث بنفسهم."
+  },
+  {
+   "id": "cs212-lab6-p01",
+   "subj": "cs212",
+   "kind": "sec",
+   "n": 6,
+   "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
+   "q": "The lab's find-minimum example relies on which BST fact?",
+   "opts": [
+    "The minimum value is found by following left children until reaching NULL",
+    "The minimum is always the root",
+    "The minimum is the deepest right node",
+    "You must traverse every node to find the minimum"
+   ],
+   "a": 0,
+   "exp": "أصغر قيمة في BST دايمًا في أقصى الشمال: نمشي left لحد NULL."
+  },
+  {
+   "id": "cs212-lab6-p02",
+   "subj": "cs212",
+   "kind": "sec",
+   "n": 6,
+   "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
+   "q": "The lab constructs a BST from its level order traversal using which two approaches?",
+   "opts": [
+    "Recursion and a queue",
+    "A stack and a heap",
+    "Two arrays",
+    "Sorting and binary search"
+   ],
+   "a": 0,
+   "exp": "أول مثالين في اللاب: بناء الـBST من الـlevel order مرة بالـrecursion ومرة بالـqueue."
+  },
+  {
+   "id": "cs212-lab6-p03",
+   "subj": "cs212",
+   "kind": "sec",
+   "n": 6,
+   "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
+   "q": "According to the lab's deletion note, the deletion process in a BST depends on:",
+   "opts": [
+    "The number of children of the node",
+    "The value stored in the root",
+    "The height of the tree only",
+    "The insertion order of the other nodes"
+   ],
+   "a": 0,
+   "exp": "ملاحظة اللاب نفسها: الحذف بيعتمد على عدد أطفال العقدة (ورقة / طفل واحد / طفلين)."
+  },
+  {
+   "id": "cs212-lab6-p04",
+   "subj": "cs212",
+   "kind": "sec",
+   "n": 6,
+   "src": "Platform-authored · Lab 6 · BST operations (unofficial practice)",
+   "q": "In the lab's recursive search example (searching for 7), the recursion stops when:",
+   "opts": [
+    "The value is found or a NULL subtree is reached",
+    "Every node has been visited",
+    "The root is printed",
+    "The leftmost leaf is reached"
+   ],
+   "a": 0,
+   "exp": "البحث بيقف لما يلاقي القيمة أو يوصل لـNULL (يعني القيمة مش موجودة)."
   }
  ],
  "written": [
@@ -5959,6 +6583,88 @@ window.DATA = {
    "steps": [
     "تم حذف العقدة 30 وتعديل next في عقدة 20 لتشير إلى 40."
    ]
+  },
+  {
+   "id": "cp-bst1",
+   "subj": "cs212",
+   "title": "BST insert + in-order print (sorted output)",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nstruct Node { int data; Node *left, *right; };\nNode* insert(Node* root, int v) {\n    if (root == NULL) return new Node{v, NULL, NULL};\n    if (v < root->data) root->left = insert(root->left, v);\n    else root->right = insert(root->right, v);\n    return root;\n}\nvoid inorder(Node* root) {\n    if (root == NULL) return;\n    inorder(root->left);\n    cout << root->data << \" \";\n    inorder(root->right);\n}\nint main() {\n    Node* root = NULL;\n    int vals[] = {45, 15, 79, 90, 10, 55, 12, 20, 50};\n    for (int v : vals) root = insert(root, v);\n    inorder(root);\n    return 0;\n}",
+   "steps": [
+    "The values are inserted one by one following the BST rule (left smaller, right greater), giving the lecture's example tree rooted at 45.",
+    "in-order visits left subtree, then the node, then the right subtree.",
+    "For a BST, in-order yields values in ascending order.",
+    "Output: 10 12 15 20 45 50 55 79 90"
+   ],
+   "out": "10 12 15 20 45 50 55 79 90"
+  },
+  {
+   "id": "cp-bst2",
+   "subj": "cs212",
+   "title": "BST pre-order print",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nstruct Node { int data; Node *left, *right; };\nNode* insert(Node* root, int v) {\n    if (root == NULL) return new Node{v, NULL, NULL};\n    if (v < root->data) root->left = insert(root->left, v);\n    else root->right = insert(root->right, v);\n    return root;\n}\nvoid preorder(Node* root) {\n    if (root == NULL) return;\n    cout << root->data << \" \";\n    preorder(root->left);\n    preorder(root->right);\n}\nint main() {\n    Node* root = NULL;\n    int vals[] = {45, 15, 79, 90, 10, 55, 12, 20, 50};\n    for (int v : vals) root = insert(root, v);\n    preorder(root);\n    return 0;\n}",
+   "steps": [
+    "Same insertion sequence builds the same tree: 45 root; left child 15, right child 79; and so on.",
+    "pre-order prints the node first, then left subtree, then right subtree.",
+    "It starts 45, then the whole left subtree (15, 10, 12, 20), then the right subtree (79, 55, 50, 90).",
+    "Output: 45 15 10 12 20 79 55 50 90"
+   ],
+   "out": "45 15 10 12 20 79 55 50 90"
+  },
+  {
+   "id": "cp-bst3",
+   "subj": "cs212",
+   "title": "BST post-order print",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nstruct Node { int data; Node *left, *right; };\nNode* insert(Node* root, int v) {\n    if (root == NULL) return new Node{v, NULL, NULL};\n    if (v < root->data) root->left = insert(root->left, v);\n    else root->right = insert(root->right, v);\n    return root;\n}\nvoid postorder(Node* root) {\n    if (root == NULL) return;\n    postorder(root->left);\n    postorder(root->right);\n    cout << root->data << \" \";\n}\nint main() {\n    Node* root = NULL;\n    int vals[] = {45, 15, 79, 90, 10, 55, 12, 20, 50};\n    for (int v : vals) root = insert(root, v);\n    postorder(root);\n    return 0;\n}",
+   "steps": [
+    "post-order visits left subtree, right subtree, then the node itself.",
+    "Left subtree of 45 prints 12 10 20 15; right subtree prints 50 55 90 79; the root prints last.",
+    "Output: 12 10 20 15 50 55 90 79 45"
+   ],
+   "out": "12 10 20 15 50 55 90 79 45"
+  },
+  {
+   "id": "cp-bst4",
+   "subj": "cs212",
+   "title": "BST search: printing the visited path",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nstruct Node { int data; Node *left, *right; };\nNode* insert(Node* root, int v) {\n    if (root == NULL) return new Node{v, NULL, NULL};\n    if (v < root->data) root->left = insert(root->left, v);\n    else root->right = insert(root->right, v);\n    return root;\n}\nbool search(Node* root, int v) {\n    if (root == NULL) return false;\n    cout << root->data << \" \";\n    if (root->data == v) return true;\n    if (v < root->data) return search(root->left, v);\n    return search(root->right, v);\n}\nint main() {\n    Node* root = NULL;\n    int vals[] = {45, 15, 79, 90, 10, 55, 12, 20, 50};\n    for (int v : vals) root = insert(root, v);\n    cout << (search(root, 12) ? \"FOUND\" : \"NOT FOUND\");\n    return 0;\n}",
+   "steps": [
+    "Each call prints the node it visits, then moves left (value smaller) or right (value greater).",
+    "12 < 45 so go left to 15; 12 < 15 so go left to 10; 12 > 10 so go right to 12; found.",
+    "Only 4 nodes are visited, not the whole tree - that is the point of a BST.",
+    "Output: 45 15 10 12 FOUND"
+   ],
+   "out": "45 15 10 12 FOUND"
+  },
+  {
+   "id": "cp-bst5",
+   "subj": "cs212",
+   "title": "BST find minimum (lab example 6)",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nstruct Node { int data; Node *left, *right; };\nNode* insert(Node* root, int v) {\n    if (root == NULL) return new Node{v, NULL, NULL};\n    if (v < root->data) root->left = insert(root->left, v);\n    else root->right = insert(root->right, v);\n    return root;\n}\nNode* findMin(Node* root) {\n    while (root->left != NULL) root = root->left;\n    return root;\n}\nint main() {\n    Node* root = NULL;\n    int vals[] = {45, 15, 79, 90, 10, 55, 12, 20, 50};\n    for (int v : vals) root = insert(root, v);\n    cout << findMin(root)->data;\n    return 0;\n}",
+   "steps": [
+    "The minimum in a BST is the leftmost node: keep moving to the left child while one exists.",
+    "The walk is 45 to 15 to 10; 10 has no left child, so it is the minimum.",
+    "Output: 10"
+   ],
+   "out": "10"
+  },
+  {
+   "id": "cp-bst6",
+   "subj": "cs212",
+   "title": "BST delete a leaf node (lab example 9, case 1)",
+   "lang": "C++",
+   "code": "#include <iostream>\nusing namespace std;\nstruct Node { int data; Node *left, *right; };\nNode* insert(Node* root, int v) {\n    if (root == NULL) return new Node{v, NULL, NULL};\n    if (v < root->data) root->left = insert(root->left, v);\n    else root->right = insert(root->right, v);\n    return root;\n}\nNode* del(Node* root, int v) {\n    if (root == NULL) return root;\n    if (v < root->data) root->left = del(root->left, v);\n    else if (v > root->data) root->right = del(root->right, v);\n    else {\n        if (root->left == NULL && root->right == NULL) {\n            delete root;\n            return NULL;\n        }\n    }\n    return root;\n}\nvoid inorder(Node* root) {\n    if (root == NULL) return;\n    inorder(root->left);\n    cout << root->data << \" \";\n    inorder(root->right);\n}\nint main() {\n    Node* root = NULL;\n    int vals[] = {45, 15, 79, 90, 10, 55, 12, 20, 50};\n    for (int v : vals) root = insert(root, v);\n    root = del(root, 12);\n    inorder(root);\n    return 0;\n}",
+   "steps": [
+    "12 is a leaf (no children), the simplest of the three deletion cases.",
+    "The parent's link (10's right child) is set to NULL and the node is freed.",
+    "The remaining tree is unchanged, so in-order prints the sorted values without 12.",
+    "Output: 10 15 20 45 50 55 79 90"
+   ],
+   "out": "10 15 20 45 50 55 79 90"
   }
  ]
 };
