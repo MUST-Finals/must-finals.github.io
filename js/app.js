@@ -1951,8 +1951,8 @@ route(/^\/subject\/([a-z0-9]+)\/flashcards\/due$/, (k) => viewFlashcards(k, true
 document.addEventListener('DOMContentLoaded', () => {
   const nav = $('.snav');
   if (nav && !nav.querySelector('a[href="#/planner"]')) {
-    const bm = nav.querySelector('a[href="#/bookmarks"]');
-    bm.insertAdjacentHTML('afterend', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
+    const anchor = nav.querySelector('a[href="#/revision"]') || nav.querySelector('a[href="#/bookmarks"]');
+    anchor.insertAdjacentHTML('beforebegin', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
     if (window.MFB) MFB.paintNav();
   }
 });
