@@ -1342,7 +1342,7 @@ async function dailyBump() { const d = await dailyGet(); d.count++; await store.
 async function goalTarget() { return await store.get('goal', 20); }
 
 const _recordMcq = recordMcq;
-recordMcq = async function (qid, correct) { await _recordMcq(qid, correct); await dailyBump(); };
+recordMcq = async function (qid, correct, pickedIdx) { await _recordMcq(qid, correct, pickedIdx); await dailyBump(); };
 
 /* ---- recommendations from real state only ---- */
 async function recommendations(p) {
