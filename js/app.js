@@ -1687,3 +1687,6 @@ function ensureFocusWidget() {
   $('#fw-reset').addEventListener('click', () => { if (FT) { FT.running = false; if (FT.t) clearInterval(FT.t); FT.t = null; FT.left = FT.mins * 60; paint(); } });
 }
 document.addEventListener('DOMContentLoaded', ensureFocusWidget);
+
+/* repoint tools route at the evaluator wrapper */
+patchRoute('^\\/tools(?:\\/([a-z]+))?$', viewTools);
