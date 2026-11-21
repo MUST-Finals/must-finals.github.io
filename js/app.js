@@ -1620,25 +1620,37 @@ dailyBump = async function () {
 };
 
 /* ---- past-exam & assessment archive (real provenance only) ---- */
+const PAST_PAPERS = {
+  cs212: [
+    { title: 'Fall 2024-25 written final', detail: 'University header dated 14 Jan 2025 · 60 marks · 2 hours · 2 pages', url: 'https://drive.google.com/file/d/19q6XVZHmDABVybQJBea48xSJ_JF-STry/view', kind: 'Official past final' },
+    { title: 'Old Exams compilation (86 pages)', detail: 'Collected old exam questions for revision - not one standalone official final', url: 'https://drive.google.com/file/d/1drjDigx4bVYX6V46Aj2kFkYGRTDNTaDC/view', kind: 'Compilation / revision' },
+  ],
+  cs211: [
+    { title: 'Fall 2025-26 practical (lab) final', detail: 'University header dated 14 Dec 2025 · 30 marks · 1 hour · 7 pages', url: 'https://drive.google.com/file/d/1tXMtQEcXwoykFt_EnV66dieXWuy4XwdN/view', kind: 'Official past final' },
+  ],
+  ece202: [],
+};
 async function viewPastExams() {
   $('#app').innerHTML = `
   <section class="hero" style="padding:22px 24px">
     <div class="eyebrow">Archive</div><h1 style="font-size:26px">Past exams &amp; assessment info</h1>
-    <p class="sub">Everything verifiable about past assessments from your course pack. No standalone past-exam PDFs exist in the shared Drive folder - where that is the case, it says so instead of inventing papers.</p>
+    <p class="sub">Everything verifiable about past assessments from your course pack and shared Drive folder. Papers below are historical: their dates are from past years and say nothing about your exam dates.</p>
     <div class="search" style="margin-top:12px">${ic('search')}<input id="pe-search" type="search" placeholder="Search assessment notes and related questions..." aria-label="Search the archive"></div>
   </section>
   ${D.subjects.map(s => `
   <div class="blk" data-pe="${esc((s.code + ' ' + s.full).toLowerCase())}">
     <div class="blk-h"><h2>${esc(s.code)} · ${esc(s.full)}</h2></div>
     <div class="card" style="padding:16px">
-      <p class="cap">Verified assessment notes (course pack, Fall 2026)</p>
+      <p class="cap">Real past papers (shared Drive folder)</p>
+      ${(PAST_PAPERS[s.key] || []).length ? `<div class="acts">${PAST_PAPERS[s.key].map(pp => `<a class="act" href="${pp.url}" target="_blank" rel="noopener" data-pe="${esc((pp.title + ' ' + pp.kind).toLowerCase())}">${ic('file')}<span><b>${esc(pp.title)}</b><br><span class="hint" style="font-size:12px">${esc(pp.detail)}</span></span><span class="pill" style="margin-left:auto;flex:none">${esc(pp.kind)}</span></a>`).join('')}</div>` : `<p class="hint" data-pe="no standalone past final">No standalone past final found in the shared folder for this subject yet - the verified notes below still apply.</p>`}
+      <p class="cap" style="margin-top:14px">Verified assessment notes (course pack, Fall 2026)</p>
       <ul class="notes" dir="rtl" lang="ar">${(s.examForm || []).map(x => `<li data-pe="${esc(x.toLowerCase())}">${esc(x)}</li>`).join('')}</ul>
       ${s.sectionsNote ? `<p class="hint" dir="rtl" lang="ar" data-pe="${esc(s.sectionsNote.toLowerCase())}">${esc(s.sectionsNote)}</p>` : ''}
       <div class="rowflex" style="margin-top:10px">
         <a class="btn ghost sm" href="#/subject/${s.key}">${ic('file')} Practice this subject's bank</a>
         <a class="btn ghost sm" href="#/exam/${s.key}">${ic('timer')} Mock exam from real questions</a>
       </div>
-      <p class="hint" style="margin:8px 0 0;font-size:11px">Answer keys: only the solved items already inside the question bank. Full past papers: not present in the shared folder.</p>
+      <p class="hint" style="margin:8px 0 0;font-size:11px">Answer keys: only the solved items already inside the question bank and the solved quiz papers in the folder.</p>
     </div>
   </div>`).join('')}`;
   $('#pe-search').addEventListener('input', e => {
