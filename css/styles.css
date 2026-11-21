@@ -282,7 +282,7 @@ code { background: var(--surface3); border-radius: 6px; padding: 2px 6px; }
 .dz-course{background:var(--surface2);border:1px solid var(--stroke);border-radius:18px;padding:16px;color:var(--ink);display:flex;flex-direction:column;gap:8px;text-decoration:none;transition:transform .15s ease, box-shadow .15s ease}
 .dz-course:hover{border-color:var(--stroke2)}
 .dz-course:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.35)}
-.pc-a{background:#ffffff}.pc-b{background:#fdeedd}.pc-c{background:#e4e2fb}
+.pc-a{border-top:3px solid #3ddc97}.pc-b{border-top:3px solid #a78bfa}.pc-c{border-top:3px solid #5ec5f8}
 .dz-course-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
 .dz-course-t{font-weight:800;font-size:15px}
 .dz-course-ic{width:30px;height:30px;border-radius:10px;background:#171c38;color:#fff;display:grid;place-items:center;flex:none}
