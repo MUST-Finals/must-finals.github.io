@@ -1,0 +1,934 @@
+/* MUST Finals platform - part 1: helpers, icons, store, router, dashboard */
+'use strict';
+const D = window.DATA;
+const $ = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => [...(r || document).querySelectorAll(s)];
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+/* Lucide icons (ISC), inline stroke SVGs */
+const IC = {
+  home: '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+  book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>',
+  timer: '<line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/>',
+  bookmark: '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>',
+  flag: '<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  moon: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  play: '<polygon points="6 3 20 12 6 21 6 3"/>',
+  al: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+  ar: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+  alert: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  ext: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
+  dash: '<rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/>',
+  code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  cpu: '<rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2"/><path d="M15 20v2"/><path d="M2 15h2"/><path d="M2 9h2"/><path d="M20 15h2"/><path d="M20 9h2"/><path d="M9 2v2"/><path d="M9 20v2"/>',
+  cap: '<path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/>',
+  cal: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  trend: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+  retry: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  layers: '<path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>',
+  flask: '<path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/>',
+  file: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  list: '<line x1="8" x2="21" y1="6" y2="6"/><line x1="8" x2="21" y1="12" y2="12"/><line x1="8" x2="21" y1="18" y2="18"/><line x1="3" x2="3.01" y1="6" y2="6"/><line x1="3" x2="3.01" y1="12" y2="12"/><line x1="3" x2="3.01" y1="18" y2="18"/>',
+  menu: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
+  zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
+  target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+};
+const ic = (n, cls) => `<svg class="ic ${cls || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n] || ''}</svg>`;
+
+/* ---- progress store: async interface over localStorage.
+   A future backend can replace load/save with API calls; the UI only
+   ever awaits store.get/store.set, so no UI rewrite is needed. ---- */
+const store = {
+  async get(key, fallback) {
+    try { const v = localStorage.getItem('mf.' + key); return v === null ? fallback : JSON.parse(v); }
+    catch { return fallback; }
+  },
+  async set(key, val) { try { localStorage.setItem('mf.' + key, JSON.stringify(val)); } catch {} },
+  async del(key) { try { localStorage.removeItem('mf.' + key); } catch {} },
+};
+
+const DEF_PROG = { completed: {}, mcq: {}, bookmarks: {}, activity: [], lastSubject: null, examHistory: [] };
+let PROG = null;
+async function prog() { if (!PROG) PROG = Object.assign({}, DEF_PROG, await store.get('progress', {})); return PROG; }
+async function saveProg() { await store.set('progress', PROG); }
+async function logAct(text) {
+  const p = await prog();
+  p.activity.unshift({ ts: Date.now(), text });
+  p.activity = p.activity.slice(0, 20);
+  await saveProg();
+}
+function ago(ts) {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return 'just now'; if (m < 60) return m + 'm ago';
+  const h = Math.floor(m / 60); if (h < 24) return h + 'h ago';
+  return Math.floor(h / 24) + 'd ago';
+}
+
+/* stats helpers */
+function subjByKey(k) { return D.subjects.find(s => s.key === k); }
+function mcqById(id) { return D.mcq.find(q => q.id === id); }
+function wrById(id) { return D.written.find(q => q.id === id); }
+function subjMcqs(k) { return D.mcq.filter(q => q.subj === k); }
+function subjWritten(k) { return D.written.filter(q => q.subj === k); }
+function subjAccuracy(p, k) {
+  let t = 0, c = 0;
+  for (const q of subjMcqs(k)) { const s = p.mcq[q.id]; if (s) { t += s.t; c += s.c; } }
+  return t ? { t, c, pct: Math.round(100 * c / t) } : null;
+}
+function subjCompletion(p, k) {
+  const s = subjByKey(k);
+  const total = s.lectures.filter(l => !l.missing).length;
+  const done = s.lectures.filter(l => !l.missing && p.completed[k + '-lec' + l.n]).length;
+  return { done, total, pct: total ? Math.round(100 * done / total) : 0 };
+}
+async function recordMcq(qid, correct) {
+  const p = await prog();
+  const s = p.mcq[qid] || { t: 0, c: 0 };
+  s.t++; if (correct) s.c++;
+  p.mcq[qid] = s;
+  await saveProg();
+}
+
+/* toast */
+function toast(msg) {
+  let t = $('#toast');
+  if (!t) { t = document.createElement('div'); t.id = 'toast'; t.setAttribute('role', 'status'); document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* router */
+const routes = [];
+function route(re, fn) { routes.push([re, fn]); }
+function nav(hash) { location.hash = hash; }
+async function render() {
+  const h = location.hash.slice(1) || '/';
+  for (const [re, fn] of routes) {
+    const m = h.match(re);
+    if (m) { await fn(...m.slice(1)); markNav(h); window.scrollTo(0, 0); return; }
+  }
+  await viewDashboard(); markNav(h);
+}
+function markNav(h) {
+  $$('.snav a').forEach(a => {
+    const href = a.getAttribute('href').slice(1);
+    a.classList.toggle('on', href === h || (href !== '/' && h.startsWith(href)));
+  });
+}
+window.addEventListener('hashchange', render);
+
+/* ---- dashboard ---- */
+async function viewDashboard() {
+  const p = await prog();
+  const hr = new Date().getHours();
+  const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
+  const totalLecs = D.subjects.reduce((n, s) => n + s.lectures.length, 0);
+  const totalQ = D.mcq.length + D.written.length;
+  const doneLecs = Object.keys(p.completed).length;
+  let att = 0, corr = 0;
+  for (const k in p.mcq) { att += p.mcq[k].t; corr += p.mcq[k].c; }
+  const acc = att ? Math.round(100 * corr / att) : null;
+  const bms = Object.keys(p.bookmarks).length;
+
+  let continueBtn = '';
+  if (p.lastSubject) {
+    const s = subjByKey(p.lastSubject);
+    if (s) continueBtn = `<a class="btn" href="#/subject/${s.key}">${ic('play')} Continue ${esc(s.code)}</a>`;
+  }
+  const resumeExam = await store.get('exam', null);
+  if (resumeExam && !resumeExam.submitted) {
+    continueBtn += ` <a class="btn ghost" href="#/exam/${resumeExam.subj}/run">${ic('timer')} Resume exam in progress</a>`;
+  }
+
+  const subjCards = D.subjects.map(s => {
+    const comp = subjCompletion(p, s.key);
+    const ac = subjAccuracy(p, s.key);
+    const nq = subjMcqs(s.key).length;
+    return `<a class="scard" href="#/subject/${s.key}">
+      <span class="code">${esc(s.code)}</span>
+      <div class="name">${esc(s.full)}</div>
+      <div class="meta"><span>${s.lectures.length} lectures</span><span>${s.sections.length} ${s.seckind === 'Lab' ? 'labs' : 'sections'}</span><span>${nq} MCQs</span></div>
+      <div class="pbar" role="progressbar" aria-valuenow="${comp.pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${comp.pct}%"></i></div>
+      <div class="meta" style="margin-top:6px"><span>${comp.done}/${comp.total} lectures done</span>${ac ? `<span>${ac.pct}% MCQ accuracy</span>` : '<span>No attempts yet</span>'}</div>
+    </a>`;
+  }).join('');
+
+  const examsHtml = D.exams.map(e => `
+    <div class="act"><span style="font-weight:700">${esc(e.name)}</span>
+    ${e.light ? '<span class="pill">Light review</span>' : ''}
+    <span class="hint">${esc(e.window)} · ${esc(e.note)}</span></div>`).join('');
+
+  const acts = p.activity.length
+    ? p.activity.slice(0, 8).map(a => `<div class="act">${ic('check')}<span>${esc(a.text)}</span><time>${ago(a.ts)}</time></div>`).join('')
+    : `<div class="empty">${ic('chart')}<div>No activity yet. Answer a question or finish a lecture and it shows up here.</div></div>`;
+
+  const hist = p.examHistory.length
+    ? p.examHistory.slice(0, 5).map(x => `<div class="act">${ic('target')}<span>${esc(subjByKey(x.subj).code)} mock · ${x.correct}/${x.count} correct</span><time>${ago(x.ts)}</time></div>`).join('')
+    : `<div class="empty">${ic('target')}<div>No mock exams yet. Your results will appear here.</div></div>`;
+
+  // weak topics: lowest accuracy per source with >=3 attempts
+  const bySrc = {};
+  for (const q of D.mcq) {
+    const s = p.mcq[q.id]; if (!s || !s.t) continue;
+    const key = q.subj + '|' + q.src;
+    bySrc[key] = bySrc[key] || { t: 0, c: 0, subj: q.subj, src: q.src };
+    bySrc[key].t += s.t; bySrc[key].c += s.c;
+  }
+  const weak = Object.values(bySrc).filter(x => x.t >= 3).sort((a, b) => a.c / a.t - b.c / b.t).slice(0, 3);
+  const weakHtml = weak.length
+    ? weak.map(w => `<div class="act">${ic('alert')}<span>${esc(subjByKey(w.subj).code)} · ${esc(w.src)}</span><span class="pill warn">${Math.round(100 * w.c / w.t)}% · ${w.t} tries</span></div>`).join('')
+    : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
+
+  $('#app').innerHTML = `
+  <section class="hero">
+    <div class="eyebrow">MUST · Finals Prep</div>
+    <h1>${greet}, Mazen</h1>
+    <p class="sub">Lectures, materials, MCQ practice, written questions and timed mock exams for your three finals subjects.</p>
+    <div class="rowflex" style="margin-top:16px">${continueBtn || '<span class="hint">Pick a subject below to start.</span>'}</div>
+  </section>
+  <div class="grid g4" style="margin:16px 0">
+    <div class="card stat"><span class="v">${D.subjects.length}</span><span class="l">${ic('book')} Subjects</span></div>
+    <div class="card stat"><span class="v">${totalLecs}</span><span class="l">${ic('layers')} Lectures</span></div>
+    <div class="card stat"><span class="v">${totalQ}</span><span class="l">${ic('file')} Practice questions</span></div>
+    <div class="card stat"><span class="v">${doneLecs}</span><span class="l">${ic('check')} Lectures done</span></div>
+    <div class="card stat"><span class="v">${att}</span><span class="l">${ic('zap')} MCQ attempts</span></div>
+    <div class="card stat"><span class="v">${acc === null ? '—' : acc + '<span class="u">%</span>'}</span><span class="l">${ic('trend')} MCQ accuracy</span></div>
+    <div class="card stat"><span class="v">${p.examHistory.length}</span><span class="l">${ic('timer')} Mock exams taken</span></div>
+    <div class="card stat"><span class="v">${bms}</span><span class="l">${ic('bookmark')} Bookmarks</span></div>
+  </div>
+  <div class="blk"><div class="blk-h"><h2>Subjects</h2></div><div class="grid g3">${subjCards}</div></div>
+  <div class="grid g2" style="align-items:start">
+    <div class="blk"><div class="blk-h"><h2>Upcoming exams</h2></div><div class="acts">${examsHtml}</div>
+      <p class="hint" style="margin-top:8px">Windows are general and unofficial until the university posts exact dates.</p></div>
+    <div class="blk"><div class="blk-h"><h2>Weak topics</h2></div><div class="acts">${weakHtml}</div></div>
+    <div class="blk"><div class="blk-h"><h2>Recent mock exams</h2></div><div class="acts">${hist}</div></div>
+    <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>
+  </div>`;
+}
+/* MUST Finals platform - part 2: subject pages, practice, bookmarks */
+const OPT_LETTERS = ['A', 'B', 'C', 'D'];
+
+function qToolsHtml(qid, type) {
+  return `<div class="qtools">
+    <button type="button" class="qtool bm-btn" data-qid="${qid}" data-type="${type}">${ic('bookmark')}<span>Bookmark</span></button>
+    <button type="button" class="qtool share-btn" data-qid="${qid}">${ic('share')}<span>Share</span></button>
+    <button type="button" class="qtool report-btn" data-qid="${qid}" data-type="${type}">${ic('flag')}<span>Report error</span></button>
+  </div>`;
+}
+
+function mcqHtml(q) {
+  const opts = q.opts.map((o, oi) =>
+    `<button type="button" class="opt" data-c="${oi === q.a ? 1 : 0}"><span class="ol">${OPT_LETTERS[oi]}</span><span>${esc(o)}</span></button>`).join('');
+  return `<div class="mcq" id="q-${q.id}" data-qid="${q.id}" data-search="${esc(q.q.toLowerCase() + ' ' + q.src.toLowerCase())}">
+    <p class="q">${esc(q.q)} <span class="qid">${q.id}</span></p>
+    <div class="opts">${opts}</div>
+    <div class="ans"><span class="achip">Answer</span><span>${OPT_LETTERS[q.a]} · ${esc(q.opts[q.a])}</span></div>
+    ${qToolsHtml(q.id, 'mcq')}
+  </div>`;
+}
+function wqHtml(w) {
+  return `<div class="wq" id="q-${w.id}" data-search="${esc(w.q.toLowerCase() + ' ' + w.src.toLowerCase())}">
+    <p class="q">${esc(w.q)} <span class="qid">${w.id}</span></p>
+    <textarea placeholder="Type your answer here..." rows="3" aria-label="Your answer"></textarea>
+    <button type="button" class="btn ghost sm revealbtn">${ic('eye')} Reveal model answer</button>
+    <div class="model"><div class="inner"><span class="achip">Model answer</span><span>${esc(w.a)}</span></div></div>
+    ${qToolsHtml(w.id, 'written')}
+  </div>`;
+}
+
+async function viewSubject(key, focusQid) {
+  const s = subjByKey(key);
+  if (!s) { nav('/'); return; }
+  const p = await prog();
+  if (p.lastSubject !== key) { p.lastSubject = key; await saveProg(); }
+  const comp = subjCompletion(p, key);
+  const mcqs = subjMcqs(key), wrs = subjWritten(key);
+
+  const pairs = s.lectures.map(l => {
+    const sec = s.lectures.indexOf(l) < s.sections.length ? s.sections[s.lectures.indexOf(l)] : null;
+    const doneId = key + '-lec' + l.n;
+    const done = p.completed[doneId];
+    const secHtml = sec === null ? '' : `<div class="half">
+      <p class="kind">${esc(s.seckind)} ${sec.n}</p>
+      <h3 class="lech">${esc(sec.title)}</h3>
+      ${sec.missing ? `<span class="miss">${ic('alert')} Material missing from the folder</span>`
+        : (sec.link ? `<a class="matbtn" href="${sec.link}" target="_blank" rel="noopener">${esc(s.seckind)} material ${ic('ext')}</a>` : '')}
+    </div>`;
+    return `<div class="card pair" data-search="lecture ${l.n} ${esc(l.topic.toLowerCase())}">
+      <div class="half">
+        <p class="kind">Lecture ${l.n}</p>
+        <h3 class="lech">${esc(l.topic)}</h3>
+        <div class="rowflex">
+        ${l.missing ? `<span class="miss">${ic('alert')} Material missing from the folder</span>`
+          : (l.link ? `<a class="matbtn" href="${l.link}" target="_blank" rel="noopener">Lecture material ${ic('ext')}</a>` : '')}
+        ${l.missing ? '' : `<button type="button" class="btn ghost sm done-btn" data-lec="${doneId}">${done ? ic('check') + ' Done' : 'Mark done'}</button>`}
+        </div>
+      </div>${secHtml}
+    </div>`;
+  }).join('');
+
+  const mcqGroups = {};
+  mcqs.forEach(q => { (mcqGroups[q.src] = mcqGroups[q.src] || []).push(q); });
+  const mcqHtmlAll = Object.entries(mcqGroups).map(([src, qs]) =>
+    `<p class="cap" data-search="${esc(src.toLowerCase())}">${esc(src)} <span class="pill pri">${qs.length}</span></p>` + qs.map(mcqHtml).join('')).join('');
+  const wrGroups = {};
+  wrs.forEach(q => { (wrGroups[q.src] = wrGroups[q.src] || []).push(q); });
+  const wrHtmlAll = Object.entries(wrGroups).map(([src, qs]) =>
+    `<p class="cap" data-search="${esc(src.toLowerCase())}">${esc(src)} <span class="pill pri">${qs.length}</span></p>` + qs.map(wqHtml).join('')).join('');
+
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">${esc(s.code)}</div>
+    <h1 style="font-size:26px">${esc(s.full)}</h1>
+    <div class="rowflex" style="margin-top:10px">
+      <span class="pill pri">${comp.done}/${comp.total} lectures done</span>
+      <span class="pill">${mcqs.length} MCQs</span>
+      <span class="pill">${wrs.length} written</span>
+    </div>
+    <div class="pbar" style="margin-top:12px" role="progressbar" aria-valuenow="${comp.pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${comp.pct}%"></i></div>
+    <div class="rowflex" style="margin-top:14px">
+      <a class="btn" href="#/exam/${s.key}">${ic('timer')} Start mock exam</a>
+      <a class="btn ghost" href="#/">${ic('al')} Dashboard</a>
+    </div>
+  </section>
+  <div class="search">${ic('search')}<input id="subj-search" type="search" placeholder="Search lectures, sections and questions in ${esc(s.code)}..." aria-label="Search this subject"></div>
+  <div class="blk"><div class="blk-h"><h2>Lectures &amp; ${s.seckind === 'Lab' ? 'Labs' : 'Sections'}</h2></div>${pairs}</div>
+  <div class="blk"><div class="blk-h"><h2>MCQ Practice</h2><span class="sp"></span><span class="hint">Pick an option; the answer reveals after you answer.</span></div>
+    <div id="mcq-area">${mcqHtmlAll}</div></div>
+  <div class="blk"><div class="blk-h"><h2>Written Practice</h2><span class="sp"></span><span class="hint">Type your answer, then compare with the model answer.</span></div>
+    <div id="wr-area">${wrHtmlAll}</div></div>`;
+
+  // restore per-question practice state
+  for (const q of mcqs) {
+    const st = p.mcq[q.id];
+    if (st && st.t) {
+      const el = $('#q-' + q.id);
+      if (el) { el.classList.add('answered'); paintMcq(el, null); }
+    }
+  }
+  paintBookmarks(p);
+
+  if (focusQid) {
+    const el = document.getElementById('q-' + CSS.escape(focusQid));
+    if (el) { el.scrollIntoView({ block: 'center' }); el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 2400); }
+  }
+
+  $('#subj-search').addEventListener('input', e => {
+    const t = e.target.value.trim().toLowerCase();
+    $$('#app [data-search]').forEach(el => {
+      el.classList.toggle('hidden-by-search', t !== '' && !el.dataset.search.includes(t));
+    });
+  });
+}
+
+function paintMcq(el, pickedBtn) {
+  const opts = $$('.opt', el);
+  opts.forEach(b => {
+    b.disabled = true;
+    if (b.dataset.c === '1') b.classList.add('right');
+  });
+  if (pickedBtn && pickedBtn.dataset.c !== '1') pickedBtn.classList.add('wrong');
+}
+function paintBookmarks(p) {
+  $$('.bm-btn').forEach(b => {
+    const on = !!p.bookmarks[b.dataset.qid];
+    b.classList.toggle('on', on);
+    b.querySelector('span:last-child').textContent = on ? 'Bookmarked' : 'Bookmark';
+  });
+}
+
+async function viewBookmarks() {
+  const p = await prog();
+  const ids = Object.keys(p.bookmarks);
+  const items = ids.map(id => {
+    const q = mcqById(id); if (q) return { type: 'mcq', q };
+    const w = wrById(id); if (w) return { type: 'written', q: w };
+    return null;
+  }).filter(Boolean);
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Saved</div><h1 style="font-size:26px">Bookmarks</h1>
+    <p class="sub">Questions you saved for later review.</p>
+  </section>
+  <div class="blk">${items.length ? items.map(x => {
+    const head = `<p class="cap">${esc(subjByKey(x.q.subj).code)} · ${esc(x.q.src)}</p>`;
+    return head + (x.type === 'mcq' ? mcqHtml(x.q) : wqHtml(x.q));
+  }).join('') : `<div class="card empty">${ic('bookmark')}<div>No bookmarks yet. Use the bookmark button on any question.</div></div>`}</div>`;
+  const p2 = await prog();
+  paintBookmarks(p2);
+}
+
+/* global click delegation for practice interactions */
+document.addEventListener('click', async e => {
+  const opt = e.target.closest('.opt');
+  if (opt && !opt.disabled) {
+    const box = opt.closest('.mcq');
+    box.classList.add('answered');
+    paintMcq(box, opt);
+    await recordMcq(box.dataset.qid, opt.dataset.c === '1');
+    return;
+  }
+  const rev = e.target.closest('.revealbtn');
+  if (rev) {
+    const m = rev.parentElement.querySelector('.model');
+    const open = m.style.display === 'block';
+    m.style.display = open ? 'none' : 'block';
+    rev.innerHTML = open ? ic('eye') + ' Reveal model answer' : ic('eye') + ' Hide model answer';
+    return;
+  }
+  const done = e.target.closest('.done-btn');
+  if (done) {
+    const p = await prog();
+    const id = done.dataset.lec;
+    if (p.completed[id]) { delete p.completed[id]; done.textContent = 'Mark done'; }
+    else {
+      p.completed[id] = Date.now();
+      done.innerHTML = ic('check') + ' Done';
+      const [k] = id.split('-');
+      await logAct(`Finished ${subjByKey(k).code} · ${id.replace(k + '-', '').replace('lec', 'Lecture ')}`);
+    }
+    await saveProg();
+    return;
+  }
+  const bm = e.target.closest('.bm-btn');
+  if (bm) {
+    const p = await prog();
+    if (p.bookmarks[bm.dataset.qid]) { delete p.bookmarks[bm.dataset.qid]; toast('Bookmark removed'); }
+    else { p.bookmarks[bm.dataset.qid] = Date.now(); toast('Bookmarked'); }
+    await saveProg(); paintBookmarks(p);
+    return;
+  }
+  const sh = e.target.closest('.share-btn');
+  if (sh) {
+    const q = mcqById(sh.dataset.qid) || wrById(sh.dataset.qid);
+    const url = location.origin + location.pathname + '#/subject/' + q.subj + '/q/' + q.id;
+    try { await navigator.clipboard.writeText(url); toast('Link copied'); }
+    catch { prompt('Copy this link:', url); }
+    return;
+  }
+  const rp = e.target.closest('.report-btn');
+  if (rp) {
+    const q = mcqById(rp.dataset.qid) || wrById(rp.dataset.qid);
+    const txt = `Question report\nID: ${q.id}\nSource: ${q.src}\nQuestion: ${q.q}\n\nWhat looks wrong: `;
+    try { await navigator.clipboard.writeText(txt); toast('Question info copied - send it to Mazen'); }
+    catch { prompt('Copy and send to Mazen:', txt); }
+    return;
+  }
+});
+/* MUST Finals platform - part 3: exam simulator */
+let examTimer = null;
+function stopExamTimer() { if (examTimer) { clearInterval(examTimer); examTimer = null; } }
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+async function viewExamConfig(key) {
+  stopExamTimer();
+  const s = subjByKey(key);
+  if (!s) { nav('/'); return; }
+  const saved = await store.get('exam', null);
+  const pool = subjMcqs(key);
+  $('#app').innerHTML = `
+  <section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Mock exam</div>
+    <h1 style="font-size:26px">${esc(s.code)} · ${esc(s.full)}</h1>
+    <p class="sub">Random questions from the real ${esc(s.code)} practice bank. Options are shuffled, the timer grades automatically, and your state survives a refresh.</p>
+  </section>
+  ${saved && !saved.submitted && saved.subj === key ? `<div class="notice info">${ic('timer')}<span>You have an unfinished exam for this subject. <a href="#/exam/${key}/run"><b>Resume it</b></a> or configure a new one below (starting new discards the old one).</span></div>` : ''}
+  <div class="card" style="padding:22px;max-width:560px">
+    <div class="field"><label for="ex-count">Number of questions (bank: ${pool.length})</label>
+      <select id="ex-count">
+        <option value="10">10 questions</option>
+        <option value="20" selected>20 questions</option>
+        <option value="30">30 questions</option>
+        <option value="${pool.length}">All ${pool.length} questions</option>
+      </select></div>
+    <div class="field"><label for="ex-src">Question source</label>
+      <select id="ex-src">
+        <option value="all" selected>Lectures + ${s.seckind === 'Lab' ? 'labs' : 'sections'}</option>
+        <option value="lec">Lectures only</option>
+        <option value="sec">${s.seckind === 'Lab' ? 'Labs' : 'Sections'} only</option>
+      </select></div>
+    <div class="field"><label for="ex-mins">Time limit (minutes)</label>
+      <select id="ex-mins">
+        <option value="1">1 minute per question</option>
+        <option value="1.5" selected>1.5 minutes per question</option>
+        <option value="2">2 minutes per question</option>
+      </select></div>
+    <p class="hint">No difficulty labels exist in the question bank, so none are invented here. Review shows the correct answers only, without made-up explanations.</p>
+    <button type="button" class="btn" id="ex-start">${ic('play')} Start exam</button>
+    <a class="btn ghost" href="#/subject/${key}" style="margin-left:8px">${ic('al')} Back</a>
+  </div>`;
+  $('#ex-start').addEventListener('click', async () => {
+    const count = Math.min(parseInt($('#ex-count').value, 10), pool.length);
+    const src = $('#ex-src').value;
+    const mins = parseFloat($('#ex-mins').value);
+    const filtered = pool.filter(q => src === 'all' || q.kind === src);
+    if (!filtered.length) { toast('No questions in this source'); return; }
+    const picked = shuffled(filtered).slice(0, Math.min(count, filtered.length));
+    const exam = {
+      subj: key, started: Date.now(),
+      deadline: Date.now() + Math.round(picked.length * mins * 60000),
+      qs: picked.map(q => {
+        const order = shuffled(q.opts.map((_, i) => i));
+        return { id: q.id, order, correctIdx: order.indexOf(q.a), picked: null, marked: false };
+      }),
+      cur: 0, submitted: false,
+    };
+    await store.set('exam', exam);
+    nav('/exam/' + key + '/run');
+  });
+}
+
+async function viewExamRun(key) {
+  const exam = await store.get('exam', null);
+  if (!exam || exam.subj !== key) { nav('/exam/' + key); return; }
+  if (exam.submitted) { await viewExamResults(key); return; }
+  stopExamTimer();
+  const s = subjByKey(key);
+
+  function fmt(ms) {
+    if (ms < 0) ms = 0;
+    const m = Math.floor(ms / 60000), sec = Math.floor(ms % 60000 / 1000);
+    return String(m).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+  }
+  function palette() {
+    return exam.qs.map((q, i) => {
+      const cls = [i === exam.cur ? 'cur' : '', q.picked !== null ? 'ansd' : '', q.marked ? 'mkd' : ''].join(' ');
+      return `<button type="button" class="${cls}" data-go="${i}" aria-label="Question ${i + 1}${q.picked !== null ? ', answered' : ''}${q.marked ? ', marked' : ''}">${i + 1}</button>`;
+    }).join('');
+  }
+  function paintQ() {
+    const q = exam.qs[exam.cur];
+    const data = mcqById(q.id);
+    $('#ex-qnum').textContent = `Question ${exam.cur + 1} of ${exam.qs.length}`;
+    $('#ex-qsrc').textContent = data.src;
+    $('#ex-qtext').textContent = data.q;
+    $('#ex-opts').innerHTML = q.order.map((oi, pos) =>
+      `<button type="button" class="opt ${q.picked === pos ? 'picked' : ''}" data-pos="${pos}"><span class="ol">${OPT_LETTERS[pos]}</span><span>${esc(data.opts[oi])}</span></button>`).join('');
+    $('#ex-mark').innerHTML = (q.marked ? ic('flag') + ' Marked' : ic('flag') + ' Mark for review');
+    $('#ex-mark').classList.toggle('on', q.marked);
+    $('#ex-prev').disabled = exam.cur === 0;
+    $('#ex-next').disabled = exam.cur === exam.qs.length - 1;
+    $('#ex-pal').innerHTML = palette();
+    const ansd = exam.qs.filter(x => x.picked !== null).length;
+    $('#ex-counts').textContent = `${ansd} answered · ${exam.qs.length - ansd} left · ${exam.qs.filter(x => x.marked).length} marked`;
+  }
+  async function saveExam() { await store.set('exam', exam); }
+  async function submit(auto) {
+    stopExamTimer();
+    const unanswered = exam.qs.filter(x => x.picked === null).length;
+    if (!auto && unanswered > 0 && !confirm(`${unanswered} question(s) unanswered. Submit anyway?`)) { startTick(); return; }
+    if (!auto && unanswered === 0 && !confirm('Submit exam now?')) { startTick(); return; }
+    exam.submitted = true; exam.finishedAt = Date.now();
+    let correct = 0;
+    for (const q of exam.qs) { if (q.picked === q.correctIdx) correct++; }
+    exam.correct = correct;
+    await saveExam();
+    const p = await prog();
+    for (const q of exam.qs) {
+      const st = p.mcq[q.id] || { t: 0, c: 0 };
+      st.t++; if (q.picked === q.correctIdx) st.c++;
+      p.mcq[q.id] = st;
+    }
+    p.examHistory.unshift({ ts: Date.now(), subj: key, count: exam.qs.length, correct, secs: Math.round((exam.finishedAt - exam.started) / 1000) });
+    p.examHistory = p.examHistory.slice(0, 50);
+    await saveProg();
+    await logAct(`Mock exam ${subjByKey(key).code}: ${correct}/${exam.qs.length} (${Math.round(100 * correct / exam.qs.length)}%)`);
+    await viewExamResults(key);
+  }
+  function startTick() {
+    stopExamTimer();
+    const tEl = $('#ex-timer');
+    const tick = async () => {
+      const left = exam.deadline - Date.now();
+      tEl.innerHTML = ic('clock') + ' ' + fmt(left);
+      tEl.classList.toggle('low', left < 60000);
+      if (left <= 0) { await submit(true); }
+    };
+    tick();
+    examTimer = setInterval(tick, 1000);
+  }
+
+  $('#app').innerHTML = `
+  <div class="exam-top">
+    <a class="btn ghost sm" href="#/subject/${key}">${ic('al')} Exit</a>
+    <span class="pill pri">${esc(s.code)} mock exam</span>
+    <span class="timer" id="ex-timer" role="timer">${ic('clock')} --:--</span>
+    <span class="sp" style="flex:1"></span>
+    <span class="hint" id="ex-counts"></span>
+    <button type="button" class="btn" id="ex-finish">${ic('check')} Finish</button>
+  </div>
+  <div class="examlay">
+    <div class="card" style="padding:20px">
+      <div class="rowflex" style="margin-bottom:6px"><span class="pill" id="ex-qnum"></span><span class="hint" id="ex-qsrc"></span></div>
+      <p style="font-size:16.5px;font-weight:600" id="ex-qtext"></p>
+      <div class="opts" id="ex-opts"></div>
+      <div class="rowflex" style="margin-top:16px">
+        <button type="button" class="btn ghost" id="ex-prev">${ic('al')} Previous</button>
+        <button type="button" class="qtool" id="ex-mark"></button>
+        <button type="button" class="btn ghost" id="ex-next">Next ${ic('ar')}</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Keyboard: 1-4 pick an option, arrows move between questions.</p>
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="blk-h" style="margin-bottom:8px"><h2 style="font-size:15px">Questions</h2></div>
+      <div class="qnav" id="ex-pal" role="navigation" aria-label="Question palette"></div>
+      <div class="hint" style="font-size:12px">Filled = answered · amber = marked · ring = current</div>
+    </div>
+  </div>`;
+  paintQ(); startTick();
+
+  $('#ex-opts').addEventListener('click', async e => {
+    const b = e.target.closest('.opt'); if (!b) return;
+    exam.qs[exam.cur].picked = parseInt(b.dataset.pos, 10);
+    await saveExam(); paintQ();
+  });
+  $('#ex-pal').addEventListener('click', async e => {
+    const b = e.target.closest('button[data-go]'); if (!b) return;
+    exam.cur = parseInt(b.dataset.go, 10); await saveExam(); paintQ();
+  });
+  $('#ex-prev').addEventListener('click', async () => { if (exam.cur > 0) { exam.cur--; await saveExam(); paintQ(); } });
+  $('#ex-next').addEventListener('click', async () => { if (exam.cur < exam.qs.length - 1) { exam.cur++; await saveExam(); paintQ(); } });
+  $('#ex-mark').addEventListener('click', async () => { exam.qs[exam.cur].marked = !exam.qs[exam.cur].marked; await saveExam(); paintQ(); });
+  $('#ex-finish').addEventListener('click', () => { stopExamTimer(); submit(false); });
+  document.addEventListener('keydown', examKeys);
+}
+async function examKeys(e) {
+  if (!location.hash.includes('/run')) { document.removeEventListener('keydown', examKeys); return; }
+  const exam = await store.get('exam', null);
+  if (!exam || exam.submitted) return;
+  if (e.key >= '1' && e.key <= '4') {
+    const pos = parseInt(e.key, 10) - 1;
+    const btn = $(`#ex-opts .opt[data-pos="${pos}"]`);
+    if (btn) btn.click();
+  } else if (e.key === 'ArrowRight') { const b = $('#ex-next'); if (b && !b.disabled) b.click(); }
+  else if (e.key === 'ArrowLeft') { const b = $('#ex-prev'); if (b && !b.disabled) b.click(); }
+}
+
+async function viewExamResults(key) {
+  stopExamTimer();
+  document.removeEventListener('keydown', examKeys);
+  const exam = await store.get('exam', null);
+  const s = subjByKey(key);
+  const pct = Math.round(100 * exam.correct / exam.qs.length);
+  const mins = Math.floor((exam.finishedAt - exam.started) / 60000);
+  const review = exam.qs.map((q, i) => {
+    const data = mcqById(q.id);
+    const ok = q.picked === q.correctIdx;
+    const your = q.picked === null ? 'Unanswered' : OPT_LETTERS[q.picked] + ' · ' + data.opts[q.order[q.picked]];
+    const corr = OPT_LETTERS[q.correctIdx] + ' · ' + data.opts[q.order[q.correctIdx]];
+    return `<div class="mcq answered" data-filter="${ok ? 'ok' : 'no'}">
+      <p class="q"><span class="pill ${ok ? 'good' : 'warn'}">${ok ? 'Correct' : (q.picked === null ? 'Skipped' : 'Wrong')}</span> Q${i + 1}. ${esc(data.q)}</p>
+      <p class="hint" style="margin:4px 0">${esc(data.src)}</p>
+      <div class="ans" style="display:flex"><span class="achip">Correct</span><span>${esc(corr)}</span></div>
+      ${ok ? '' : `<div class="ans" style="display:flex;background:var(--badSoft);color:var(--bad)"><span class="achip" style="background:var(--bad);color:#fff">You</span><span>${esc(your)}</span></div>`}
+    </div>`;
+  }).join('');
+  const R = 54, C = 2 * Math.PI * R;
+  $('#app').innerHTML = `
+  <div class="card score-hero">
+    <div class="eyebrow">${esc(s.code)} mock exam result</div>
+    <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Score ${pct} percent">
+      <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--surface3)" stroke-width="12"/>
+      <circle cx="70" cy="70" r="${R}" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round"
+        stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}" transform="rotate(-90 70 70)"/>
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c6cf6"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+      <text x="70" y="78" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink)">${pct}%</text>
+    </svg>
+    <p style="font-size:17px;font-weight:700;margin:6px 0">${exam.correct} of ${exam.qs.length} correct · ${mins} min</p>
+    <div class="rowflex" style="justify-content:center;margin-top:10px">
+      <a class="btn" href="#/exam/${key}">${ic('retry')} New attempt</a>
+      <a class="btn ghost" href="#/subject/${key}">${ic('book')} Back to subject</a>
+    </div>
+  </div>
+  <div class="blk"><div class="blk-h"><h2>Review</h2><span class="sp"></span>
+    <button type="button" class="qtool on" id="rv-all">All</button>
+    <button type="button" class="qtool" id="rv-no">Wrong &amp; skipped</button></div>
+    ${review}</div>`;
+  $('#rv-all').addEventListener('click', () => {
+    $$('#app [data-filter]').forEach(el => el.classList.remove('hidden-by-search'));
+    $('#rv-all').classList.add('on'); $('#rv-no').classList.remove('on');
+  });
+  $('#rv-no').addEventListener('click', () => {
+    $$('#app [data-filter]').forEach(el => el.classList.toggle('hidden-by-search', el.dataset.filter === 'ok'));
+    $('#rv-no').classList.add('on'); $('#rv-all').classList.remove('on');
+  });
+}
+/* MUST Finals platform - part 4: interactive tools, routes, init */
+
+/* Boolean expression evaluator: vars A-D, ops AND(& * .) OR(| +) XOR(^) NOT(! ~ ') parens */
+function boolEval(expr, env) {
+  const toks = expr.match(/[ABCDabcd()!~'&|^*.+]|\bAND\b|\bOR\b|\bNOT\b|\bXOR\b/gi) || [];
+  let pos = 0;
+  const peek = () => toks[pos];
+  function parseOr() {
+    let v = parseXor();
+    while (peek() && /^\||^\+$|^OR$/i.test(peek())) { pos++; const r = parseXor(); const l = v; v = l || r; }
+    return v;
+  }
+  function parseXor() {
+    let v = parseAnd();
+    while (peek() && /^\^$|^XOR$/i.test(peek())) { pos++; const r = parseAnd(); const l = v; v = (l !== r); }
+    return v;
+  }
+  function parseAnd() {
+    let v = parseNot();
+    while (peek() && (/^[&*.]$/.test(peek()) || /^AND$/i.test(peek()) || /^[ABCD(]/i.test(peek()))) {
+      if (/^[ABCD(]/i.test(peek())) { const r = parseNot(); const l = v; v = l && r; }
+      else { pos++; const r = parseNot(); const l = v; v = l && r; }
+    }
+    return v;
+  }
+  function parseNot() {
+    if (peek() && (/^[!~']$/.test(peek()) || /^NOT$/i.test(peek()))) { pos++; return !parseNot(); }
+    return parseAtom();
+  }
+  function parseAtom() {
+    const t = peek();
+    if (t === undefined) throw new Error('Unexpected end');
+    if (t === '(') { pos++; const v = parseOr(); if (peek() !== ')') throw new Error('Missing )'); pos++; return v; }
+    if (/^[ABCD]$/i.test(t)) { pos++; const v = !!env[t.toUpperCase()]; return v; }
+    throw new Error('Bad token: ' + t);
+  }
+  const vars = [...new Set((expr.match(/[ABCD]/gi) || []).map(c => c.toUpperCase()))].sort();
+  if (!vars.length || vars.length > 4) throw new Error('Use 1 to 4 variables named A, B, C, D');
+  return { vars, val: parseOr() };
+}
+
+async function viewTools(which) {
+  const tool = which || '';
+  const cards = `
+  <div class="grid g3">
+    <a class="scard toolcard" href="#/tools/truthtable"><h3>${ic('cpu')} Truth Table Generator</h3><p>Type a Boolean expression with A, B, C, D and get the full truth table.</p></a>
+    <a class="scard toolcard" href="#/tools/kmap"><h3>${ic('dash')} K-Map Viewer</h3><p>Enter minterms for 2 to 4 variables and see the Karnaugh map grid.</p></a>
+    <a class="scard toolcard" href="#/tools/gates"><h3>${ic('zap')} Logic Gates</h3><p>Toggle inputs and watch AND, OR, XOR, NAND, NOR, XNOR and NOT outputs.</p></a>
+    <a class="scard toolcard" href="#/tools/ds"><h3>${ic('layers')} Data Structures Visualizer</h3><p>Push, pop, enqueue, dequeue and grow a linked list step by step.</p></a>
+    <a class="scard toolcard" href="#/tools/code"><h3>${ic('code')} Code Output Practice</h3><p>Predict what short C++ snippets print before revealing the output.</p></a>
+  </div>`;
+  const head = `<section class="hero" style="padding:22px 24px">
+    <div class="eyebrow">Interactive tools</div>
+    <h1 style="font-size:26px">Practice Lab</h1>
+    <p class="sub">Extra interactive examples to experiment with. These are practice tools, not official course material.</p>
+  </section>`;
+  const notice = `<div class="notice info">${ic('alert')}<span>Practice tools and examples. For real exam content use the subject pages.</span></div>`;
+
+  if (!tool) { $('#app').innerHTML = head + cards; return; }
+
+  if (tool === 'truthtable') {
+    $('#app').innerHTML = head + notice + `
+    <div class="card" style="padding:22px;max-width:720px">
+      <h3 style="margin-top:0">${ic('cpu')} Truth Table Generator</h3>
+      <div class="field"><label for="tt-expr">Boolean expression (variables A-D; AND: & or · or space, OR: + or |, XOR: ^, NOT: ! or ~)</label>
+      <input id="tt-expr" type="text" value="(A AND B) OR !C" style="width:100%;max-width:none;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:14px"></div>
+      <button type="button" class="btn" id="tt-go">${ic('play')} Generate table</button>
+      <div id="tt-out"></div>
+    </div>`;
+    $('#tt-go').addEventListener('click', () => {
+      const expr = $('#tt-expr').value;
+      try {
+        const probe = boolEval(expr, { A: 0, B: 0, C: 0, D: 0 });
+        const vars = probe.vars;
+        const rows = [];
+        for (let m = 0; m < (1 << vars.length); m++) {
+          const env = {};
+          vars.forEach((v, i) => env[v] = (m >> (vars.length - 1 - i)) & 1);
+          rows.push({ env, r: boolEval(expr, env).val ? 1 : 0 });
+        }
+        $('#tt-out').innerHTML = `<table class="tt"><thead><tr>${vars.map(v => `<th>${v}</th>`).join('')}<th>Result</th></tr></thead>
+          <tbody>${rows.map(r => `<tr>${vars.map(v => `<td>${r.env[v]}</td>`).join('')}<td class="res">${r.r}</td></tr>`).join('')}</tbody></table>`;
+      } catch (err) { $('#tt-out').innerHTML = `<div class="notice">${ic('alert')}<span>${esc(err.message)}</span></div>`; }
+    });
+    $('#tt-go').click();
+    return;
+  }
+
+  if (tool === 'kmap') {
+    $('#app').innerHTML = head + notice + `
+    <div class="card" style="padding:22px;max-width:720px">
+      <h3 style="margin-top:0">${ic('dash')} K-Map Viewer</h3>
+      <div class="field"><label for="km-vars">Variables</label>
+        <select id="km-vars"><option value="2">2 (A, B)</option><option value="3" selected>3 (A, B, C)</option><option value="4">4 (A, B, C, D)</option></select></div>
+      <div class="field"><label for="km-min">Minterms (comma separated, e.g. 0,2,5,7)</label>
+      <input id="km-min" type="text" value="1,3,5,7" style="width:100%;max-width:none;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:14px"></div>
+      <button type="button" class="btn" id="km-go">${ic('play')} Draw K-map</button>
+      <div id="km-out"></div>
+    </div>`;
+    $('#km-go').addEventListener('click', () => {
+      const nv = parseInt($('#km-vars').value, 10);
+      const max = (1 << nv) - 1;
+      const mins = $('#km-min').value.split(',').map(x => parseInt(x.trim(), 10)).filter(x => !isNaN(x));
+      if (mins.some(x => x < 0 || x > max)) { $('#km-out').innerHTML = `<div class="notice">${ic('alert')}<span>Minterms must be between 0 and ${max} for ${nv} variables.</span></div>`; return; }
+      const set = new Set(mins);
+      const gray = n => n ^ (n >> 1);
+      const rowVars = nv <= 2 ? 1 : 2, colVars = nv - rowVars;
+      const rows = 1 << rowVars, cols = 1 << colVars;
+      const rowLab = i => (gray(i) >>> 0).toString(2).padStart(rowVars, '0');
+      const colLab = j => (gray(j) >>> 0).toString(2).padStart(colVars, '0');
+      const rn = ['A', 'AB', 'AB'][rowVars - 1], cn = ['B', 'C', 'CD', 'CD'][colVars - 1] || (colVars === 1 ? (nv === 2 ? 'B' : 'C') : 'CD');
+      let html = `<p class="hint" style="margin-top:14px">Rows: ${rn} · Columns: ${colVars === 1 ? (nv === 2 ? 'B' : 'C') : 'CD'} (Gray code order)</p><div class="kmap" style="grid-template-columns:repeat(${cols + 1},auto)"><div class="kc kh">${rn}\\${colVars === 1 ? (nv === 2 ? 'B' : 'C') : 'CD'}</div>`;
+      for (let j = 0; j < cols; j++) html += `<div class="kc kh">${colLab(j)}</div>`;
+      for (let i = 0; i < rows; i++) {
+        html += `<div class="kc kh">${rowLab(i)}</div>`;
+        for (let j = 0; j < cols; j++) {
+          const m = (gray(i) << colVars) | gray(j);
+          html += `<div class="kc ${set.has(m) ? 'one' : ''}">${set.has(m) ? 1 : 0}<small style="font-size:9px;color:var(--ink3);font-weight:400">${m}</small></div>`;
+        }
+      }
+      html += '</div>';
+      $('#km-out').innerHTML = html;
+    });
+    $('#km-go').click();
+    return;
+  }
+
+  if (tool === 'gates') {
+    $('#app').innerHTML = head + notice + `
+    <div class="card" style="padding:22px;max-width:720px">
+      <h3 style="margin-top:0">${ic('zap')} Logic Gates</h3>
+      <div class="field"><label for="gt-sel">Gate</label>
+        <select id="gt-sel"><option>AND</option><option>OR</option><option>XOR</option><option>NAND</option><option>NOR</option><option>XNOR</option><option>NOT</option></select></div>
+      <div class="gatebox">
+        <button type="button" class="btn ghost" id="gt-a">A = 0</button>
+        <button type="button" class="btn ghost" id="gt-b">B = 0</button>
+        <span class="pill pri" style="font-size:15px;padding:8px 16px" id="gt-out">OUT = 0</span>
+      </div>
+      <div id="gt-tt"></div>
+    </div>`;
+    let A = 0, B = 0;
+    const FN = { AND: (a, b) => a & b, OR: (a, b) => a | b, XOR: (a, b) => a ^ b, NAND: (a, b) => 1 - (a & b), NOR: (a, b) => 1 - (a | b), XNOR: (a, b) => 1 - (a ^ b), NOT: a => 1 - a };
+    function paint() {
+      const g = $('#gt-sel').value;
+      const single = g === 'NOT';
+      $('#gt-b').style.display = single ? 'none' : '';
+      $('#gt-a').textContent = 'A = ' + A;
+      $('#gt-b').textContent = 'B = ' + B;
+      $('#gt-out').textContent = 'OUT = ' + (single ? FN[g](A) : FN[g](A, B));
+      const combos = single ? [[0], [1]] : [[0, 0], [0, 1], [1, 0], [1, 1]];
+      $('#gt-tt').innerHTML = `<table class="tt"><thead><tr><th>A</th>${single ? '' : '<th>B</th>'}<th>OUT</th></tr></thead>
+        <tbody>${combos.map(c => `<tr><td>${c[0]}</td>${single ? '' : `<td>${c[1]}</td>`}<td class="res">${single ? FN[g](c[0]) : FN[g](c[0], c[1])}</td></tr>`).join('')}</tbody></table>`;
+    }
+    $('#gt-a').addEventListener('click', () => { A = 1 - A; paint(); });
+    $('#gt-b').addEventListener('click', () => { B = 1 - B; paint(); });
+    $('#gt-sel').addEventListener('change', paint);
+    paint();
+    return;
+  }
+
+  if (tool === 'ds') {
+    $('#app').innerHTML = head + notice + `
+    <div class="card" style="padding:22px;max-width:760px">
+      <h3 style="margin-top:0">${ic('layers')} Data Structures Visualizer</h3>
+      <div class="field"><label for="ds-sel">Structure</label>
+        <select id="ds-sel"><option value="stack">Stack (LIFO)</option><option value="queue">Queue (FIFO)</option><option value="list">Singly Linked List</option></select></div>
+      <div class="rowflex">
+        <input id="ds-val" type="text" placeholder="Value" style="width:110px;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:9px 12px;font-size:14px">
+        <button type="button" class="btn sm" id="ds-add">Push</button>
+        <button type="button" class="btn ghost sm" id="ds-del">Pop</button>
+        <button type="button" class="btn ghost sm" id="ds-reset">${ic('retry')} Reset</button>
+      </div>
+      <div class="dsv" id="ds-view" aria-live="polite"></div>
+      <div class="oplog" id="ds-log">Ready.</div>
+    </div>`;
+    let items = [];
+    const view = $('#ds-view'), log = $('#ds-log');
+    function say(t) { log.innerHTML = esc(t) + '<br>' + log.innerHTML; }
+    function paint() {
+      const k = $('#ds-sel').value;
+      let html = '';
+      if (k === 'stack') {
+        html = items.length ? items.map((v, i) => `<div class="node">${esc(v)}${i === items.length - 1 ? '<span class="pill" style="margin-left:6px">top</span>' : ''}</div>`).join('') : '<span class="hint">Empty stack</span>';
+        html = `<span class="lbl">bottom → top</span>` + html;
+      } else if (k === 'queue') {
+        html = items.length ? items.map((v, i) => `<div class="node">${esc(v)}${i === 0 ? '<span class="pill" style="margin-left:6px">front</span>' : ''}${i === items.length - 1 ? '<span class="pill" style="margin-left:6px">rear</span>' : ''}</div>`).join('') : '<span class="hint">Empty queue</span>';
+        html = `<span class="lbl">front → rear</span>` + html;
+      } else {
+        html = items.length ? items.map((v, i) => `<div class="node">${esc(v)}${i === 0 ? '<span class="pill" style="margin-left:6px">head</span>' : ''}${i < items.length - 1 ? ' →' : ' → null'}</div>`).join('') : '<span class="hint">head → null</span>';
+        html = `<span class="lbl">head → tail</span>` + html;
+      }
+      view.innerHTML = html;
+      const add = $('#ds-add'), del = $('#ds-del');
+      add.textContent = k === 'stack' ? 'Push' : k === 'queue' ? 'Enqueue' : 'Insert at tail';
+      del.textContent = k === 'stack' ? 'Pop' : k === 'queue' ? 'Dequeue' : 'Delete head';
+    }
+    $('#ds-sel').addEventListener('change', () => { items = []; paint(); say('Structure reset.'); });
+    $('#ds-reset').addEventListener('click', () => { items = []; paint(); say('Cleared.'); });
+    $('#ds-add').addEventListener('click', () => {
+      const v = $('#ds-val').value.trim() || String(items.length + 1);
+      const k = $('#ds-sel').value;
+      if (k === 'stack') { items.push(v); say(`push(${v}) -> top is now ${v}`); }
+      else if (k === 'queue') { items.push(v); say(`enqueue(${v}) -> rear is now ${v}`); }
+      else { items.push(v); say(`insert(${v}) at tail; tail.next = null`); }
+      $('#ds-val').value = ''; paint();
+    });
+    $('#ds-del').addEventListener('click', () => {
+      const k = $('#ds-sel').value;
+      if (!items.length) { say(k === 'list' ? 'List is empty - nothing to delete.' : (k === 'stack' ? 'Stack underflow: pop on empty stack.' : 'Queue underflow: dequeue on empty queue.')); return; }
+      if (k === 'stack') say(`pop() -> removed ${items.pop()}`);
+      else if (k === 'queue') say(`dequeue() -> removed ${items.shift()} from the front`);
+      else say(`deleteHead() -> removed ${items.shift()}; head moved to the next node`);
+      paint();
+    });
+    paint();
+    return;
+  }
+
+  if (tool === 'code') {
+    const items = D.codePractice.map(c => `
+      <div class="card" style="padding:18px;margin-bottom:14px">
+        <div class="rowflex"><h3 style="margin:0;font-size:15px">${ic('code')} ${esc(c.title)}</h3><span class="sp" style="flex:1"></span><span class="pill">${esc(subjByKey(c.subj).code)}</span><span class="pill">${esc(c.lang)}</span></div>
+        <pre class="codeblock">${esc(c.code)}</pre>
+        <button type="button" class="btn ghost sm revealout">${ic('eye')} Reveal output</button>
+        <div class="model"><div class="inner"><span class="achip">Output</span><span style="font-family:ui-monospace,monospace">${esc(c.out)}</span></div></div>
+      </div>`).join('');
+    $('#app').innerHTML = head + notice + `<div class="blk"><div class="blk-h"><h2>Code Output Practice</h2><span class="sp"></span><span class="hint">Predict the output, then reveal. Outputs verified by compiling.</span></div>${items}</div>`;
+    $$('.revealout').forEach(b => b.addEventListener('click', () => {
+      const m = b.parentElement.querySelector('.model');
+      const open = m.style.display === 'block';
+      m.style.display = open ? 'none' : 'block';
+      b.innerHTML = open ? ic('eye') + ' Reveal output' : ic('eye') + ' Hide output';
+    }));
+    return;
+  }
+
+  nav('/tools');
+}
+
+/* routes */
+route(/^\/$/, viewDashboard);
+route(/^\/subject\/([a-z0-9]+)$/, viewSubject);
+route(/^\/subject\/([a-z0-9]+)\/q\/([\w-]+)$/, viewSubject);
+route(/^\/exam\/([a-z0-9]+)$/, viewExamConfig);
+route(/^\/exam\/([a-z0-9]+)\/run$/, viewExamRun);
+route(/^\/bookmarks$/, viewBookmarks);
+route(/^\/tools(?:\/([a-z]+))?$/, viewTools);
+
+/* theme */
+async function applyTheme() {
+  const t = await store.get('theme', 'dark');
+  document.documentElement.dataset.theme = t;
+  const b = $('#theme-btn');
+  if (b) b.innerHTML = t === 'dark' ? ic('sun') : ic('moon');
+}
+async function boot() {
+  await applyTheme();
+  $('#theme-btn').addEventListener('click', async () => {
+    const t = (await store.get('theme', 'dark')) === 'dark' ? 'light' : 'dark';
+    await store.set('theme', t); applyTheme();
+  });
+  $('#menu-btn').addEventListener('click', () => document.body.classList.toggle('navopen'));
+  $('#side').addEventListener('click', e => { if (e.target.closest('a')) document.body.classList.remove('navopen'); });
+  await render();
+}
+document.addEventListener('DOMContentLoaded', boot);
