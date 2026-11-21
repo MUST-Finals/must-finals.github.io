@@ -1815,6 +1815,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (nav && !nav.querySelector('a[href="#/planner"]')) {
     const bm = nav.querySelector('a[href="#/bookmarks"]');
     bm.insertAdjacentHTML('afterend', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
+    if (window.MFB) MFB.paintNav();
   }
 });
 
