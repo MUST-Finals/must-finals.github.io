@@ -3135,7 +3135,14 @@ window.DATA = {
    "title": "Pointer dereference",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int x = 5;\n    int *p = &x;\n    *p = 10;\n    cout << x << \" \" << *p;\n    return 0;\n}",
-   "out": "10 10"
+   "out": "10 10",
+   "steps": [
+    "x starts as 5.",
+    "p is a pointer holding the address of x, so *p and x are the same int.",
+    "*p = 10 writes through the pointer, so x becomes 10.",
+    "cout prints x (10), a space, then *p (10).",
+    "Output: 10 10"
+   ]
   },
   {
    "id": "cp2",
@@ -3143,7 +3150,14 @@ window.DATA = {
    "title": "Reference vs pointer",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int a = 3, b = 7;\n    int &r = a;\n    r = b;\n    cout << a << \" \" << b;\n    return 0;\n}",
-   "out": "7 7"
+   "out": "7 7",
+   "steps": [
+    "a = 3 and b = 7.",
+    "r is a reference (alias) to a, not a copy: r and a are the same variable.",
+    "r = b copies b's value into a, so a becomes 7. b is untouched (still 7).",
+    "cout prints a (7) then b (7).",
+    "Output: 7 7"
+   ]
   },
   {
    "id": "cp3",
@@ -3151,7 +3165,14 @@ window.DATA = {
    "title": "Pointer arithmetic on arrays",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int arr[4] = {10, 20, 30, 40};\n    int *p = arr;\n    cout << *(p + 2) << \" \" << *p + 2;\n    return 0;\n}",
-   "out": "30 12"
+   "out": "30 12",
+   "steps": [
+    "arr = {10, 20, 30, 40} and p points at arr[0].",
+    "*(p + 2) dereferences two ints past p, so it reads arr[2] = 30.",
+    "*p + 2 dereferences first (arr[0] = 10) and then adds 2, because * binds tighter than +, giving 12.",
+    "cout prints 30, a space, then 12.",
+    "Output: 30 12"
+   ]
   },
   {
    "id": "cp4",
@@ -3159,7 +3180,13 @@ window.DATA = {
    "title": "Pass by value vs reference",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nvoid byVal(int x) { x = 99; }\nvoid byRef(int &x) { x = 99; }\nint main() {\n    int a = 1, b = 1;\n    byVal(a);\n    byRef(b);\n    cout << a << \" \" << b;\n    return 0;\n}",
-   "out": "1 99"
+   "out": "1 99",
+   "steps": [
+    "byVal(a) receives a copy of a; setting the copy to 99 leaves a = 1.",
+    "byRef(b) receives b by reference; x = 99 writes to b itself, so b = 99.",
+    "cout prints a (1) then b (99).",
+    "Output: 1 99"
+   ]
   },
   {
    "id": "cp5",
@@ -3167,7 +3194,16 @@ window.DATA = {
    "title": "Stack behavior with an array",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int st[5], top = -1;\n    st[++top] = 5;\n    st[++top] = 3;\n    top--;\n    st[++top] = 7;\n    cout << st[top] << \" \" << top;\n    return 0;\n}",
-   "out": "7 1"
+   "out": "7 1",
+   "steps": [
+    "top starts at -1 (empty stack).",
+    "st[++top] = 5 pushes 5 at index 0 (top = 0).",
+    "st[++top] = 3 pushes 3 at index 1 (top = 1).",
+    "top-- pops: top back to 0, the 3 is abandoned (not erased, just unreachable).",
+    "st[++top] = 7 writes 7 at index 1, overwriting the old 3 (top = 1).",
+    "cout prints st[top] = st[1] = 7, then top = 1.",
+    "Output: 7 1"
+   ]
   },
   {
    "id": "cp6",
@@ -3175,7 +3211,13 @@ window.DATA = {
    "title": "Postfix evaluation logic",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int a = 3, b = 8, c = 2, d = 4;\n    cout << a * (b - c) + d;\n    return 0;\n}",
-   "out": "22"
+   "out": "22",
+   "steps": [
+    "Parentheses first: b - c = 8 - 2 = 6.",
+    "Multiplication next: a * 6 = 3 * 6 = 18.",
+    "Addition last: 18 + d = 18 + 4 = 22.",
+    "Output: 22"
+   ]
   },
   {
    "id": "cp7",
@@ -3183,7 +3225,16 @@ window.DATA = {
    "title": "Simple while loop",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int i = 1, s = 0;\n    while (i <= 4) { s += i; i++; }\n    cout << s;\n    return 0;\n}",
-   "out": "10"
+   "out": "10",
+   "steps": [
+    "i = 1, s = 0.",
+    "Loop while i <= 4: s = 0+1 = 1, i = 2.",
+    "s = 1+2 = 3, i = 3.",
+    "s = 3+3 = 6, i = 4.",
+    "s = 6+4 = 10, i = 5; condition 5 <= 4 fails, loop ends.",
+    "cout prints s = 10.",
+    "Output: 10"
+   ]
   },
   {
    "id": "cp8",
@@ -3191,7 +3242,13 @@ window.DATA = {
    "title": "Circular index wrap",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int n = 5, rear = 4;\n    rear = (rear + 1) % n;\n    cout << rear;\n    return 0;\n}",
-   "out": "0"
+   "out": "0",
+   "steps": [
+    "rear = 4 and n = 5.",
+    "rear + 1 = 5, and 5 % 5 = 0, so rear wraps to index 0.",
+    "This is the circular-queue wraparound: the slot after the last one is slot 0.",
+    "Output: 0"
+   ]
   },
   {
    "id": "cp9",
@@ -3199,7 +3256,16 @@ window.DATA = {
    "title": "Binary to decimal",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int bits[4] = {1, 0, 1, 1};\n    int v = 0;\n    for (int i = 0; i < 4; i++) v = v * 2 + bits[i];\n    cout << v;\n    return 0;\n}",
-   "out": "11"
+   "out": "11",
+   "steps": [
+    "bits = {1, 0, 1, 1}, v = 0.",
+    "i = 0: v = 0*2 + 1 = 1.",
+    "i = 1: v = 1*2 + 0 = 2.",
+    "i = 2: v = 2*2 + 1 = 5.",
+    "i = 3: v = 5*2 + 1 = 11.",
+    "This is the standard binary-to-decimal doubling loop: 1011 binary = 11 decimal.",
+    "Output: 11"
+   ]
   },
   {
    "id": "cp10",
@@ -3207,7 +3273,13 @@ window.DATA = {
    "title": "Ternary and precedence",
    "lang": "C++",
    "code": "#include <iostream>\nusing namespace std;\nint main() {\n    int x = 2 + 3 * 4;\n    cout << x << \" \" << (x > 10 ? 1 : 0);\n    return 0;\n}",
-   "out": "14 1"
+   "out": "14 1",
+   "steps": [
+    "Multiplication before addition: x = 2 + (3 * 4) = 2 + 12 = 14.",
+    "Ternary: x > 10 is true (14 > 10), so the value is 1.",
+    "cout prints 14, a space, then 1.",
+    "Output: 14 1"
+   ]
   }
  ]
-};
+}
