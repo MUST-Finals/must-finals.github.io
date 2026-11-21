@@ -696,6 +696,12 @@ async function viewExamConfig(key) {
   });
 }
 
+window.addEventListener('beforeunload', e => {
+  try {
+    const ex = JSON.parse(localStorage.getItem('mf.exam') || 'null');
+    if (ex && !ex.submitted && location.hash.includes('/run')) { e.preventDefault(); e.returnValue = ''; }
+  } catch {}
+});
 async function viewExamRun(key) {
   const exam = await store.get('exam', null);
   if (!exam || exam.subj !== key) { nav('/exam/' + key); return; }
@@ -850,6 +856,17 @@ async function viewExamResults(key) {
       ${ok ? '' : `<div class="ans" style="display:flex;background:var(--badSoft);color:var(--bad)"><span class="achip" style="background:var(--bad);color:#fff">You</span><span>${esc(your)}</span></div>`}
     </div>`;
   }).join('');
+  const byTopic = {};
+  for (const q of exam.qs) {
+    if (q.picked === q.correctIdx) continue;
+    const data = mcqById(q.id);
+    const src = data ? data.src : 'Unknown';
+    byTopic[src] = (byTopic[src] || 0) + 1;
+  }
+  const topics = Object.entries(byTopic).sort((x, y) => y[1] - x[1]);
+  const weakNext = topics.length ? `<div class="blk"><div class="blk-h"><h2>${ic('target')} Focus next</h2></div>
+    <p class="hint" style="margin:0 0 8px">Topics you lost marks on in this attempt. They are also in your <a href="#/mistakes">mistakes notebook</a>.</p>
+    <div class="acts">${topics.map(([src, n]) => `<div class="act">${ic('alert')}<span>${esc(src)}</span><span class="pill warn">${n} wrong</span></div>`).join('')}</div></div>` : '';
   const R = 54, C = 2 * Math.PI * R;
   $('#app').innerHTML = `
   <div class="card score-hero">
@@ -867,6 +884,7 @@ async function viewExamResults(key) {
       <a class="btn ghost" href="#/subject/${key}">${ic('book')} Back to subject</a>
     </div>
   </div>
+  ${weakNext}
   <div class="blk"><div class="blk-h"><h2>Review</h2><span class="sp"></span>
     <button type="button" class="qtool on" id="rv-all">All</button>
     <button type="button" class="qtool" id="rv-no">Wrong &amp; skipped</button></div>
