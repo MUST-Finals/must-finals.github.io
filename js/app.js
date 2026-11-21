@@ -1573,9 +1573,7 @@ function boolTokens(expr) {
   const out = [];
   for (let i = 0; i < toks.length; i++) {
     const a = toks[i - 1], b = toks[i];
-    if (a && (a.var || a.op === 'rp' || a.op === 'not') && (b.var || b.op === 'lp' || b.op === 'not')) {
-      if (!(a.op === 'not' && false)) out.push({ op: 'and' });
-    }
+    if (a && (a.var || a.op === 'rp') && (b.var || b.op === 'lp' || b.op === 'not')) out.push({ op: 'and' });
     out.push(b);
   }
   return out;
