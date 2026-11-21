@@ -178,6 +178,30 @@ async function viewDashboard() {
   const bars = dayCounts.map((c, i) =>
     `<div class="dz-bar ${i === todayIdx ? 'today' : ''}" style="height:${Math.max(6, Math.round(100 * c / maxC))}%"><title>${'MTWTFSS'[i]}: ${c} study action${c === 1 ? '' : 's'}</title></div>`).join('');
 
+  /* purple reference: concentric completion rings + metric cards (real data) */
+  const ringCols = ['#3ddc97', '#a78bfa', '#5ec5f8'];
+  const comps = D.subjects.map(s => ({ s, c: subjCompletion(p, s.key) }));
+  const overallPct = totalLecs ? Math.round(100 * doneLecs / totalLecs) : 0;
+  const ringSvg = (() => {
+    const cx = 75, cy = 75, sw = 10;
+    let rings = '';
+    comps.forEach((o, i) => {
+      const r = 60 - i * 14, C = 2 * Math.PI * r;
+      const dash = (o.c.pct / 100 * C).toFixed(1);
+      rings += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ringCols[i % 3]}" stroke-width="${sw}" stroke-linecap="round" stroke-dasharray="${dash} ${C.toFixed(1)}" transform="rotate(-90 ${cx} ${cy})" opacity="0.95"><title>${esc(o.s.code)}: ${o.c.pct}% complete</title></circle>`;
+    });
+    return `<svg class="dz-rings" viewBox="0 0 150 150" role="img" aria-label="Completion rings per subject">
+      <circle cx="75" cy="75" r="60" fill="none" stroke="var(--surface3)" stroke-width="10" opacity=".45"/>
+      <circle cx="75" cy="75" r="46" fill="none" stroke="var(--surface3)" stroke-width="10" opacity=".3"/>
+      <circle cx="75" cy="75" r="32" fill="none" stroke="var(--surface3)" stroke-width="10" opacity=".18"/>
+      ${rings}
+      <text x="75" y="71" text-anchor="middle" font-size="22" font-weight="800" fill="var(--ink)">${overallPct}%</text>
+      <text x="75" y="88" text-anchor="middle" font-size="9.5" fill="var(--muted)">overall</text>
+    </svg>`;
+  })();
+  const ringLegend = comps.map((o, i) => `<div class="dz-rl"><span class="dot" style="background:${ringCols[i % 3]}"></span><div><div style="font-weight:700">${esc(o.s.code)}</div><div class="hint" style="font-size:11.5px">${o.c.done}/${o.c.total} lectures</div></div><b>${o.c.pct}%</b></div>`).join('');
+  const miniBars = dayCounts.map((c, i) => `<i class="${i === todayIdx ? 'today' : ''}" style="height:${Math.max(8, Math.round(100 * c / maxC))}%"><title>${'MTWTFSS'[i]}: ${c}</title></i>`).join('');
+
   /* improvement over time: real mock-exam percentages, chronological */
   const chrono = p.examHistory.slice().reverse();
   let trendHtml;
@@ -190,7 +214,7 @@ async function viewDashboard() {
     const xAt = i => padL + (n === 1 ? (W - padL - padR) / 2 : i * (W - padL - padR) / (n - 1));
     const yAt = v => padT + (100 - v) * (H - padT - padB) / 100;
     const pts = pcts.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
-    const dots = pcts.map((v, i) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="4" fill="var(--accent)"><title>${esc(subjByKey(chrono[i].subj).code)} mock ${i + 1}: ${v}% (${chrono[i].correct}/${chrono[i].count})</title></circle>`).join('');
+    const dots = pcts.map((v, i) => `<circle cx="${xAt(i).toFixed(1)}" cy="${yAt(v).toFixed(1)}" r="4" fill="#a795ff"><title>${esc(subjByKey(chrono[i].subj).code)} mock ${i + 1}: ${v}% (${chrono[i].correct}/${chrono[i].count})</title></circle>`).join('');
     const grid = [0, 50, 100].map(v => `<line x1="${padL}" y1="${yAt(v)}" x2="${W - padR}" y2="${yAt(v)}" stroke="var(--stroke)" stroke-width="1"/><text x="${padL - 8}" y="${yAt(v) + 4}" text-anchor="end" font-size="11" fill="var(--muted)">${v}%</text>`).join('');
     const d0 = new Date(chrono[0].ts), d1 = new Date(chrono[chrono.length - 1].ts);
     const fmt = d => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -198,7 +222,9 @@ async function viewDashboard() {
     const deltaTxt = delta === 0 ? 'No change so far' : (delta > 0 ? `Up ${delta} points since your first mock` : `Down ${Math.abs(delta)} points since your first mock`);
     trendHtml = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block" role="img" aria-label="Mock exam scores over time">
       ${grid}
-      <polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>
+      <defs><linearGradient id="tpur" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8f7bff" stop-opacity=".32"/><stop offset="1" stop-color="#8f7bff" stop-opacity="0"/></linearGradient></defs>
+      <path d="M${padL},${H - padB} L${pts.replace(/ /g, ' L')} L${W - padR},${H - padB} Z" fill="url(#tpur)"/>
+      <polyline points="${pts}" fill="none" stroke="#a795ff" stroke-width="2.5" stroke-linejoin="round"/>
       ${dots}
       <text x="${padL}" y="${H - 6}" font-size="11" fill="var(--muted)">${fmt(d0)}</text>
       <text x="${W - padR}" y="${H - 6}" text-anchor="end" font-size="11" fill="var(--muted)">${fmt(d1)}</text>
@@ -265,21 +291,26 @@ async function viewDashboard() {
   $('#app').innerHTML = `
   <section class="dz-top">
     <div class="dz-top-h">
-      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1></div>
-      <div class="rowflex">${continueBtn || '<span class="hint" style="color:#aab">Pick a subject below to start.</span>'}</div>
-    </div>
-    <div class="dz-band">
-      <div class="dz-band-l">
-        <p class="dz-cap">Your subjects</p>
-        <div class="dz-courses">${subjCards}</div>
-      </div>
-      <div class="dz-band-r">
-        <p class="dz-cap">Activity this week</p>
-        <div class="dz-bars">${bars}</div>
-        <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
-      </div>
+      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
+      <div class="rowflex">${continueBtn || '<span class="hint">Pick a subject below to start.</span>'}</div>
     </div>
   </section>
+  <div class="dz-band">
+    <div class="card dz-ring-card">
+      <p class="dz-cap">Overall completion</p>
+      <div class="dz-ring-wrap">${ringSvg}<div class="dz-ring-legend">${ringLegend}</div></div>
+    </div>
+    <div class="dz-metric-col">
+      <div class="card dz-metric"><p class="dz-cap">Practice answers</p><div class="dz-big">${att}</div><div class="dz-minibars">${miniBars}</div><p class="hint" style="margin:6px 0 0">This week, day by day</p></div>
+      <div class="card dz-metric"><p class="dz-cap">MCQ accuracy</p><div class="dz-big">${acc === null ? '—' : acc + '<span class="u">%</span>'}</div><p class="hint" style="margin:6px 0 0">${acc === null ? 'No attempts yet - start any practice set' : corr + ' correct out of ' + att}</p></div>
+    </div>
+    <div class="card dz-band-r">
+      <p class="dz-cap">Activity this week</p>
+      <div class="dz-bars">${bars}</div>
+      <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
+    </div>
+  </div>
+  <div class="dz-courses" style="margin-bottom:16px">${subjCards}</div>
   <div class="dz-low"><div class="dz-bottom">
     <div class="dz-col-main card" style="padding:18px"><h2 style="margin-top:0">${ic('trend')} Your progress</h2>${trendHtml}</div>
     <div class="dz-col-mid"><div id="dz-goal"></div><div id="dz-recs"></div></div>
