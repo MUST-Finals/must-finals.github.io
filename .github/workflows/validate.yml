@@ -1,0 +1,30 @@
+name: Validate MUST Finals
+on:
+  push:
+    branches: [main, "feature/**"]
+  pull_request:
+    branches: [main]
+jobs:
+  syntax-and-assets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check JavaScript syntax
+        run: |
+          node --check js/data.js
+          node --check js/backend.js
+          node --check js/app.js
+          node --check js/expansion.js
+          node --check sw.js
+      - name: Verify required workspace assets
+        run: |
+          test -s index.html
+          test -s css/expansion.css
+          test -s js/expansion.js
+          test -s manifest.webmanifest
+          grep -q 'js/expansion.js' index.html
+          grep -q 'css/expansion.css' index.html
+          grep -q 'js/expansion.js' sw.js
