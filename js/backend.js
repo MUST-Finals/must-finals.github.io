@@ -13,6 +13,19 @@ const MFB = {
 MFB.init = async function () {
   if (!window.supabase || !MFB.url || !MFB.key) return;
   MFB.sb = window.supabase.createClient(MFB.url, MFB.key);
+  // OAuth returns to #/account#access_token=... : the router hash prefix breaks
+  // the SDK's URL detection, so hand the fragment to setSession ourselves.
+  const h = location.hash || '';
+  if (/access_token=/.test(h)) {
+    const p = new URLSearchParams(h.slice(h.indexOf('access_token=')));
+    try {
+      await MFB.sb.auth.setSession({
+        access_token: p.get('access_token'),
+        refresh_token: p.get('refresh_token') || ''
+      });
+    } catch (e) { /* leave signed out */ }
+    history.replaceState(null, '', location.pathname + location.search + '#/account');
+  }
   const { data: { session } } = await MFB.sb.auth.getSession();
   MFB.user = session ? session.user : null;
   if (MFB.user) await MFB.loadProfile();
@@ -24,6 +37,8 @@ MFB.init = async function () {
   });
   MFB.ready = true;
   MFB.paintNav();
+  // If the router rendered the account view before init finished, re-render it.
+  if (/^#\/account/.test(location.hash) && typeof MFB.viewAccount === 'function') MFB.viewAccount();
 };
 
 MFB.loadProfile = async function () {

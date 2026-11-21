@@ -314,19 +314,10 @@ async function viewDashboard() {
   }).join('')}</tbody></table>` : `<div class="empty">${ic('target')}<div>No mock exams yet. Your results will appear here.</div></div>`;
 
   $('#app').innerHTML = `
-  <section class="dz-top dz-hero">
+  <section class="dz-top">
     <div class="dz-top-h">
       <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
-      <div class="rowflex">${continueBtn || '<span class="hint">Pick a subject below to start.</span>'}</div>
-    </div>
-    <p class="dz-cap dz-subj-cap">Your subjects</p>
-    <div class="dz-hero-row">
-      <div class="dz-courses">${subjCards}</div>
-      <div class="card dz-band-r">
-        <p class="dz-cap">Activity this week</p>
-        <div class="dz-bars">${bars}</div>
-        <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
-      </div>
+      <div class="rowflex">${continueBtn || '<span class="hint">Pick a subject in the sidebar to start.</span>'}</div>
     </div>
   </section>
   <div class="dz-ref">
@@ -357,6 +348,11 @@ async function viewDashboard() {
   <div class="card" style="padding:16px;margin-bottom:14px">
     <div class="rowflex"><h2 style="margin:0;font-size:15px">Recent exam history</h2><span class="sp"></span><span class="hint">real results only</span></div>
     ${histTable}
+  </div>
+  <div class="card" style="padding:16px;margin-bottom:14px">
+    <div class="rowflex"><h2 style="margin:0;font-size:15px">Activity this week</h2><span class="sp"></span><span class="hint">questions answered per day</span></div>
+    <div class="dz-bars">${bars}</div>
+    <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
   </div>
   <div class="dz-low"><div class="dz-bottom">
     <div class="dz-col-main card" style="padding:18px"><h2 style="margin-top:0">${ic('trend')} Your progress</h2>${trendHtml}</div>
