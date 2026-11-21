@@ -409,6 +409,7 @@ function mcqHtml(q) {
     <p class="q">${esc(q.q)} <span class="qid">${q.id}</span></p>
     <div class="opts">${opts}</div>
     <div class="ans"><span class="achip">Answer</span><span>${OPT_LETTERS[q.a]} · ${esc(q.opts[q.a])}</span></div>
+    ${q.exp ? `<div class="ans" style="background:var(--primarySoft)"><span class="achip">Explanation</span><span dir="auto">${esc(q.exp)}</span></div>` : ''}
     ${qToolsHtml(q.id, 'mcq')}
   </div>`;
 }
@@ -671,7 +672,7 @@ async function viewExamConfig(key) {
         <option value="1.5" selected>1.5 minutes per question</option>
         <option value="2">2 minutes per question</option>
       </select></div>
-    <p class="hint">No difficulty labels exist in the question bank, so none are invented here. Review shows the correct answers only, without made-up explanations.</p>
+    <p class="hint">No difficulty labels exist in the question bank, so none are invented here. Review shows the correct answer, plus the source explanation when the question has one.</p>
     <button type="button" class="btn" id="ex-start">${ic('play')} Start exam</button>
     <a class="btn ghost" href="#/subject/${key}" style="margin-left:8px">${ic('al')} Back</a>
   </div>`;
@@ -853,6 +854,7 @@ async function viewExamResults(key) {
       <p class="q"><span class="pill ${ok ? 'good' : 'warn'}">${ok ? 'Correct' : (q.picked === null ? 'Skipped' : 'Wrong')}</span> Q${i + 1}. ${esc(data.q)}</p>
       <p class="hint" style="margin:4px 0">${esc(data.src)}</p>
       <div class="ans" style="display:flex"><span class="achip">Correct</span><span>${esc(corr)}</span></div>
+      ${data.exp ? `<div class="ans" style="display:flex;background:var(--primarySoft)"><span class="achip">Explanation</span><span dir="auto">${esc(data.exp)}</span></div>` : ''}
       ${ok ? '' : `<div class="ans" style="display:flex;background:var(--badSoft);color:var(--bad)"><span class="achip" style="background:var(--bad);color:#fff">You</span><span>${esc(your)}</span></div>`}
     </div>`;
   }).join('');
