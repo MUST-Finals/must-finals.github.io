@@ -213,13 +213,14 @@ MFB.sendReport = async function (qid, detail) {
 MFB.viewAdmin = async function () {
   if (!MFB.ready || !MFB.user) { nav('/account'); return; }
   if (!MFB.isAdmin()) { $('#app').innerHTML = `<div class="empty">${ic('alert')}<div>Admins only. Your account has the student role.</div></div>`; return; }
-  const [reps, postsN, usersN, posts, anns, profs] = await Promise.all([
+  const [reps, postsN, usersN, posts, anns, profs, cont2] = await Promise.all([
     MFB.sb.from('reports').select('id,question_id,detail,status,created_at,profiles(display_name)').order('created_at', { ascending: false }).limit(50),
     MFB.sb.from('posts').select('id', { count: 'exact', head: true }),
     MFB.sb.from('profiles').select('id', { count: 'exact', head: true }),
     MFB.sb.from('posts').select('id,question_id,body,created_at,author,profiles(display_name,role)').order('created_at', { ascending: false }).limit(50),
     MFB.sb.from('announcements').select('id,title,body,created_at').order('created_at', { ascending: false }).limit(20),
     MFB.sb.from('profiles').select('id,display_name,role,created_at').order('created_at', { ascending: false }).limit(50),
+    MFB.sb.from('content_items').select('id,kind,subj,ref_id,payload,created_at').order('created_at', { ascending: false }).limit(100),
   ]);
   const postList = (posts.data || []).map(p => {
     const name = (p.profiles && p.profiles.display_name) || 'student';
@@ -236,6 +237,12 @@ MFB.viewAdmin = async function () {
       : `<button type="button" class="btn ghost sm usr-block" data-id="${pf.id}">Block</button>`)}</div>`).join('') || '<p class="hint">No accounts yet.</p>';
   const annList = (anns.data || []).map(a => `<div class="act"><span style="font-weight:700">${esc(a.title)}</span><span>${esc(a.body.slice(0, 120))}</span><time>${ago(new Date(a.created_at).getTime())}</time>
     <button type="button" class="btn ghost sm ann-del" data-id="${a.id}">Delete</button></div>`).join('') || '<p class="hint">No announcements yet.</p>';
+  const subjOpts = (window.DATA ? DATA.subjects : []).map(s2 => `<option value="${s2.key}">${s2.code} · ${s2.full}</option>`).join('');
+  const contList = (cont2.data || []).map(c => {
+    const label = c.kind === 'mcq' ? (c.payload.q || '') : (c.kind === 'written' ? (c.payload.q || '') : c.kind);
+    return `<div class="act"><span class="pill">${c.kind}</span><span style="font-weight:700">${esc(c.subj)}</span><span>${esc((label || '').slice(0, 90))}${c.ref_id ? ' (edit of ' + esc(c.ref_id) + ')' : ''}</span><time>${ago(new Date(c.created_at).getTime())}</time>
+    <button type="button" class="btn ghost sm cont-del" data-id="${c.id}">Delete</button></div>`;
+  }).join('') || '<p class="hint">No managed content yet. Added questions appear here.</p>';
   const repList = (reps.data || []).map(r => `<div class="act"><span style="font-weight:700">${esc(r.question_id)}</span><span>${esc(r.detail)}</span><span class="pill ${r.status === 'open' ? 'warn' : ''}">${r.status}</span><time>${ago(new Date(r.created_at).getTime())}</time>
     ${r.status === 'open' ? `<button type="button" class="btn ghost sm rep-res" data-id="${r.id}">Resolve</button><button type="button" class="btn ghost sm rep-dis" data-id="${r.id}">Dismiss</button>` : ''}</div>`).join('') || '<p class="hint">No reports.</p>';
   $('#app').innerHTML = `
@@ -255,7 +262,28 @@ MFB.viewAdmin = async function () {
     <div class="blk"><div class="blk-h"><h2>Community moderation</h2></div><div class="acts">${postList}</div></div>
     <div class="blk"><div class="blk-h"><h2>Accounts</h2></div><div class="acts">${accList}</div></div>
   </div>
-  <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Announcements</h2></div><div class="acts">${annList}</div></div>`;
+  <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Announcements</h2></div><div class="acts">${annList}</div></div>
+  <div class="grid g2" style="align-items:start;margin-top:16px">
+    <div class="card" style="padding:18px">
+      <h2 style="margin-top:0">Add course content</h2>
+      <p class="hint">Added questions merge into the live site for everyone within seconds. Only add content from real course materials - never invented questions or answers.</p>
+      <label class="hint">Subject</label><select id="cc-subj" style="width:100%">${subjOpts}</select>
+      <label class="hint">Type</label><select id="cc-kind" style="width:100%"><option value="mcq">MCQ</option><option value="written">Written question</option></select>
+      <label class="hint">Source label (e.g. Lecture 6 · name, or Section 3)</label><input id="cc-src" maxlength="120" style="width:100%">
+      <label class="hint">Question</label><textarea id="cc-q" rows="2" maxlength="2000" style="width:100%"></textarea>
+      <div id="cc-opts">
+        <label class="hint">Option A</label><input id="cc-o0" maxlength="500" style="width:100%">
+        <label class="hint">Option B</label><input id="cc-o1" maxlength="500" style="width:100%">
+        <label class="hint">Option C</label><input id="cc-o2" maxlength="500" style="width:100%">
+        <label class="hint">Option D</label><input id="cc-o3" maxlength="500" style="width:100%">
+        <label class="hint">Correct option</label><select id="cc-a" style="width:100%"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
+      </div>
+      <div id="cc-wr" style="display:none"><label class="hint">Model answer (from course materials)</label><textarea id="cc-wa" rows="3" maxlength="4000" style="width:100%"></textarea></div>
+      <button type="button" class="btn sm" id="cc-go" style="margin-top:12px">${ic('check')} Add question</button>
+      <p class="hint" id="cc-msg"></p>
+    </div>
+    <div class="blk"><div class="blk-h"><h2>Managed content</h2></div><div class="acts">${contList}</div></div>
+  </div>`;
   $('#an-go').addEventListener('click', async () => {
     const t = $('#an-title').value.trim(), b = $('#an-body').value.trim();
     if (!t || !b) { $('#an-msg').textContent = 'Title and body required.'; return; }
@@ -269,4 +297,29 @@ MFB.viewAdmin = async function () {
   $$('.ann-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('announcements').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
   $$('.usr-block').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'blocked' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
   $$('.usr-unblock').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'student' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.cont-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('content_items').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  const kindSel = $('#cc-kind');
+  if (kindSel) kindSel.addEventListener('change', () => {
+    const mcq = kindSel.value === 'mcq';
+    $('#cc-opts').style.display = mcq ? '' : 'none';
+    $('#cc-wr').style.display = mcq ? 'none' : '';
+  });
+  const ccGo = $('#cc-go');
+  if (ccGo) ccGo.addEventListener('click', async () => {
+    const subj = $('#cc-subj').value, kind = kindSel.value, src = $('#cc-src').value.trim(), q = $('#cc-q').value.trim();
+    if (!q || !src) { $('#cc-msg').textContent = 'Question and source label are required.'; return; }
+    let payload;
+    if (kind === 'mcq') {
+      const opts = [0, 1, 2, 3].map(i => $('#cc-o' + i).value.trim());
+      if (opts.some(o => !o)) { $('#cc-msg').textContent = 'All four options are required.'; return; }
+      payload = { id: subj + '-admin-' + Date.now(), subj, kind: 'lec', n: 0, src, q, opts, a: parseInt($('#cc-a').value, 10) };
+    } else {
+      const wa = $('#cc-wa').value.trim();
+      if (!wa) { $('#cc-msg').textContent = 'Model answer is required for a written question.'; return; }
+      payload = { id: subj + '-admin-w' + Date.now(), subj, kind: 'lec', n: 0, src, q, a: wa };
+    }
+    const { error } = await MFB.sb.from('content_items').insert({ kind, subj, payload, author: MFB.user.id });
+    $('#cc-msg').textContent = error ? ('Failed: ' + error.message) : 'Added. It is live for all students now.';
+    if (!error) { $('#cc-q').value = ''; MFB.viewAdmin(); }
+  });
 };
