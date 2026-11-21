@@ -1,6 +1,6 @@
 /* MUST Finals service worker: offline app shell. Data stays local; analytics untouched.
    Bump CACHE on every deploy so old shells are dropped. */
-const CACHE = 'must-finals-v31';
+const CACHE = 'must-finals-v32';
 const SHELL = ['./', 'index.html', 'css/styles.css', 'js/data.js', 'js/app.js', 'manifest.webmanifest', 'icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
@@ -20,10 +20,12 @@ self.addEventListener('fetch', e => {
     );
     return;
   }
+  /* Non-navigate: cache-first, network fill. NEVER fall back to './' here -
+     serving HTML to a <script> tag gets blocked (nosniff) and wedges the app. */
   e.respondWith(
     caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
       if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put(e.request, copy)); }
       return res;
-    }).catch(() => caches.match('./')))
+    }))
   );
 });
