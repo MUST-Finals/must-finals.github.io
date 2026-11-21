@@ -56,7 +56,7 @@ const store = {
   async del(key) { try { localStorage.removeItem('mf.' + key); } catch {} },
 };
 
-const DEF_PROG = { completed: {}, mcq: {}, bookmarks: {}, activity: [], lastSubject: null, examHistory: [] };
+const DEF_PROG = { completed: {}, mcq: {}, bookmarks: {}, activity: [], lastSubject: null, examHistory: [], mistakes: {} };
 let PROG = null;
 async function prog() { if (!PROG) PROG = Object.assign({}, DEF_PROG, await store.get('progress', {})); return PROG; }
 async function saveProg() { await store.set('progress', PROG); }
@@ -90,11 +90,18 @@ function subjCompletion(p, k) {
   const done = s.lectures.filter(l => !l.missing && p.completed[k + '-lec' + l.n]).length;
   return { done, total, pct: total ? Math.round(100 * done / total) : 0 };
 }
-async function recordMcq(qid, correct) {
+async function recordMcq(qid, correct, pickedIdx) {
   const p = await prog();
   const s = p.mcq[qid] || { t: 0, c: 0 };
   s.t++; if (correct) s.c++;
   p.mcq[qid] = s;
+  if (!p.mistakes) p.mistakes = {};
+  const q = mcqById(qid);
+  if (!correct && q) {
+    p.mistakes[qid] = { subj: q.subj, picked: (typeof pickedIdx === 'number' ? pickedIdx : null), ts: Date.now(), understood: false, sinceRight: false };
+  } else if (correct && p.mistakes[qid] && !p.mistakes[qid].understood) {
+    p.mistakes[qid].sinceRight = true;
+  }
   await saveProg();
 }
 
@@ -543,7 +550,8 @@ document.addEventListener('click', async e => {
     const box = opt.closest('.mcq');
     box.classList.add('answered');
     paintMcq(box, opt);
-    await recordMcq(box.dataset.qid, opt.dataset.c === '1');
+    const oi = Array.prototype.indexOf.call(box.querySelectorAll('.opt'), opt);
+    await recordMcq(box.dataset.qid, opt.dataset.c === '1', oi);
     return;
   }
   const rev = e.target.closest('.revealbtn');
@@ -723,10 +731,18 @@ async function viewExamRun(key) {
     exam.correct = correct;
     await saveExam();
     const p = await prog();
+    if (!p.mistakes) p.mistakes = {};
     for (const q of exam.qs) {
       const st = p.mcq[q.id] || { t: 0, c: 0 };
       st.t++; if (q.picked === q.correctIdx) st.c++;
       p.mcq[q.id] = st;
+      const right = q.picked === q.correctIdx;
+      if (!right) {
+        const orig = mcqById(q.id);
+        p.mistakes[q.id] = { subj: key, picked: q.picked === null ? null : q.order[q.picked], ts: Date.now(), understood: false, sinceRight: false, lec: orig && orig.lec };
+      } else if (p.mistakes[q.id] && !p.mistakes[q.id].understood) {
+        p.mistakes[q.id].sinceRight = true;
+      }
     }
     p.examHistory.unshift({ ts: Date.now(), subj: key, count: exam.qs.length, correct, secs: Math.round((exam.finishedAt - exam.started) / 1000) });
     p.examHistory = p.examHistory.slice(0, 50);
@@ -1101,6 +1117,126 @@ async function viewTools(which) {
   nav('/tools');
 }
 
+/* ---- mistakes notebook: auto-collected wrong answers (real attempts only) ---- */
+let _mf = 'all';
+async function viewMistakes() {
+  const p = await prog();
+  if (!p.mistakes) p.mistakes = {};
+  const m = p.mistakes;
+  const ids = Object.keys(m).filter(id => mcqById(id));
+  const active = ids.filter(id => !m[id].understood);
+  const done = ids.filter(id => m[id].understood);
+  const list = (_mf === 'all' ? active : active.filter(id => mcqById(id).subj === _mf))
+    .sort((x, y) => (m[y].ts || 0) - (m[x].ts || 0));
+  const subjPills = ['all', ...D.subjects.map(s => s.key).filter(k => active.some(id => mcqById(id).subj === k))]
+    .map(k => `<button type="button" class="chip${_mf === k ? ' on' : ''}" data-mf="${k}">${k === 'all' ? 'All' : esc(subjByKey(k).code)}</button>`).join('');
+  const cards = list.map(id => {
+    const q = mcqById(id), e = m[id];
+    const opts = q.opts.map((o, oi) => {
+      let cls = 'opt static', extra = '';
+      if (oi === q.a) cls += ' right';
+      if (e.picked === oi && oi !== q.a) cls += ' wrong';
+      if (e.picked === oi) extra = ' <span class="hint">(your answer)</span>';
+      return `<div class="${cls}"><span class="ol">${OPT_LETTERS[oi]}</span><span>${esc(o)}${extra}</span></div>`;
+    }).join('');
+    const note = e.sinceRight ? `<span class="pill ok">answered correctly since</span>` : '';
+    return `<div class="card" data-qid="${id}">
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <span class="pill pri">${esc(subjByKey(q.subj).code)}</span>
+        <span class="hint">${esc(q.src)}</span>${note}
+        <span class="hint" style="margin-left:auto">${e.ts ? new Date(e.ts).toLocaleDateString() : ''}</span>
+      </div>
+      <p class="q">${esc(q.q)} <span class="qid">${q.id}</span></p>
+      <div class="opts">${opts}</div>
+      <div class="row" style="gap:8px;margin-top:10px">
+        <button type="button" class="btn ghost sm" data-mretry="${id}">${ic('zap')} Retry</button>
+        <button type="button" class="btn ghost sm" data-mgot="${id}">${ic('check')} Mark understood</button>
+      </div>
+    </div>`;
+  }).join('');
+  $('#app').innerHTML = `
+  <div class="vhead"><h1>${ic('target')} Mistakes notebook</h1>
+    <p class="hint">Every wrong answer from practice and mock exams lands here automatically. Retry them, then mark understood when the idea sticks.</p>
+  </div>
+  <div class="row" style="gap:8px;flex-wrap:wrap;margin-bottom:12px">
+    <span class="pill">Active: ${active.length}</span><span class="pill ok">Understood: ${done.length}</span>${subjPills}
+  </div>
+  ${list.length ? cards : `<div class="empty">${ic('check')} No mistakes here${active.length ? ' for this subject' : ''}. ${ids.length ? 'Nice work.' : 'Answer practice questions or take a mock exam - anything you get wrong will show up here.'}</div>`}`;
+  $$('#app [data-mf]').forEach(b => b.onclick = () => { _mf = b.dataset.mf; viewMistakes(); });
+  $$('#app [data-mgot]').forEach(b => b.onclick = async () => {
+    const qid = b.dataset.mgot, pp = await prog();
+    if (pp.mistakes[qid]) { pp.mistakes[qid].understood = true; await saveProg(); }
+    viewMistakes();
+  });
+  $$('#app [data-mretry]').forEach(b => b.onclick = () => {
+    const qid = b.dataset.mretry, q = mcqById(qid), card = b.closest('.card');
+    const opts = q.opts.map((o, oi) => `<button type="button" class="opt" data-c="${oi === q.a ? 1 : 0}"><span class="ol">${OPT_LETTERS[oi]}</span><span>${esc(o)}</span></button>`).join('');
+    const box = card.querySelector('.opts');
+    box.innerHTML = opts;
+    box.querySelectorAll('.opt').forEach(o => o.addEventListener('click', async () => {
+      const oi = Array.prototype.indexOf.call(box.querySelectorAll('.opt'), o);
+      const right = o.dataset.c === '1';
+      box.innerHTML = q.opts.map((x, xi) => {
+        let cls = 'opt static';
+        if (xi === q.a) cls += ' right';
+        if (xi === oi && !right) cls += ' wrong';
+        return `<div class="${cls}"><span class="ol">${OPT_LETTERS[xi]}</span><span>${esc(x)}</span></div>`;
+      }).join('');
+      await recordMcq(qid, right, oi);
+      if (right) {
+        const pp = await prog();
+        if (pp.mistakes[qid] && !pp.mistakes[qid].understood) { pp.mistakes[qid].understood = true; await saveProg(); }
+        viewMistakes();
+      }
+    }));
+  });
+}
+
+/* ---- question bank: filter every question by subject, source, type and answer state ---- */
+const _bankF = { subj: 'all', src: 'all', type: 'all', state: 'all' };
+async function viewBank() {
+  const p = await prog();
+  const f = _bankF;
+  const subjOpts = ['all', ...D.subjects.map(s => s.key)];
+  const pool = [
+    ...D.mcq.map(q => ({ q, type: 'mcq' })),
+    ...D.written.map(q => ({ q, type: 'written' })),
+  ];
+  const srcs = [...new Set(pool.filter(x => f.subj === 'all' || x.q.subj === f.subj).map(x => x.q.src))];
+  let list = pool.filter(x =>
+    (f.subj === 'all' || x.q.subj === f.subj) &&
+    (f.src === 'all' || x.q.src === f.src) &&
+    (f.type === 'all' || x.type === f.type));
+  const stateOf = x => {
+    if (x.type !== 'mcq') return 'unanswered';
+    const s = p.mcq[x.q.id];
+    if (!s || !s.t) return 'unanswered';
+    return s.c > 0 ? 'correct' : 'incorrect';
+  };
+  if (f.state !== 'all') list = list.filter(x => stateOf(x) === f.state);
+  const sel = (id, val, opts, label) => `<label class="hint" style="display:flex;flex-direction:column;gap:4px;font-size:11.5px">${label}
+    <select id="${id}" class="in">${opts.map(o => `<option value="${esc(o)}"${o === val ? ' selected' : ''}>${esc(o === 'all' ? 'All' : (subjOpts.includes(o) ? subjByKey(o).code : o))}</option>`).join('')}</select></label>`;
+  $('#app').innerHTML = `
+  <div class="vhead"><h1>${ic('search')} Question bank</h1>
+    <p class="hint">Every question on the platform, filterable. Answer state comes from your real attempts. Click an option to answer - wrong answers go to your mistakes notebook.</p>
+  </div>
+  <div class="row" style="gap:12px;flex-wrap:wrap;margin-bottom:14px">
+    ${sel('bf-subj', f.subj, subjOpts, 'Subject')}
+    ${sel('bf-src', f.src, ['all', ...srcs], 'Lecture / section')}
+    ${sel('bf-type', f.type, ['all', 'mcq', 'written'], 'Type')}
+    ${sel('bf-state', f.state, ['all', 'correct', 'incorrect', 'unanswered'], 'Your answer state')}
+    <span class="pill" style="align-self:end">${list.length} question${list.length === 1 ? '' : 's'}</span>
+  </div>
+  <div id="bank-list">${list.slice(0, 120).map(x => x.type === 'mcq' ? mcqHtml(x.q) : wqHtml(x.q)).join('')}</div>
+  ${list.length > 120 ? `<p class="hint" style="margin-top:10px">Showing the first 120 - narrow the filters to see the rest.</p>` : ''}
+  ${!list.length ? `<div class="empty">${ic('search')} No questions match these filters.</div>` : ''}`;
+  for (const [id, key] of [['bf-subj', 'subj'], ['bf-src', 'src'], ['bf-type', 'type'], ['bf-state', 'state']]) {
+    $('#' + id).addEventListener('change', e => { _bankF[key] = e.target.value; if (key === 'subj') _bankF.src = 'all'; viewBank(); });
+  }
+  const p2 = await prog();
+  paintBookmarks(p2);
+}
+
 /* routes */
 route(/^\/$/, viewDashboard);
 route(/^\/subject\/([a-z0-9]+)$/, viewSubject);
@@ -1108,6 +1244,8 @@ route(/^\/subject\/([a-z0-9]+)\/q\/([\w-]+)$/, viewSubject);
 route(/^\/exam\/([a-z0-9]+)$/, viewExamConfig);
 route(/^\/exam\/([a-z0-9]+)\/run$/, viewExamRun);
 route(/^\/bookmarks$/, viewBookmarks);
+route(/^\/mistakes$/, viewMistakes);
+route(/^\/bank$/, viewBank);
 route(/^\/tools(?:\/([a-z]+))?$/, viewTools);
 function viewBackendSoon(kind) {
   $('#app').innerHTML = `<div class="card empty">${ic('user')}<div><b>${kind === 'admin' ? 'Admin' : 'Accounts'} are not available yet.</b><br>Sign-in, sync and community features are being set up. Everything on the site works offline without an account.</div></div>`;
