@@ -1324,7 +1324,7 @@ async function viewPlanner() {
       <div class="rowflex"><b>${esc(s.code)}</b><span class="sp" style="flex:1"></span>
       ${du === null ? '' : (du < 0 ? '<span class="pill">passed</span>' : `<span class="pill ${du <= 3 ? 'bad' : du <= 7 ? 'warn' : 'pri'}">${du} day${du === 1 ? '' : 's'} left</span>`)}</div>
       <div class="rowflex" style="margin-top:8px"><input type="date" class="inp exam-date" data-k="${s.key}" value="${dstr || ''}" aria-label="${esc(s.code)} exam date"></div>
-      <p class="hint" style="margin:6px 0 0;font-size:11px">You set this date. General window: ${esc((D.exams.find(e => e.name.includes(s.code.replace('CS.', 'CS.'))) || {}).window || 'see dashboard')}</p>
+      <p class="hint" style="margin:6px 0 0;font-size:11px">You set this date. ${esc((D.exams.find(e => e.name.includes(s.code.replace('CS.', 'CS.'))) || {}).window || 'See dashboard for the general window')}</p>
     </div>`;
   }).join('');
 
