@@ -152,11 +152,11 @@ async function viewDashboard() {
   let continueBtn = '';
   if (p.lastSubject) {
     const s = subjByKey(p.lastSubject);
-    if (s) continueBtn = `<a class="btn" href="#/subject/${s.key}">${ic('play')} Continue ${esc(s.code)}</a>`;
+    if (s) continueBtn = `<a class="btn" href="#/subject/${s.key}">${ic('play')} ${CUR_AR ? 'أكمل ' : 'Continue '}${esc(s.code)}</a>`;
   }
   const resumeExam = await store.get('exam', null);
   if (resumeExam && !resumeExam.submitted) {
-    continueBtn += ` <a class="btn ghost" href="#/exam/${resumeExam.subj}/run">${ic('timer')} Resume exam in progress</a>`;
+    continueBtn += ` <a class="btn ghost" href="#/exam/${resumeExam.subj}/run">${ic('timer')} ${CUR_AR ? 'استئنف الامتحان الجاري' : 'Resume exam in progress'}</a>`;
   }
 
   /* pastel subject cards (reference layout) - real completion data */
@@ -419,7 +419,7 @@ function wqHtml(w) {
   return `<div class="wq" id="q-${w.id}" data-search="${esc(w.q.toLowerCase() + ' ' + w.src.toLowerCase())}">
     <p class="q">${esc(w.q)} <span class="qid">${w.id}</span></p>
     <textarea placeholder="Type your answer here..." rows="3" aria-label="Your answer"></textarea>
-    <button type="button" class="btn ghost sm revealbtn">${ic('eye')} Reveal model answer</button>
+    <button type="button" class="btn ghost sm revealbtn">${ic('eye')} ${CUR_AR ? 'أظهر الإجابة النموذجية' : 'Reveal model answer'}</button>
     <div class="model"><div class="inner"><span class="achip">Model answer</span><span>${esc(w.a)}</span></div></div>
     ${qToolsHtml(w.id, 'written')}
   </div>`;
@@ -508,8 +508,8 @@ async function viewSubject(key, focusQid) {
     </div>
     <div class="pbar" style="margin-top:12px" role="progressbar" aria-valuenow="${comp.pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${comp.pct}%"></i></div>
     <div class="rowflex" style="margin-top:14px">
-      <a class="btn" href="#/exam/${s.key}">${ic('timer')} Start mock exam</a>
-      <a class="btn ghost" href="#/">${ic('al')} Dashboard</a>
+      <a class="btn" href="#/exam/${s.key}">${ic('timer')} ${CUR_AR ? 'ابدأ امتحانًا تجريبيًا' : 'Start mock exam'}</a>
+      <a class="btn ghost" href="#/">${ic('al')} ${CUR_AR ? 'الرئيسية' : 'Dashboard'}</a>
     </div>
     ${(s.banks || []).length ? `<div class="rowflex" style="margin-top:10px">${s.banks.map(b => `<a class="matbtn" href="${b.link}" target="_blank" rel="noopener" data-pvtitle="${esc(b.title)}">${ic('doc') || ''} ${esc(b.title)}</a>`).join('')}</div>` : ''}
   </section>
@@ -682,11 +682,11 @@ async function viewExamConfig(key) {
   const pool = subjMcqs(key);
   $('#app').innerHTML = `
   <section class="hero" style="padding:22px 24px">
-    <div class="eyebrow">Mock exam</div>
+    <div class="eyebrow">${CUR_AR ? 'امتحان تجريبي' : 'Mock exam'}</div>
     <h1 style="font-size:26px">${esc(s.code)} · ${esc(s.full)}</h1>
-    <p class="sub">Random questions from the real ${esc(s.code)} practice bank. Options are shuffled, the timer grades automatically, and your state survives a refresh.</p>
+    <p class="sub">${CUR_AR ? 'أسئلة عشوائية من بنك تدريبات ' + esc(s.code) + ' الحقيقي. الخيارات تُخلط، والمؤقّت يصحّح تلقائيًا، وحالتك تبقى بعد تحديث الصفحة.' : 'Random questions from the real ' + esc(s.code) + ' practice bank. Options are shuffled, the timer grades automatically, and your state survives a refresh.'}</p>
   </section>
-  ${saved && !saved.submitted && saved.subj === key ? `<div class="notice info">${ic('timer')}<span>You have an unfinished exam for this subject. <a href="#/exam/${key}/run"><b>Resume it</b></a> or configure a new one below (starting new discards the old one).</span></div>` : ''}
+  ${saved && !saved.submitted && saved.subj === key ? `<div class="notice info">${ic('timer')}<span>${CUR_AR ? 'لديك امتحان غير مكتمل في هذه المادة. <a href="#/exam/' + key + '/run"><b>استئنفه</b></a> أو جهّز امتحانًا جديدًا بالأسفل (بدء جديد يتخلص من القديم).' : 'You have an unfinished exam for this subject. <a href="#/exam/' + key + '/run"><b>Resume it</b></a> or configure a new one below (starting new discards the old one).'}</span></div>` : ''}
   <div class="card" style="padding:22px;max-width:560px">
     <div class="field"><label for="ex-count">Number of questions (bank: ${pool.length})</label>
       <select id="ex-count">
@@ -707,7 +707,7 @@ async function viewExamConfig(key) {
         <option value="1.5" selected>1.5 minutes per question</option>
         <option value="2">2 minutes per question</option>
       </select></div>
-    <p class="hint">No difficulty labels exist in the question bank, so none are invented here. Review shows the correct answer, plus the source explanation when the question has one.</p>
+    <p class="hint">${CUR_AR ? 'لا توجد تصنيفات صعوبة في بنك الأسئلة، لذا لا نختلق أيًا منها هنا. تُظهر المراجعة الإجابة الصحيحة، مع شرح المصدر عند توفره.' : 'No difficulty labels exist in the question bank, so none are invented here. Review shows the correct answer, plus the source explanation when the question has one.'}</p>
     <button type="button" class="btn" id="ex-start">${ic('play')} ${CUR_AR ? 'ابدأ الامتحان' : 'Start exam'}</button>
     <a class="btn ghost" href="#/subject/${key}" style="margin-left:8px">${ic('al')} ${CUR_AR ? 'رجوع' : 'Back'}</a>
   </div>`;
@@ -918,8 +918,8 @@ async function viewExamResults(key) {
     </svg>
     <p style="font-size:17px;font-weight:700;margin:6px 0">${exam.correct} of ${exam.qs.length} correct · ${mins} min</p>
     <div class="rowflex" style="justify-content:center;margin-top:10px">
-      <a class="btn" href="#/exam/${key}">${ic('retry')} New attempt</a>
-      <a class="btn ghost" href="#/subject/${key}">${ic('book')} Back to subject</a>
+      <a class="btn" href="#/exam/${key}">${ic('retry')} ${CUR_AR ? 'محاولة جديدة' : 'New attempt'}</a>
+      <a class="btn ghost" href="#/subject/${key}">${ic('book')} ${CUR_AR ? 'عودة للمادة' : 'Back to subject'}</a>
     </div>
   </div>
   ${weakNext}
@@ -1002,7 +1002,7 @@ async function viewTools(which) {
       <h3 style="margin-top:0">${ic('cpu')} Truth Table Generator</h3>
       <div class="field"><label for="tt-expr">Boolean expression (variables A-D; AND: & or · or space, OR: + or |, XOR: ^, NOT: ! or ~)</label>
       <input id="tt-expr" type="text" value="(A AND B) OR !C" style="width:100%;max-width:none;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:14px"></div>
-      <button type="button" class="btn" id="tt-go">${ic('play')} Generate table</button>
+      <button type="button" class="btn" id="tt-go">${ic('play')} ${CUR_AR ? 'أنشئ الجدول' : 'Generate table'}</button>
       <div id="tt-out"></div>
     </div>`;
     $('#tt-go').addEventListener('click', () => {
@@ -1032,7 +1032,7 @@ async function viewTools(which) {
         <select id="km-vars"><option value="2">2 (A, B)</option><option value="3" selected>3 (A, B, C)</option><option value="4">4 (A, B, C, D)</option></select></div>
       <div class="field"><label for="km-min">Minterms (comma separated, e.g. 0,2,5,7)</label>
       <input id="km-min" type="text" value="1,3,5,7" style="width:100%;max-width:none;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:14px"></div>
-      <button type="button" class="btn" id="km-go">${ic('play')} Draw K-map</button>
+      <button type="button" class="btn" id="km-go">${ic('play')} ${CUR_AR ? 'ارسم كارنوف' : 'Draw K-map'}</button>
       <div id="km-out"></div>
     </div>`;
     $('#km-go').addEventListener('click', () => {
@@ -1106,7 +1106,7 @@ async function viewTools(which) {
         <input id="ds-val" type="text" placeholder="Value" style="width:110px;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:9px 12px;font-size:14px">
         <button type="button" class="btn sm" id="ds-add">Push</button>
         <button type="button" class="btn ghost sm" id="ds-del">Pop</button>
-        <button type="button" class="btn ghost sm" id="ds-reset">${ic('retry')} Reset</button>
+        <button type="button" class="btn ghost sm" id="ds-reset">${ic('retry')} ${CUR_AR ? 'إعادة ضبط' : 'Reset'}</button>
       </div>
       <div class="dsv" id="ds-view" aria-live="polite"></div>
       <div class="oplog" id="ds-log">Ready.</div>
@@ -1160,8 +1160,8 @@ async function viewTools(which) {
         <div class="rowflex"><h3 style="margin:0;font-size:15px">${ic('code')} ${esc(c.title)}</h3><span class="sp" style="flex:1"></span><span class="pill">${esc(subjByKey(c.subj).code)}</span><span class="pill">${esc(c.lang)}</span></div>
         <pre class="codeblock">${esc(c.code)}</pre>
         <div class="rowflex" style="gap:8px;flex-wrap:wrap">
-          <button type="button" class="btn ghost sm revealout">${ic('eye')} Reveal output</button>
-          ${c.steps ? `<button type="button" class="btn ghost sm revealsteps">${ic('list')} Step-by-step trace</button>` : ''}
+          <button type="button" class="btn ghost sm revealout">${ic('eye')} ${CUR_AR ? 'أظهر الناتج' : 'Reveal output'}</button>
+          ${c.steps ? `<button type="button" class="btn ghost sm revealsteps">${ic('list')} ${CUR_AR ? 'تتبّع خطوة بخطوة' : 'Step-by-step trace'}</button>` : ''}
         </div>
         <div class="model"><div class="inner"><span class="achip">Output</span><span style="font-family:ui-monospace,monospace">${esc(c.out)}</span></div></div>
         ${c.steps ? `<div class="model stepsmodel"><div class="inner"><span class="achip">Execution trace</span><p class="hint" style="margin:0 0 8px">Practice aid written for this platform - not official course material. The final line always matches the compiled output.</p><ol style="margin:0;padding-left:20px;display:grid;gap:6px">${c.steps.map(s => `<li>${esc(s)}</li>`).join('')}</ol></div></div>` : ''}
@@ -1217,8 +1217,8 @@ async function viewMistakes() {
       <p class="q">${esc(q.q)} <span class="qid">${q.id}</span></p>
       <div class="opts">${opts}</div>
       <div class="row" style="gap:8px;margin-top:10px">
-        <button type="button" class="btn ghost sm" data-mretry="${id}">${ic('zap')} Retry</button>
-        <button type="button" class="btn ghost sm" data-mgot="${id}">${ic('check')} Mark understood</button>
+        <button type="button" class="btn ghost sm" data-mretry="${id}">${ic('zap')} ${CUR_AR ? 'إعادة' : 'Retry'}</button>
+        <button type="button" class="btn ghost sm" data-mgot="${id}">${ic('check')} ${CUR_AR ? 'فهمتها' : 'Mark understood'}</button>
       </div>
     </div>`;
   }).join('');
@@ -1581,7 +1581,7 @@ async function viewFlashcards(key) {
     </div>
     <div class="rowflex" style="justify-content:center;margin-top:14px">
       <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
-      <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} Shuffle</button>
+      <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} ${CUR_AR ? 'خلط' : 'Shuffle'}</button>
       <button type="button" class="btn" id="fc-next">Next ${ic('ar')}</button>
     </div>
   </div>`;
@@ -1924,7 +1924,7 @@ viewFlashcards = async function (key, dueOnly) {
       <button type="button" class="btn" data-g="2">Easy · ${st && st.ivl ? Math.round(st.ivl * 3) : 3}d</button>
     </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
       <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
-      <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} Shuffle</button>
+      <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} ${CUR_AR ? 'خلط' : 'Shuffle'}</button>
       <button type="button" class="btn" id="fc-next">Flip ${ic('ar')}</button>
     </div>`}
   </div>`;
