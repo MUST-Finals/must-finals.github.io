@@ -131,9 +131,10 @@ async function viewDashboard() {
   const p = await prog();
   const hr = new Date().getHours();
   const greet = hr < 12 ? 'Good morning' : hr < 18 ? 'Good afternoon' : 'Good evening';
-  const totalLecs = D.subjects.reduce((n, s) => n + s.lectures.length, 0);
+  const displayName = (window.MFB?.profile?.display_name || window.MFB?.user?.email?.split('@')[0] || 'there').trim();
+  const totalLecs = D.subjects.reduce((n, s) => n + s.lectures.filter(l => !l.missing).length, 0);
   const totalQ = D.mcq.length + D.written.length;
-  const doneLecs = Object.keys(p.completed).length;
+  const doneLecs = D.subjects.reduce((n, s) => n + s.lectures.filter(l => !l.missing && p.completed[s.key + '-lec' + l.n]).length, 0);
   let att = 0, corr = 0;
   for (const k in p.mcq) { att += p.mcq[k].t; corr += p.mcq[k].c; }
   const acc = att ? Math.round(100 * corr / att) : null;
@@ -173,7 +174,9 @@ async function viewDashboard() {
     const d = Math.floor((a.ts - monday.getTime()) / 86400000);
     if (d >= 0 && d < 7) dayCounts[d]++;
   }
-  const maxC = Math.max(1, ...dayCounts);
+  // Use a steady scale so one action does not misleadingly fill the whole chart.
+  const activityScale = 5;
+  const maxC = Math.max(activityScale, ...dayCounts);
   const todayIdx = (now.getDay() + 6) % 7;
   const bars = dayCounts.map((c, i) =>
     `<div class="dz-bar ${i === todayIdx ? 'today' : ''}" style="height:${Math.max(6, Math.round(100 * c / maxC))}%"><title>${'MTWTFSS'[i]}: ${c} study action${c === 1 ? '' : 's'}</title></div>`).join('');
@@ -316,7 +319,7 @@ async function viewDashboard() {
   $('#app').innerHTML = `
   <section class="dz-top">
     <div class="dz-top-h">
-      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
+      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, ${esc(displayName)}</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
       <div class="rowflex">${continueBtn || '<span class="hint">Pick a subject in the sidebar to start.</span>'}</div>
     </div>
   </section>
@@ -350,7 +353,7 @@ async function viewDashboard() {
     ${histTable}
   </div>
   <div class="card" style="padding:16px;margin-bottom:14px">
-    <div class="rowflex"><h2 style="margin:0;font-size:15px">Activity this week</h2><span class="sp"></span><span class="hint">questions answered per day</span></div>
+    <div class="rowflex"><h2 style="margin:0;font-size:15px">Activity this week</h2><span class="sp"></span><span class="hint">study actions per day</span></div>
     <div class="dz-bars">${bars}</div>
     <div class="dz-bars-l">${'Mon Tue Wed Thu Fri Sat Sun'.split(' ').map((d, i) => `<span class="${i === todayIdx ? 'today' : ''}">${d[0]}</span>`).join('')}</div>
   </div>
