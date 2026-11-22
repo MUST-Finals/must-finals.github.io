@@ -266,8 +266,8 @@
   }
 
   async function rooms() {
-    if(!window.MFB?.ready||!MFB.user){page('Study Rooms','Collaborative rooms require a signed-in account.',statusNote('Sign in through Account to use study rooms.'));return;}
-    if(!MFB.profile){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if(MFB.profile||++t>40){clearInterval(h);rooms();}},150);return;}
+    if(!window.MFB?.ready||(MFB.ready&&MFB.user&&!MFB.profile)){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if((MFB.ready&&(!MFB.user||MFB.profile))||++t>60){clearInterval(h);rooms();}},150);return;}
+    if(!MFB.user){page('Study Rooms','Collaborative rooms require a signed-in account.',statusNote('Sign in through Account to use study rooms.'));return;}
     if(!MFB.isAdmin()){page('Study Rooms','Subject-based study rooms with shared chat.',statusNote('Study Rooms are in private testing and will open after a privacy review.'));return;}
     let data=[],error=null;try{({data,error}=await MFB.sb.from('study_rooms').select('id,title,subject_key,description,visibility,created_at').order('created_at',{ascending:false}).limit(50));}catch(e){error=e;}
     const list=(data||[]).map(r=>`<div class="act"><span><b dir="auto">${escx(r.title)}</b><br><small class="hint" dir="auto">${escx(r.description)}</small><small class="hint"> · ${escx(r.visibility)}</small></span><span style="display:flex;gap:6px"><a class="qtool" href="#/workspace/rooms/${escx(r.id)}">Open</a><button class="qtool" data-join="${escx(r.id)}">Join</button></span></div>`).join('');
@@ -278,8 +278,8 @@
   }
 
   async function roomView(id){
-    if(!window.MFB?.ready||!MFB.user){page('Study Rooms','Sign in required.',statusNote('Sign in through Account to use study rooms.'));return;}
-    if(!MFB.profile){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if(MFB.profile||++t>40){clearInterval(h);roomView(id);}},150);return;}
+    if(!window.MFB?.ready||(MFB.ready&&MFB.user&&!MFB.profile)){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if((MFB.ready&&(!MFB.user||MFB.profile))||++t>60){clearInterval(h);roomView(id);}},150);return;}
+    if(!MFB.user){page('Study Rooms','Sign in required.',statusNote('Sign in through Account to use study rooms.'));return;}
     if(!MFB.isAdmin()){page('Study Rooms','Subject-based study rooms with shared chat.',statusNote('Study Rooms are in private testing and will open after a privacy review.'));return;}
     const {data:room,error:rErr}=await MFB.sb.from('study_rooms').select('*').eq('id',id).maybeSingle();
     if(rErr||!room){page('Study Rooms','Room unavailable.',statusNote('Room not found or not visible to your account.')+'<p><a class="btn ghost sm" href="#/workspace/rooms">Back to rooms</a></p>');return;}
