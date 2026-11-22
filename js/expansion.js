@@ -438,7 +438,16 @@
         ['Traversal', 'Traverse the linked list from start to end (access each element of the linked list).'],
         ['Display', 'Displays the complete list.'],
         ['Search', 'Searches an element using the given key (find a node in the linked list).'],
-        ['Sort', 'Sort the nodes of the linked list.'] ] }
+        ['Sort', 'Sort the nodes of the linked list.'] ] },
+      { name: 'Stack Operations (Array Implementation)', src: 'Lab 2 deck (CS 212_Fall 2026-2027_Lab2.pdf) · pp.7-13 (slide-literal code; see caveat row)', rows: [
+        ['Stack as ADT', 'An Abstract Data Type defines what data is stored and what operations can be performed, without specifying how it is implemented; the ADT does not say whether an array or a linked list is used.'],
+        ['push(val)', 'Insert/add an element to the top of the stack. Slide code: overflow ("Stack Overflow") when top >= n - 1; otherwise top++ then stack[top] = val.'],
+        ['pop()', 'Remove an element from the top. Slide code: underflow ("Stack Underflow") when top <= -1; otherwise the popped value is printed and top--.'],
+        ['top()/peek()', 'Returns the top element stack[top] without removing it; prints "Stack is empty!" and returns -1 when top == -1.'],
+        ['isEmpty', 'Checks if the stack is empty or not (true if empty, else false).'],
+        ['isFull', 'Checks if the stack has reached its maximum capacity (array of size n).'],
+        ['size', 'Returns the current number of elements in the stack.'],
+        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly. The slide code declares a global variable top AND a function top() with the same name, which collide in C++ (redeclaration); a compiling implementation must rename one, for example peek() for the function or topIndex for the variable.'] ] }
     ]
   };
   FORMULA_SHEETS.cs211 = {
