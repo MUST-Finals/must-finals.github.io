@@ -1627,7 +1627,7 @@ viewSubject = async function (key, focusQid) {
 const AR_NAV = {
   'Dashboard': 'الرئيسية', 'Subjects': 'المواد', 'Practice': 'التدريب', 'Lab': 'المعمل',
   'CS.212 · Data Structures': 'CS.212 · هياكل البيانات', 'ECE202 · Logic Design': 'ECE202 · التصميم المنطقي',
-  'CS.211 · Concepts': 'CS.211 · مفاهيم لغات البرمجة',
+  'CS.211 · Concept': 'CS.211 · مفاهيم لغات البرمجة',
   'Exam · CS.212': 'امتحان · CS.212', 'Exam · ECE202': 'امتحان · ECE202', 'Exam · CS.211': 'امتحان · CS.211',
   'Bookmarks': 'المحفوظات', 'Revision': 'المراجعة', 'Interactive tools': 'الأدوات التفاعلية',
   'Sign in': 'تسجيل الدخول', 'University Workspace': 'مساحة العمل الجامعية',
