@@ -101,9 +101,27 @@ MFB.schedulePush = function () {
 };
 MFB.syncUp = async function () {
   if (!MFB.user) return;
-  const state = MFB.localState();
-  const { error } = await MFB.sb.from('progress').upsert({ user_id: MFB.user.id, state, updated_at: new Date().toISOString() });
-  if (!error) { await store.set('syncedAt', Date.now()); MFB.paintSync && MFB.paintSync(); }
+  const local = MFB.localState();
+  // Merge per-key against the remote before writing: a whole-blob replace would
+  // let a stale device drop another device's newer keys. Per-key newer-ts wins.
+  const { data: row } = await MFB.sb.from('progress').select('state').eq('user_id', MFB.user.id).maybeSingle();
+  const remote = (row && row.state) || { data: {}, ts: {} };
+  const merged = { data: Object.assign({}, remote.data), ts: Object.assign({}, remote.ts) };
+  for (const k of Object.keys(local.data)) {
+    const lts = local.ts[k] || 0, rts = (remote.ts && remote.ts[k]) || 0;
+    if (lts >= rts) { merged.data[k] = local.data[k]; merged.ts[k] = lts; }
+  }
+  let changed = false;
+  for (const k of Object.keys(merged.data)) {
+    const rts = merged.ts[k] || 0, lts = local.ts[k] || 0;
+    if (rts > lts) {
+      try { localStorage.setItem('mf.' + k, JSON.stringify(merged.data[k])); localStorage.setItem('mf.t.' + k, String(rts)); changed = true; } catch {}
+    }
+  }
+  const { error } = await MFB.sb.from('progress').upsert({ user_id: MFB.user.id, state: merged, updated_at: new Date().toISOString() });
+  // Write syncedAt directly: store.set would re-schedule a push and loop forever.
+  if (!error) { try { localStorage.setItem('mf.syncedAt', JSON.stringify(Date.now())); } catch {} MFB.paintSync && MFB.paintSync(); }
+  if (changed && typeof render === 'function') render();
   return error;
 };
 MFB.syncDown = async function () {
