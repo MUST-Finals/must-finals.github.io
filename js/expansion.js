@@ -447,7 +447,12 @@
         ['isEmpty', 'Checks if the stack is empty or not (true if empty, else false).'],
         ['isFull', 'Checks if the stack has reached its maximum capacity (array of size n).'],
         ['size', 'Returns the current number of elements in the stack.'],
-        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly. The slide code declares a global variable top AND a function top() with the same name, which collide in C++ (redeclaration); a compiling implementation must rename one, for example peek() for the function or topIndex for the variable.'] ] }
+        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly. The slide code declares a global variable top AND a function top() with the same name, which collide in C++ (redeclaration); a compiling implementation must rename one, for example peek() for the function or topIndex for the variable.'] ] },
+      { name: 'Pointers Essentials', src: 'Lab 4 Pointers deck Part I (CS 212_Fall 2026-2027_Lab4 (Part I).pdf) · pp.12, 22, 26-28', rows: [
+        ['Dereferencing *', 'Access the value stored in the variable the pointer points to. Deck example: int a = 100; int *p = &a; prints a = 100, &a = 1024, p and *p = 1024 100, &p = 1032 (addresses are the deck\'s own example values).'],
+        ['NULL pointer', 'NULL is a special value that indicates an empty pointer; accessing (dereferencing) a NULL pointer is an error. Deck example: p = 0 prints 0, &p prints the address of p, *p is an error.'],
+        ['Pointer to pointer', 'int **pp = &p stores the address of a pointer; **pp dereferences twice to reach the original value (deck example prints 10 for x = 10 through p then pp).'],
+        ['Reference variables', 'A reference variable serves as an alternative name for an object: int &j = m; assigning through the reference changes the original (deck example: j = 18 makes m print 18).'] ] }
     ]
   };
   FORMULA_SHEETS.cs211 = {
