@@ -25,6 +25,7 @@
                         ${card('Code Runner','Write and run real C, C++, Python, Java or JavaScript code with your own input, executed on the Judge0 CE service.','/workspace/code','Live execution')}
         ${card('Formula Sheets','Key formulas and laws extracted from the ingested lecture slides, with page citations.','/workspace/formulas','From lectures')}
         ${card('Exam Focus','Important topics and frequently tested concepts identified from verified past exams, with per-topic provenance.','/workspace/exam-focus','From past exams')}
+        ${card('Interactive Labs','Hands-on visualizers: logic gates, stack, queue, linked list, and pointers with real memory addresses.','/workspace/labs','Interactive')}
         ${card('Smart Revision','Review cards using your saved spaced-repetition schedule.','/revision','Ready')}
         ${card('Mind Map Studio','Create and edit a personal concept map.','/workspace/mindmap','Local')}
         ${card('Code Playground','Practice from the existing verified code-output exercises. Arbitrary execution is not enabled.','/tools/code','Practice')}
@@ -354,6 +355,189 @@
       `<div class="notice warn" style="margin-bottom:12px">This page describes past exams only. A topic appearing here is evidence that it appeared in those specific past papers - it is not a prediction, and nothing here guarantees or estimates what will be on your exam.</div>` + blocks);
   }
 
+
+  /* Interactive Labs (B3 section 10): five client-side visualizers, no backend. */
+  const LAB_BOX = 'display:inline-block;min-width:44px;padding:8px 10px;margin:3px;border:1px solid var(--gold,#d4af37);border-radius:8px;text-align:center;font-family:ui-monospace,monospace;background:rgba(212,175,55,.08)';
+  const LAB_MSG = 'min-height:20px;margin:8px 0;font-size:13px;color:var(--gold,#d4af37)';
+
+  function labs() {
+    page('Interactive Labs', 'Hands-on visualizers for the logic and data-structure topics in your courses. Everything runs locally in your browser; nothing is sent anywhere.',
+      section('Logic Gates Simulator (ECE202)', `
+        <div class="rowflex" style="flex-wrap:wrap;gap:6px;margin-bottom:10px" id="lg-gates">
+          ${['AND','OR','NOT','NAND','NOR','XOR','XNOR'].map(g=>`<button type="button" class="btn ghost sm" data-gate="${g}">${g}</button>`).join('')}
+        </div>
+        <div class="rowflex" style="gap:14px;align-items:center;flex-wrap:wrap">
+          <button type="button" class="btn ghost sm" id="lg-a">A = 0</button>
+          <button type="button" class="btn ghost sm" id="lg-b">B = 0</button>
+          <span style="${LAB_BOX}" id="lg-out">OUT = 0</span>
+        </div>
+        <div style="${LAB_MSG}" id="lg-desc"></div>
+        <table style="border-collapse:collapse;margin-top:8px;font-family:ui-monospace,monospace;font-size:13px" id="lg-tt"></table>`) +
+      section('Stack Visualizer (CS.212)', `
+        <div class="rowflex" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <input id="st-val" type="number" placeholder="value" style="width:90px;padding:6px 8px;border-radius:8px;border:1px solid var(--gold,#d4af37);background:transparent;color:inherit">
+          <button type="button" class="btn ghost sm" id="st-push">Push</button>
+          <button type="button" class="btn ghost sm" id="st-pop">Pop</button>
+          <span class="muted">Capacity 8</span>
+        </div>
+        <div style="${LAB_MSG}" id="st-msg"></div>
+        <div id="st-view" style="display:flex;flex-direction:column-reverse;align-items:flex-start"></div>`) +
+      section('Queue Visualizer (CS.212)', `
+        <div class="rowflex" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <input id="qu-val" type="number" placeholder="value" style="width:90px;padding:6px 8px;border-radius:8px;border:1px solid var(--gold,#d4af37);background:transparent;color:inherit">
+          <button type="button" class="btn ghost sm" id="qu-enq">Enqueue</button>
+          <button type="button" class="btn ghost sm" id="qu-deq">Dequeue</button>
+          <span class="muted">Capacity 8 · dequeue removes the front</span>
+        </div>
+        <div style="${LAB_MSG}" id="qu-msg"></div>
+        <div id="qu-view"></div>`) +
+      section('Linked List Visualizer (CS.212)', `
+        <div class="rowflex" style="gap:8px;flex-wrap:wrap;margin-bottom:8px">
+          <input id="ll-val" type="number" placeholder="value" style="width:90px;padding:6px 8px;border-radius:8px;border:1px solid var(--gold,#d4af37);background:transparent;color:inherit">
+          <button type="button" class="btn ghost sm" id="ll-ins">Insert at end</button>
+          <button type="button" class="btn ghost sm" id="ll-del">Delete first match</button>
+          <button type="button" class="btn ghost sm" id="ll-find">Search</button>
+        </div>
+        <div style="${LAB_MSG}" id="ll-msg"></div>
+        <div id="ll-view" style="display:flex;align-items:center;flex-wrap:wrap;gap:4px"></div>`) +
+      section('Pointer Visualizer (CS.212)', `
+        <p class="muted" style="margin:0 0 8px">Step through real C++ pointer semantics. Variables live at fixed (illustrative) addresses; a pointer cell stores an address and its arrow shows what it points to.</p>
+        <div class="rowflex" style="gap:8px;margin-bottom:8px">
+          <button type="button" class="btn ghost sm" id="pt-prev">Back</button>
+          <button type="button" class="btn ghost sm" id="pt-next">Next step</button>
+          <span class="muted" id="pt-step"></span>
+        </div>
+        <div style="${LAB_MSG}" id="pt-code" dir="ltr"></div>
+        <div id="pt-view"></div>
+        <div class="muted" style="font-size:13px;margin-top:6px" id="pt-note"></div>`));
+    bindLogicGates(); bindStack(); bindQueue(); bindList(); bindPointer();
+  }
+
+  function bindLogicGates() {
+    const FN = { AND:(a,b)=>a&&b, OR:(a,b)=>a||b, NOT:(a)=>a?0:1, NAND:(a,b)=>(a&&b)?0:1, NOR:(a,b)=>(a||b)?0:1, XOR:(a,b)=>(a^b), XNOR:(a,b)=>(a^b)?0:1 };
+    const DESC = { AND:'Output is 1 only when both inputs are 1.', OR:'Output is 1 when at least one input is 1.', NOT:'Single input inverter: output is the opposite of A.', NAND:'AND followed by NOT: 0 only when both inputs are 1.', NOR:'OR followed by NOT: 1 only when both inputs are 0.', XOR:'Output is 1 when the inputs differ.', XNOR:'Output is 1 when the inputs match.' };
+    let gate = 'AND', A = 0, B = 0;
+    const draw = () => {
+      const one = gate === 'NOT';
+      $('#lg-a').textContent = 'A = ' + A;
+      $('#lg-b').textContent = 'B = ' + B;
+      $('#lg-b').style.display = one ? 'none' : '';
+      $('#lg-out').textContent = 'OUT = ' + (one ? FN[gate](A) : FN[gate](A, B));
+      $('#lg-desc').textContent = DESC[gate];
+      const rows = one ? [[0],[1]] : [[0,0],[0,1],[1,0],[1,1]];
+      $('#lg-tt').innerHTML = '<tr>' + (one ? '<th style="padding:3px 12px">A</th>' : '<th style="padding:3px 12px">A</th><th style="padding:3px 12px">B</th>') + '<th style="padding:3px 12px;color:var(--gold,#d4af37)">' + gate + '</th></tr>' +
+        rows.map(r => '<tr>' + r.map(v => `<td style="padding:3px 12px;text-align:center">${v}</td>`).join('') + `<td style="padding:3px 12px;text-align:center;color:var(--gold,#d4af37)">${one ? FN[gate](r[0]) : FN[gate](r[0], r[1])}</td></tr>`).join('');
+      $$('#lg-gates [data-gate]').forEach(b => b.style.opacity = b.dataset.gate === gate ? '1' : '.55');
+    };
+    $$('#lg-gates [data-gate]').forEach(b => b.onclick = () => { gate = b.dataset.gate; draw(); });
+    $('#lg-a').onclick = () => { A = A ? 0 : 1; draw(); };
+    $('#lg-b').onclick = () => { B = B ? 0 : 1; draw(); };
+    draw();
+  }
+
+  function bindStack() {
+    const CAP = 8; let st = [];
+    const msg = t => { $('#st-msg').textContent = t; };
+    const draw = () => {
+      $('#st-view').innerHTML = st.map((v, i) =>
+        `<div style="display:flex;align-items:center;gap:8px"><span style="${LAB_BOX}">${v}</span>${i === st.length - 1 ? '<span style="color:var(--gold,#d4af37);font-size:12px">&larr; TOP</span>' : ''}</div>`).join('') || '<span class="muted">empty stack</span>';
+    };
+    $('#st-push').onclick = () => {
+      const v = $('#st-val').value;
+      if (v === '') { msg('Enter a value to push.'); return; }
+      if (st.length >= CAP) { msg('Overflow: the stack is full (capacity ' + CAP + ').'); return; }
+      st.push(+v); msg('Pushed ' + v + '. TOP is now ' + v + '.'); draw();
+    };
+    $('#st-pop').onclick = () => {
+      if (!st.length) { msg('Underflow: cannot pop from an empty stack.'); return; }
+      msg('Popped ' + st.pop() + '.'); draw();
+    };
+    draw();
+  }
+
+  function bindQueue() {
+    const CAP = 8; let q = [];
+    const msg = t => { $('#qu-msg').textContent = t; };
+    const draw = () => {
+      $('#qu-view').innerHTML = q.length
+        ? q.map((v, i) => `<span style="${LAB_BOX}">${v}</span>${i === 0 ? '<span style="color:var(--gold,#d4af37);font-size:12px">&larr; FRONT&nbsp;</span>' : ''}${i === q.length - 1 ? '<span style="color:var(--gold,#d4af37);font-size:12px">&larr; REAR</span>' : ''}`).join(' ')
+        : '<span class="muted">empty queue</span>';
+    };
+    $('#qu-enq').onclick = () => {
+      const v = $('#qu-val').value;
+      if (v === '') { msg('Enter a value to enqueue.'); return; }
+      if (q.length >= CAP) { msg('Queue is full (capacity ' + CAP + ').'); return; }
+      q.push(+v); msg('Enqueued ' + v + ' at the rear.'); draw();
+    };
+    $('#qu-deq').onclick = () => {
+      if (!q.length) { msg('Cannot dequeue from an empty queue.'); return; }
+      msg('Dequeued ' + q.shift() + ' from the front (FIFO).'); draw();
+    };
+    draw();
+  }
+
+  function bindList() {
+    let list = [10, 20, 30]; let found = -1;
+    const msg = t => { $('#ll-msg').textContent = t; };
+    const draw = () => {
+      const nodes = list.map((v, i) =>
+        `<span style="${LAB_BOX}${i === found ? ';outline:2px solid var(--gold,#d4af37);background:rgba(212,175,55,.25)' : ''}">${v} | &bull;</span>${i < list.length - 1 ? '<span style="color:var(--gold,#d4af37)">&rarr;</span>' : ''}`).join('');
+      $('#ll-view').innerHTML = list.length
+        ? `<span style="color:var(--gold,#d4af37);font-size:12px">HEAD&nbsp;</span>` + nodes + '<span style="color:var(--gold,#d4af37)">&rarr;</span><span class="muted" style="margin-left:4px">NULL</span>'
+        : '<span class="muted">HEAD &rarr; NULL (empty list)</span>';
+    };
+    $('#ll-ins').onclick = () => {
+      const v = $('#ll-val').value;
+      if (v === '') { msg('Enter a value to insert.'); return; }
+      list.push(+v); found = -1; msg('Inserted ' + v + ' at the end.'); draw();
+    };
+    $('#ll-del').onclick = () => {
+      const v = $('#ll-val').value; const i = list.indexOf(+v);
+      if (v === '') { msg('Enter a value to delete.'); return; }
+      if (i < 0) { msg(v + ' not found; nothing deleted.'); return; }
+      list.splice(i, 1); found = -1; msg('Deleted first node holding ' + v + '; the previous node pointer now skips it.'); draw();
+    };
+    $('#ll-find').onclick = () => {
+      const v = $('#ll-val').value; found = list.indexOf(+v);
+      msg(found < 0 ? v + ' is not in the list (reached NULL).' : 'Found ' + v + ' at index ' + found + ' after ' + (found + 1) + ' pointer hop(s) from HEAD.');
+      draw();
+    };
+    draw();
+  }
+
+  function bindPointer() {
+    const AX = '0x7fff1000', AY = '0x7fff1004', AP = '0x7fff2000', APP = '0x7fff2008';
+    const STEPS = [
+      { code: 'int x = 5;   int y = 10;', mem: { x: 5, y: 10, p: null, pp: null }, note: 'x and y are declared. x lives at ' + AX + ', y at ' + AY + '. No pointers yet.' },
+      { code: 'int *p = &x;', mem: { x: 5, y: 10, p: AX, pp: null }, note: 'p stores the ADDRESS of x (' + AX + '). The arrow from p points to x.' },
+      { code: '*p = 7;', mem: { x: 7, y: 10, p: AX, pp: null }, note: 'Dereferencing: *p means "the variable p points to", which is x. x becomes 7, p itself does not change.' },
+      { code: 'p = &y;', mem: { x: 7, y: 10, p: AY, pp: null }, note: 'Pointer reassignment: p now stores ' + AY + ' and points to y. Nothing happens to x.' },
+      { code: '*p = *p + x;', mem: { x: 7, y: 17, p: AY, pp: null }, note: '*p is y (10), plus x (7) = 17, stored back through p into y.' },
+      { code: 'int **pp = &p;', mem: { x: 7, y: 17, p: AY, pp: AP }, note: 'pp is a pointer to a pointer: it stores the address of p (' + AP + '). Its arrow points to p.' },
+      { code: '**pp = 42;', mem: { x: 7, y: 42, p: AY, pp: AP }, note: 'Double dereference: **pp follows pp to p, then p to y. y becomes 42.' },
+    ];
+    let i = 0;
+    const cell = (name, addr, val) => `<div style="${LAB_BOX};min-width:120px"><div style="font-size:11px;opacity:.7">${addr}</div><div><b>${name}</b> = ${val === null ? '?' : val}</div></div>`;
+    const draw = () => {
+      const s = STEPS[i], m = s.mem;
+      $('#pt-step').textContent = 'Step ' + (i + 1) + ' of ' + STEPS.length;
+      $('#pt-code').textContent = s.code;
+      $('#pt-note').textContent = s.note;
+      let html = '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">';
+      html += cell('x', AX, m.x) + cell('y', AY, m.y);
+      if (m.p !== null) {
+        html += '<span style="color:var(--gold,#d4af37);font-size:20px">' + (m.p === AX ? '&larr;' : '&darr;') + '</span>' + cell('p', AP, m.p);
+      }
+      if (m.pp !== null) html += '<span style="color:var(--gold,#d4af37);font-size:20px">&larr;</span>' + cell('pp', APP, m.pp);
+      html += '</div>';
+      if (m.p !== null) html += `<div class="muted" style="font-size:12px;margin-top:6px">p points to ${m.p === AX ? 'x' : 'y'} (${m.p})${m.pp ? ' · pp points to p (' + AP + ')' : ''}</div>`;
+      $('#pt-view').innerHTML = html;
+    };
+    $('#pt-next').onclick = () => { if (i < STEPS.length - 1) { i++; draw(); } };
+    $('#pt-prev').onclick = () => { if (i > 0) { i--; draw(); } };
+    draw();
+  }
+
   route(/^\/workspace$/,home);
 
   /* Code Runner — real execution via Judge0 CE public instance (ce.judge0.com).
@@ -432,6 +616,7 @@
 
   route(/^\/workspace\/formulas$/,formulas);
   route(/^\/workspace\/exam-focus$/,examFocus);
+  route(/^\/workspace\/labs$/,labs);
   route(/^\/workspace\/code$/,codeRunner);
   route(/^\/workspace\/gpa$/,gpa);
   route(/^\/workspace\/assignments$/,assignments);
