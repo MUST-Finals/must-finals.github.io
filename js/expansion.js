@@ -188,7 +188,45 @@
   route(/^\/workspace\/mindmap$/,mindmap);
   route(/^\/workspace\/offline$/,offline);
   route(/^\/workspace\/rooms$/,rooms);
-  route(/^\/workspace\/pdf$/,()=>aiGate('Chat With Your PDF','PDF storage, text extraction with page metadata, vector search, RAG, and page-cited answers.'));
+  const PDF_FILES = [["1BUgkQoRj6YdNf7ppu5zz-kXaCOct_BxG", "L1 Introduction to Data Structures and Data Types"], ["1SAgU3RvEKXBuzn3D2GD-e4i2Ot3FvOaU", "L2 The Stack and the LIFO Principle"], ["1yrPftVdYaAQR9Uk_PCTQo-OcGdqwp9L6", "L3 The Queue and the FIFO Principle"], ["11I9-A3f7AqVg7__GhhHXzsMfDUskyTP8", "L4 Memory and Pointers in C++"], ["1FWd6a0rmRvnVrG_uvBHvZUe-GHcUh7F9", "L5 Linked Lists"], ["1260o62xHgJR-CTduHMG7WsQWI3RNaeYy", "L6 Trees and Binary Search Trees"], ["1c0RDD2VRFmMpu2SmgW3j6BLxEtL8M7x5", "L2 Number Systems and Binary Numbers (Chapter 1)"], ["1cdOa0SOxU0wj1J6O6F6-NhwUzXiWW_-J", "L3 Binary Codes and Binary Logic"], ["1A9Xkx61FPEjYe1SyO_k1qO-k05looviM", "L5 Boolean Algebra Theorems and Proofs"], ["18PRCbboueiO6SU8ZRHu79k6t8AkRjmmD", "L6 Complement of a Function and Standard Forms (Minterms and Maxterms)"], ["1ExINegqb9NbuSt4QDXnJ-6iDRHWWLJkg", "L8 Gate-Level Minimization and the Karnaugh Map"], ["1DuwUpM3h0h1qEQObMuo6KM8Q_ma9FRPx", "L1 Course Intro and Why We Study Programming Languages"], ["19dF94OTNFzpIksbW5q1olslM3vjwjxLf", "L2 Programming Domains, Language Evaluation Criteria and Classifications"], ["1IavRHfn9b1LvIyhj7BwgL3Fr8FhIDsdF", "L3 Syntax and Semantics, BNF and Derivation"], ["1S5mQbLXI992_HeusO2Ynr8hd5ISPoFJs", "L4 Parse Trees, Ambiguity and Operator Precedence"], ["13Tzm1HzQ6t-tnQDlx5QFucRd367Q-gRR", "L5 EBNF, Its Extensions and Converting from BNF"], ["14ufS3MjEcLtPx1z3bqhRcKnKAsVM7H0p", "L6 Axiomatic Semantics (from the Lectures 6-7 file)"], ["1mbU1LIUaoiMu2AmhwsYq81SUBG9ca5NR", "L8 FIRST, FOLLOW and Predictive LL(1) Parsing"], ["1_UX0LVJMRM6YbmYU3-g3wq1E26YFktkh", "بنك أسئلة المحاضرة 6 واللاب 6 (PDF)"], ["1B5ztc1h66QvI8R1l3gKne2NLEJAedLeR", "Lab 1 · Visual Studio Setup and C++ Basics"], ["1QbSHcfx-qurlj6HkLytAOI-p48BYyz4C", "Lab 2 · Pointers, the Stack ADT and Expressions"], ["1ufaSzbeanI1TGDGriTD-xiHTFQb5_GWs", "Lab 3 · Queue Operations and Types"], ["1Id1KE4N9FDKkH_-dj1s1tL66cv0Za0PB", "Lab 4 · Pointers Review: Dereferencing, References, Pointers with Functions and Arrays"], ["1ogKFI4sA3TXarlF26Vop63g5hzHiB4b4", "Lab 5 · Linked Lists: Operations, Stack and Queue Implementation, Types"], ["1rgbIreMqrz0Nq74dmBjT7XxCMX_i55H9", "Lab 6 · Binary Search Tree (BST) Operations"], ["1XD4gftc8VBtLuPZCP8C6nG7dDQxmaNtz", "Section 1 · Numbering Systems and Conversions"], ["1nSZ5_UdKeNdl493Xy3ejpE786OEVVRIe", "Section 2 · Octal/Hex Conversions and Logic Gates"], ["1xWH7w7o-ipvzzPyzkw2sDgXNprOyLx-4", "Section 1 · Why Study Programming Languages, Domains and Evaluation Criteria"], ["1Tirr32dKNhPlzZ6e1hK47ZiDQm8gDA4s", "Section 2 · Syntax vs Semantics, Lexemes and Tokens"]];
+  async function pdfChat() {
+    page('Chat With Your PDF','Ask about any course PDF. Answers come only from the actual lecture pages, with page citations. Currently activated for the site owner while it is being tested.','');
+    $('#app').insertAdjacentHTML('beforeend', `<section class="blk"><div class="card ex-panel">
+      <label class="hint" for="pc-file">Material</label>
+      <select id="pc-file" class="input" style="width:100%;margin:6px 0 10px"><option value="">All materials</option>${PDF_FILES.map(f=>`<option value="${f[0]}">${escx(f[1])}</option>`).join('')}</select>
+      <label class="hint" for="pc-q">Your question (English works best, the slides are in English)</label>
+      <input id="pc-q" type="text" class="input" placeholder="What is a stack and how does LIFO work?" style="width:100%;margin:6px 0 12px">
+      <button type="button" class="btn" id="pc-go">Ask</button>
+      <span class="hint" style="margin-inline-start:10px">20 questions/day per account</span>
+      <div id="pc-out" style="margin-top:14px"></div>
+    </div></section>`);
+    const out = $x('#pc-out');
+    $x('#pc-go').addEventListener('click', async () => {
+      const question = $x('#pc-q').value.trim();
+      const fid = $x('#pc-file').value;
+      if (!question) { out.innerHTML = statusNote('Type a question first.'); return; }
+      if (!window.MFB || !MFB.sb) { out.innerHTML = statusNote('Backend not ready. Reload the page.'); return; }
+      out.innerHTML = statusNote('Searching the lecture pages...');
+      try {
+        const { data, error } = await MFB.sb.functions.invoke('ai-proxy', { body: { action: 'pdf_chat', question, file_id: fid || undefined } });
+        if (error) {
+          let code = '', detail = '';
+          try { const j = await error.context.json(); code = j.error || ''; detail = j.detail || ''; } catch (e) {}
+          if (code === 'sign_in_required') out.innerHTML = statusNote('Sign in first to use PDF chat.');
+          else if (code === 'ai_not_activated') out.innerHTML = statusNote('PDF chat is not activated for everyone yet. It is being tested with the site owner first.');
+          else if (code === 'daily_cap_reached') out.innerHTML = statusNote('Daily limit reached (20 questions). Try again tomorrow.');
+          else out.innerHTML = statusNote('Could not answer right now: ' + escx(detail || code || 'error'));
+          return;
+        }
+        const srcs = (data.sources || []).map(x => `<a class="chip" href="https://drive.google.com/file/d/${x.file_id}/view#page=${x.page}" target="_blank" rel="noopener">${escx(x.title)} · p.${x.page}</a>`).join(' ');
+        out.innerHTML = `<div class="card" style="margin-top:4px"><p dir="auto" style="white-space:pre-wrap">${escx(data.answer || '')}</p>
+          ${data.pages && data.pages.length ? `<p class="hint">Pages cited: ${data.pages.map(n=>'p.'+n).join(', ')}</p>` : ''}
+          ${srcs ? `<div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px">${srcs}</div>` : ''}
+          <p class="hint" style="margin-top:8px">Answers are grounded in the actual PDF pages above. AI can still make mistakes, verify against the file.</p></div>`;
+      } catch (e) { out.innerHTML = statusNote('Network error. Try again.'); }
+    });
+  }
+  route(/^\/workspace\/pdf$/, pdfChat);
   async function aiQuiz() {
     page('AI Quiz Generator','Practice questions generated by AI from your course topics. Unofficial: always check the lecture material.','');
     $('#app').insertAdjacentHTML('beforeend', `<section class="blk"><div class="card ex-panel">
@@ -199,6 +237,12 @@
       <label class="hint" for="aq-count">Questions</label>
       <select id="aq-count" class="input" style="width:100%;margin:6px 0 12px"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option></select>
       <button type="button" class="btn" id="aq-go">Generate questions</button>
+      <details style="margin:10px 0 0"><summary class="hint" style="cursor:pointer">Privacy / الخصوصية</summary>
+      <p class="hint" dir="rtl" style="text-align:right;margin-top:8px">لتوليد الأسئلة، بنرسل إلى Groq الموضوع المكتوب وجزءًا من ملاحظات المادة وعدد الأسئلة المطلوب. لا نضيف اسمك أو بريدك إلى الطلب، لكن لا تكتب بيانات شخصية في الموضوع. إعداد عدم تسجيل المدخلات والمخرجات مفعّل حاليًا في حساب Groq. الأسئلة تظهر في جلسة المتصفح فقط، ولا تُحفظ في حسابك أو تقدّمك.</p>
+      <p class="hint" dir="rtl" style="text-align:right">نحتفظ بسجل مرتبط بمعرّف حسابك يشمل نوع الطلب، والمزوّد والموديل، وعدد التوكنز، والتكلفة التقديرية والتاريخ لتطبيق حد 20 توليدًا يوميًا لكل حساب. لا يوجد حذف تلقائي لهذا السجل حاليًا. الأسئلة غير رسمية وقد تخطئ، فراجعها مع المحاضرات.</p>
+      <p class="hint" style="margin-top:6px">To generate questions, we send Groq the topic you type, an excerpt of the subject notes, and the requested question count. We do not add your name or email to the request, but do not type personal data in the topic. The no-input/output-logging setting is currently enabled on our Groq account. Questions appear in your browser session only and are not saved to your account or progress.</p>
+      <p class="hint">We keep a usage log tied to your account id with the request type, provider and model, token counts, estimated cost and date, to enforce the 20 generations/day per-account limit. There is no automatic deletion of this log currently. Questions are unofficial and may be wrong, so check them against the lectures.</p>
+      </details>
       <span class="hint" style="margin-inline-start:10px">20 generations/day per account</span>
       <div id="aq-out" style="margin-top:14px"></div>
     </div></section>`);
