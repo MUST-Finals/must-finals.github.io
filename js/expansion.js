@@ -262,7 +262,7 @@
       return;
     }
     $('#app').insertAdjacentHTML('beforeend', `<section class="blk"><div class="card ex-panel">
-      <p class="hint" style="margin:0 0 10px">Execution happens on the public Judge0 CE service (ce.judge0.com). Only the code and input you type are sent there, never your account or course data. Do not paste personal data. Terms and limits review is in progress before wider activation.</p>
+      <p class="hint" style="margin:0 0 10px">Execution happens on the public Judge0 CE service (ce.judge0.com), directly from your browser. Nothing is added automatically: only the code and input you type below are sent, so anything you paste (including personal or course material) goes to that service, along with ordinary network metadata like your IP address. How long Judge0 keeps submissions on this public instance is not published. Do not paste personal data. This page is currently shown only to the site owner during testing; the service itself is public.</p>
       <label class="hint" for="cr-lang">Language</label>
       <select id="cr-lang" class="input" style="width:100%;margin:6px 0 10px">${CODE_LANGS.map((l, i) => `<option value="${i}">${escx(l[1])}</option>`).join('')}</select>
       <label class="hint" for="cr-src">Code</label>
