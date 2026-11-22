@@ -452,7 +452,14 @@
         ['Dereferencing *', 'Access the value stored in the variable the pointer points to. Deck example: int a = 100; int *p = &a; prints a = 100, &a = 1024, p and *p = 1024 100, &p = 1032 (addresses are the deck\'s own example values).'],
         ['NULL pointer', 'NULL is a special value that indicates an empty pointer; accessing (dereferencing) a NULL pointer is an error. Deck example: p = 0 prints 0, &p prints the address of p, *p is an error.'],
         ['Pointer to pointer', 'int **pp = &p stores the address of a pointer; **pp dereferences twice to reach the original value (deck example prints 10 for x = 10 through p then pp).'],
-        ['Reference variables', 'A reference variable serves as an alternative name for an object: int &j = m; assigning through the reference changes the original (deck example: j = 18 makes m print 18).'] ] }
+        ['Reference variables', 'A reference variable serves as an alternative name for an object: int &j = m; assigning through the reference changes the original (deck example: j = 18 makes m print 18).'] ] },
+      { name: 'Stack & Queue via Linked List', src: 'Lab 5 deck (CS 212_Fall 2026-2027_Lab5.pdf) · pp.19-20, 23-24', rows: [
+        ['push (linked-list stack)', 'Insert at the head: newnode->next = top; top = newnode. The deck keeps a global struct Node* top = NULL.'],
+        ['pop (linked-list stack)', 'If top == NULL print "Stack Underflow"; otherwise print top->data and advance top = top->next.'],
+        ['display (linked-list stack)', 'Walk a pointer from top printing each node\'s data until NULL ("stack is empty" when top == NULL).'],
+        ['enqueue (linked-list queue)', 'Append at the rear: the last node\'s address field is updated to link the new node, and rear moves to it. Deck keeps global front and rear pointers, both NULL when empty.'],
+        ['dequeue (linked-list queue)', 'Remove the front node by advancing the front pointer: front = front->next.'],
+        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly. The slide pop() advances top without freeing the removed node (no delete), so a complete implementation should free it to avoid a memory leak; the queue diagram likewise advances front without showing a free.'] ] }
     ]
   };
   FORMULA_SHEETS.cs211 = {
