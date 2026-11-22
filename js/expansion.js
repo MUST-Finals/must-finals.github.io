@@ -334,7 +334,7 @@
       <label class="hint" for="pc-file">Material</label>
       <select id="pc-file" class="input" style="width:100%;margin:6px 0 10px"><option value="">All materials</option>${PDF_FILES.map(f=>`<option value="${f[0]}">${escx(f[1])}</option>`).join('')}</select>
       <label class="hint" for="pc-q">Your question (English works best, the slides are in English)</label>
-      <input id="pc-q" type="text" class="input" placeholder="What is a stack and how does LIFO work?" style="width:100%;margin:6px 0 12px">
+      <input id="pc-q" type="text" class="input" dir="auto" placeholder="What is a stack and how does LIFO work?" style="width:100%;margin:6px 0 12px">
       <button type="button" class="btn" id="pc-go">Ask</button>
       <span class="hint" style="margin-inline-start:10px">20 questions/day per account</span>
       <div id="pc-out" style="margin-top:14px"></div>
@@ -419,7 +419,7 @@
       <label class="hint" for="aq-subj">Subject</label>
       <select id="aq-subj" class="input" style="width:100%;margin:6px 0 10px">${subjectOptions('cs212')}</select>
       <label class="hint" for="aq-topic">Topic (e.g. Trees and Binary Search Trees)</label>
-      <input id="aq-topic" type="text" class="input" placeholder="Trees and Binary Search Trees" style="width:100%;margin:6px 0 10px">
+      <input id="aq-topic" type="text" class="input" dir="auto" placeholder="Trees and Binary Search Trees" style="width:100%;margin:6px 0 10px">
       <label class="hint" for="aq-count">Questions</label>
       <select id="aq-count" class="input" style="width:100%;margin:6px 0 12px"><option value="3">3</option><option value="5" selected>5</option><option value="10">10</option></select>
       <button type="button" class="btn" id="aq-go">Generate questions</button>
