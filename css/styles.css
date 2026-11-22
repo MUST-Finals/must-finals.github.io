@@ -363,6 +363,7 @@ code { background: var(--surface3); border-radius: 6px; padding: 2px 6px; }
 /* Arabic UI translates chrome only; page content is English, so keep it LTR under the RTL shell. Explicit dir attributes (Arabic notes) still win. */
 html[dir="rtl"] #app { direction: ltr; text-align: left; }
 html[dir="rtl"] #app [dir="rtl"] { direction: rtl; text-align: right; }
+html[dir="rtl"] #app .sub, html[dir="rtl"] #app .hint, html[dir="rtl"] #app .notice span, html[dir="rtl"] #app .toolcard p { direction: rtl; text-align: right; }
 
 /* In-page Drive PDF viewer */
 body.noscroll{overflow:hidden}
