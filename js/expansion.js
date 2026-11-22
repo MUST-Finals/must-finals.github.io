@@ -540,14 +540,18 @@
     },
     cs211: {
       name: 'CS.211 · Concepts of Programming Languages',
-      coverage: 'Fully analyzed: Fall 2025-26 practical (lab) final (all 3 questions, 30 marks, 1 hour, 7 pages). This is the only verified past paper for this subject, so the topics below describe that one exam; no recurrence across papers can be claimed.',
+      coverage: 'Fully analyzed: Fall 2025-26 practical (lab) final (all 3 questions, 30 marks, 1 hour, 7 pages). Also fully analyzed: Fall 2026 Exam (1) versions A, B and C (printed semester "Fall - 2026", printed type "Exam (1) A/B/C", an in-semester assessment, not the final; printed date 19/10/2026; 30 marks, 1 hour, answer-all 3 questions, 2 pages each, model-answer versions).',
       format: [
         'Fall 2025-26 practical final: 30 marks, 1 hour, 3 questions - LL(1) parsing, derivations and parse trees, then grammar transformations and lexical analysis.',
+        'Fall 2026 Exam (1), versions A, B and C (in-semester assessment): 30 marks, 1 hour, 3 questions - a 10-mark true/false block (10 statements on terminology and concepts), a 5-mark BNF-to-EBNF conversion, and a 15-mark derivation and parse-tree task on a small BNF grammar. The three versions share the same structure with different statements and grammars.',
       ],
       topics: [
         ['LL(1) parsing', 'Construct the LL(1) parsing table from given FIRST/FOLLOW sets, then parse a token string showing the stack, remaining input and applied rule at each step.', 'Fall 25-26 practical Q1 (10 marks: table 5 + trace 5).'],
-        ['Derivations and parse trees', 'Write leftmost and rightmost derivations and draw the parse trees for an if-then-else grammar.', 'Fall 25-26 practical Q2 (10 marks).'],
-        ['Grammar transformations', 'Convert BNF to EBNF; eliminate left recursion; eliminate left factoring.', 'Fall 25-26 practical Q3.1-3.3 (7.5 marks).'],
+        ['Derivations and parse trees', 'Write the step-by-step derivation and draw the parse tree for a short sentence over a given BNF grammar (assignment, begin/end statement list, if-then).', 'Fall 25-26 practical Q2 (10 marks); Fall 2026 Exam (1) A Q3, B Q3 and C Q3 (15 marks each).'],
+        ['Language criteria and basic terminology', 'Syntax vs semantics; lexemes and tokens; readability and writability; aliasing; portability; reliability.', 'Fall 2026 Exam (1) A Q1.1-1.5 and Q1.7, B Q1.1, Q1.4-1.5 (true/false).'],
+        ['Paradigms and language processing', 'Imperative and logic languages (Prolog); compilers translate before execution; syntax analyzer, semantic analysis, symbol table, optimization; recognizers test language membership.', 'Fall 2026 Exam (1) A Q1.8-1.9, B Q1.6-1.7, C Q1.1-1.5 (true/false).'],
+        ['Grammar fundamentals', 'Terminals and nonterminals; left-hand and right-hand sides; derivations start from the start symbol; leftmost derivation; ambiguity; precedence changes parse-tree structure.', 'Fall 2026 Exam (1) A Q1.10, B Q1.2-1.3 and Q1.8-1.9, C Q1.6-1.8 (true/false).'],
+        ['BNF vs EBNF and grammar transformations', 'EBNF braces mean zero-or-more repetition, square brackets mean optional, parentheses group choices; EBNF cannot describe more languages than BNF; convert list, optional and left-recursive BNF rules to EBNF; eliminate left recursion and left factoring.', 'Fall 2026 Exam (1) A Q1.6 + Q2, B Q1.10 + Q2, C Q1.9-1.10 + Q2; Fall 25-26 practical Q3.1-3.3 (7.5 marks).'],
         ['Lexical analysis', 'List the lexemes and token types of a code statement in order.', 'Fall 25-26 practical Q3.4 (2.5 marks).'],
       ],
     },
