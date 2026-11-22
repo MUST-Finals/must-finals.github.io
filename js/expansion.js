@@ -71,7 +71,7 @@
       if(![cur,doneC,target,nextC].every(Number.isFinite)||doneC<0||nextC<=0||cur<0||cur>scale||target<0||target>scale){$('#w-result').textContent='Enter valid values within the selected grading scale.';return;}
       const req=(target*(doneC+nextC)-cur*doneC)/nextC;
       $('#w-result').textContent = req<=0
-        ? `You are already above the target: current ${cur} exceeds ${target}. Any non-negative average keeps you at or above it.`
+        ? `You have already reached the target: current ${cur} meets or exceeds ${target}. Any non-negative average keeps you at or above it.`
         : req>scale
           ? `Required average ${req.toFixed(2)} is above the ${scale}-point maximum: the target is not reachable with only ${nextC} upcoming hours. More hours or a lower target would be needed.`
           : `You need an average of ${req.toFixed(2)} / ${scale} across the upcoming ${nextC} credit hours to reach ${target}.`;
@@ -118,7 +118,7 @@
     $('#focus-reset').onclick=()=>{clearInterval(handle);running=false;armed=false;left=Math.max(1,Math.min(120,+$('#f-min').value||25))*60;paint();$('#focus-start').textContent='Start';$('#focus-state').textContent='Ready when you are';};
     $('#f-min').onchange=async()=>{cfg.focus=Math.max(1,Math.min(120,+$('#f-min').value||25));await set('focusCfg',cfg);if(!running){armed=false;left=cfg.focus*60;paint();}};
     $('#f-break').onchange=async()=>{cfg.short=Math.max(1,Math.min(60,+$('#f-break').value||5));await set('focusCfg',cfg);};
-    $('#f-goal').onchange=async()=>{cfg.goal=Math.max(5,Math.min(480,+$('#f-goal').value||60));await set('focusCfg',cfg);const gl=$('#f-today');if(gl)gl.textContent=`Today: ${todayMin} / ${cfg.goal} minutes toward your daily goal.`;};
+    $('#f-goal').onchange=async()=>{cfg.goal=Math.max(5,Math.min(480,+$('#f-goal').value||60));await set('focusCfg',cfg);const tm=sessions.filter(s=>new Date(s.at).toDateString()===new Date().toDateString()).reduce((n,s)=>n+s.minutes,0);const gl=$('#f-today');if(gl)gl.textContent=`Today: ${tm} / ${cfg.goal} minutes toward your daily goal${tm>=cfg.goal?' - goal reached!':'.'}`;};
   }
 
   async function notify(title,body,target) {
