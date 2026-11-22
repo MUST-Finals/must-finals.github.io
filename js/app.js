@@ -1748,14 +1748,30 @@ const AR_UI = {
    restoration relies on toggleLang's full re-render, not on stored text.
    Known limit: counters updated between renders (e.g. mid-exam answer clicks
    on #ex-counts) stay English until the next render. */
-function arDays(n) { n = +n; return n === 1 ? 'يوم واحد' : n === 2 ? 'يومين' : (n >= 3 && n <= 10) ? (n + ' أيام') : (n + ' يومًا'); }
+/* Arabic number agreement: compound numbers follow the last two digits.
+   0: لا + plural; 1: singular + واحد; 2: dual; 3-10: plural; 11-99: singular
+   mansub (سؤالًا); exact hundreds (r === 0): bare singular (100 سؤال). */
+function arCount(n, f) {
+  n = +n;
+  if (n === 0) return 'لا ' + f.zero;
+  const r = n % 100;
+  if (r === 1) return n + ' ' + (n === 1 ? f.one : f.oneBare);
+  if (r === 2) return n + ' ' + f.two;
+  if (r >= 3 && r <= 10) return n + ' ' + f.few;
+  if (r >= 11 && r <= 99) return n + ' ' + f.many;
+  return n + ' ' + f.sing;
+}
+const AR_Q = { zero: 'أسئلة', one: 'سؤال واحد', oneBare: 'سؤال', two: 'سؤالين', few: 'أسئلة', many: 'سؤالًا', sing: 'سؤال' };
+const AR_M = { zero: 'نتائج', one: 'نتيجة واحدة', oneBare: 'نتيجة', two: 'نتيجتين', few: 'نتائج', many: 'نتيجةً', sing: 'نتيجة' };
+const AR_D = { zero: 'أيام', one: 'يوم واحد', oneBare: 'يوم', two: 'يومين', few: 'أيام', many: 'يومًا', sing: 'يوم' };
+function arDays(n) { return arCount(n, AR_D); }
 const AR_PAT = [
   [/^Question (\d+) of (\d+)$/, m => 'السؤال ' + m[1] + ' من ' + m[2]],
   [/^(\d+) answered · (\d+) left · (\d+) marked$/, m => m[1] + ' مُجابة · ' + m[2] + ' متبقية · ' + m[3] + ' مميزة'],
-  [/^(\d+) questions?$/, m => m[1] + ' ' + (+m[1] === 1 ? 'سؤال' : 'أسئلة')],
-  [/^(\d+) matches?$/, m => m[1] + ' نتيجة'],
+  [/^(\d+) questions?$/, m => arCount(m[1], AR_Q)],
+  [/^(\d+) matches?$/, m => arCount(m[1], AR_M)],
   [/^All (\d+) questions$/, m => 'كل الأسئلة (' + m[1] + ')'],
-  [/^(.+?) · in (\d+) days?$/, (m, g) => m[1] + ' · خلال ' + arDays(m[2])],
+  [/^(.+?) · in (\d+) days?$/, m => m[1] + ' · خلال ' + arDays(m[2])],
   [/^(.*?) · date passed$/, m => m[1] + ' · انقضى التاريخ'],
 ];
 function applyArPatterns() {
