@@ -54,3 +54,29 @@ plan for when infrastructure is approved.
   tombstone, and a stale device's delete loses to a newer value. Deletions inside
   the `progress` object (bookmarks, mistakes, a cleared notifications inbox) are
   ordinary value overwrites of that key, not tombstones.
+
+
+## AI Smart Study Planner
+The planner adds an explainable rule-based weekly schedule and calendar using each
+student's saved study progress, exam dates, assignment deadlines, and available time.
+The deterministic planner runs without an AI provider. The optional AI coach is called
+only after a signed-in student requests a review.
+
+The browser sends a minimized study summary to the Supabase Edge Function. The function
+authenticates the student, rejects blocked accounts, validates request and model output,
+checks proposed sessions for conflicts, and applies per-user and shared daily request
+limits. Prompts and answers are not stored. The AI coach will remain unavailable until
+the migration and function are deployed and a Groq API key is configured as a Supabase
+secret.
+
+To activate it, a maintainer with Supabase project access must run:
+
+    supabase link --project-ref ziczpsbryyjdwjoedtdb
+    supabase db push
+    supabase secrets set GROQ_API_KEY=your_groq_api_key
+    supabase functions deploy study-planner-ai
+
+The default model is `openai/gpt-oss-20b`. The model, shared daily cap, and allowed
+origins can be configured using `GROQ_MODEL`,
+`STUDY_PLANNER_GLOBAL_DAILY_LIMIT`, and `ALLOWED_ORIGINS` function secrets. Never put
+provider or service-role keys in the static frontend.
