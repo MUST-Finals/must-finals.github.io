@@ -22,6 +22,7 @@
         ${card('Chat With Your PDF','Ask questions about lecture PDFs with page citations. Requires secure AI document processing.','/workspace/pdf','AI service')}
         ${card('AI Study Tutor','Explain concepts, solve step by step, hints, and line-by-line code explanation via the secure proxy.','/workspace/tutor','AI service')}
         ${card('AI Quiz Generator','Generate practice questions from your course topics via the secure server-side proxy.','/workspace/quiz','AI service')}
+                ${card('Formula Sheets','Key formulas and laws extracted from the ingested lecture slides, with page citations.','/workspace/formulas','From lectures')}
         ${card('Smart Revision','Review cards using your saved spaced-repetition schedule.','/revision','Ready')}
         ${card('Mind Map Studio','Create and edit a personal concept map.','/workspace/mindmap','Local')}
         ${card('Code Playground','Practice from the existing verified code-output exercises. Arbitrary execution is not enabled.','/tools/code','Practice')}
@@ -176,7 +177,66 @@
       <div class="card ex-panel"><h3>What is needed</h3><p>${escx(detail)}</p><p class="hint">Required: authenticated server-side endpoint, provider secret stored server-side, upload validation, request limits, and source-grounded output checks.</p></div>`);
   }
 
+
+  /* Formula Sheets — static, grounded in ingested pdf_pages content.
+     Only subjects with clean extraction get a sheet; others show an honest empty state. */
+  const FORMULA_SHEETS = {
+    ece202: {
+      note: 'Extracted from the ingested lecture slides. Always verify against the original PDF.',
+      groups: [
+        { name: 'Huntington Postulates', src: 'L5 Boolean Algebra Theorems and Proofs · p.3', rows: [
+          ['Post. 2(a)', 'x + 0 = x'], ['Post. 2(b)', 'x · 1 = x'],
+          ['Post. 3(a)', 'x + y = y + x'], ['Post. 3(b)', 'x · y = y · x'],
+          ['Post. 4(a)', 'x(y + z) = xy + xz'], ['Post. 4(b)', 'x + yz = (x + y)(x + z)'],
+          ['Post. 5(a)', "x + x' = 1"], ['Post. 5(b)', "x · x' = 0"] ] },
+        { name: 'Basic Theorems', src: 'L5 · pp.3, 6', rows: [
+          ['Theorem 1(a)', 'x + x = x'], ['Theorem 1(b)', 'x · x = x'],
+          ['Theorem 2(a)', 'x + 1 = 1'], ['Theorem 2(b)', 'x · 0 = 0  (by duality)'] ] },
+        { name: "DeMorgan's Theorem", src: 'L5 · p.8', rows: [
+          ['Theorem 5(a)', "(x + y)' = x'y'"], ['Theorem 5(b)', "(xy)' = x' + y'"] ] },
+        { name: 'Absorption (Covering)', src: 'L5 · p.7', rows: [
+          ['Theorem 6(a)', 'x + xy = x'], ['Theorem 6(b)', 'x(x + y) = x  (by duality)'] ] },
+        { name: 'Consensus Theorem', src: 'L5 · p.10', rows: [
+          ['(1)', "xy + x'z + yz = xy + x'z"],
+          ['(2) dual', "(x + y)(x' + z)(y + z) = (x + y)(x' + z)"] ] },
+        { name: 'Operator Precedence', src: 'L5 · p.11', rows: [
+          ['Order', 'Parentheses → NOT → AND → OR'] ] },
+        { name: 'Useful Simplifications (worked in lecture)', src: 'L5 · pp.16, 18', rows: [
+          ['Ex. 1', "x(x' + y) = xy"], ['Ex. 2', "x + x'y = x + y"],
+          ['Ex. 3', "(x + y)(x + y') = x"], ['Ex. 6', "xy + xy' = x"],
+          ['Ex. 7', "(x + y)' + x = x + y'"], ['Ex. 9', "(x + y)(x + y')(x' + z) = xz"],
+          ['Ex. 10', "xy + xy'z + xz' = x"] ] }
+      ]
+    }
+  };
+  const FORMULA_EMPTY = {
+    cs212: 'No formula sheet yet: the ingested CS.212 lectures (L1-L4) do not contain formula or complexity notation. The sheet appears here when relevant lectures are added.',
+    cs211: 'No formula sheet yet: the ingested CS.211 lecture text is not clean enough to extract reliable formulas. The sheet appears here when a better source is available.'
+  };
+
+  function formulas() {
+    const names = { cs212: 'CS.212 · Data Structures', ece202: 'ECE202 · Digital Logic Design', cs211: 'CS.211 · Concepts of Programming Languages' };
+    const blocks = Object.keys(names).map(k => {
+      const sheet = FORMULA_SHEETS[k];
+      let inner;
+      if (sheet) {
+        inner = `<p class="muted">${escx(sheet.note)}</p>` + sheet.groups.map(g =>
+          `<div class="card ex-card" style="margin:10px 0"><h3 style="margin:0 0 4px">${escx(g.name)}</h3>
+           <div class="muted" style="font-size:12px;margin-bottom:8px">Source: ${escx(g.src)}</div>
+           <table style="width:100%;border-collapse:collapse">${g.rows.map(r =>
+             `<tr><td style="padding:6px 10px 6px 0;color:var(--mut,#9aa);white-space:nowrap;vertical-align:top">${escx(r[0])}</td>
+                  <td dir="ltr" style="padding:6px 0;font-family:ui-monospace,monospace;text-align:left">${escx(r[1])}</td></tr>`).join('')}</table></div>`
+        ).join('');
+      } else {
+        inner = `<div class="notice info">${escx(FORMULA_EMPTY[k] || 'No formula sheet available for this subject yet.')}</div>`;
+      }
+      return section(escx(names[k]), inner);
+    }).join('');
+    page('Formula Sheets', 'Key formulas and laws from your ingested lecture slides, with the lecture and page each came from.', blocks);
+  }
+
   route(/^\/workspace$/,home);
+  route(/^\/workspace\/formulas$/,formulas);
   route(/^\/workspace\/gpa$/,gpa);
   route(/^\/workspace\/assignments$/,assignments);
   route(/^\/workspace\/timetable$/,timetable);
