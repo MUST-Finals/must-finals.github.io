@@ -684,7 +684,7 @@ async function viewExamConfig(key) {
   <section class="hero" style="padding:22px 24px">
     <div class="eyebrow">${CUR_AR ? 'امتحان تجريبي' : 'Mock exam'}</div>
     <h1 style="font-size:26px">${esc(s.code)} · ${esc(s.full)}</h1>
-    <p class="sub">${CUR_AR ? 'أسئلة عشوائية من بنك تدريبات ' + esc(s.code) + ' الحقيقي. الخيارات تُخلط، والمؤقّت يصحّح تلقائيًا، وحالتك تبقى بعد تحديث الصفحة.' : 'Random questions from the real ' + esc(s.code) + ' practice bank. Options are shuffled, the timer grades automatically, and your state survives a refresh.'}</p>
+    <p class="sub">${CUR_AR ? 'أسئلة عشوائية من بنك تدريبات <bdi>' + esc(s.code) + '</bdi> الحقيقي. الخيارات تُخلط، والمؤقّت يصحّح تلقائيًا، وحالتك تبقى بعد تحديث الصفحة.' : 'Random questions from the real ' + esc(s.code) + ' practice bank. Options are shuffled, the timer grades automatically, and your state survives a refresh.'}</p>
   </section>
   ${saved && !saved.submitted && saved.subj === key ? `<div class="notice info">${ic('timer')}<span>${CUR_AR ? 'لديك امتحان غير مكتمل في هذه المادة. <a href="#/exam/' + key + '/run"><b>استئنفه</b></a> أو جهّز امتحانًا جديدًا بالأسفل (بدء جديد يتخلص من القديم).' : 'You have an unfinished exam for this subject. <a href="#/exam/' + key + '/run"><b>Resume it</b></a> or configure a new one below (starting new discards the old one).'}</span></div>` : ''}
   <div class="card" style="padding:22px;max-width:560px">
@@ -1572,7 +1572,7 @@ async function viewFlashcards(key) {
   <section class="hero" style="padding:22px 24px">
     <div class="eyebrow">${esc(s.code)} · ${CUR_AR ? 'بطاقات' : 'Flashcards'}</div>
     <h1 style="font-size:26px">${esc(s.full)}</h1>
-    <p class="sub">${CUR_AR ? 'بطاقات مبنية من بنك أسئلة ' + esc(s.code) + ' الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' : 'Built from the real ' + esc(s.code) + ' question bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.'}</p>
+    <p class="sub">${CUR_AR ? 'بطاقات مبنية من بنك أسئلة <bdi>' + esc(s.code) + '</bdi> الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' : 'Built from the real ' + esc(s.code) + ' question bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.'}</p>
   </section>
   <div class="fcwrap">
     <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="${CUR_AR ? 'بطاقة، اضغط للقلب' : 'Flashcard, activate to flip'}">
@@ -1911,7 +1911,7 @@ viewFlashcards = async function (key, dueOnly) {
   <section class="hero" style="padding:22px 24px">
     <div class="eyebrow">${esc(s.code)} · ${CUR_AR ? 'بطاقات' : 'Flashcards'}${FC.dueOnly ? (CUR_AR ? ' · مراجعة مستحقة' : ' · Due review') : ''}</div>
     <h1 style="font-size:26px">${esc(s.full)}</h1>
-    <p class="sub">${CUR_AR ? 'تكرار متباعد على بنك ' + esc(s.code) + ' الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' + (dueIn ? ' تُجدول مجددًا بعد ~' + arDays(dueIn) + '.' : '') : 'Spaced repetition over the real ' + esc(s.code) + ' bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.' + (dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : '')}</p>
+    <p class="sub">${CUR_AR ? 'تكرار متباعد على بنك <bdi>' + esc(s.code) + '</bdi> الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' + (dueIn ? ' تُجدول مجددًا بعد ~' + arDays(dueIn) + '.' : '') : 'Spaced repetition over the real ' + esc(s.code) + ' bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.' + (dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : '')}</p>
   </section>
   <div class="fcwrap">
     <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="${CUR_AR ? 'بطاقة، اضغط للقلب' : 'Flashcard, activate to flip'}">
@@ -1920,8 +1920,8 @@ viewFlashcards = async function (key, dueOnly) {
     </div>
     ${FC.flipped ? `<div class="rowflex" style="justify-content:center;margin-top:14px" id="fc-grade">
       <button type="button" class="btn ghost" data-g="0">${CUR_AR ? 'مجددًا · &lt;يوم' : 'Again · &lt;1d'}</button>
-      <button type="button" class="btn" data-g="1">${CUR_AR ? 'جيّد · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + ' يوم' : 'Good · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + 'd'}</button>
-      <button type="button" class="btn" data-g="2">${CUR_AR ? 'سهل · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + ' يوم' : 'Easy · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + 'd'}</button>
+      <button type="button" class="btn" data-g="1">${CUR_AR ? 'جيّد · ' + arDays(st && st.ivl ? Math.round(st.ivl * 2) : 1) : 'Good · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + 'd'}</button>
+      <button type="button" class="btn" data-g="2">${CUR_AR ? 'سهل · ' + arDays(st && st.ivl ? Math.round(st.ivl * 3) : 3) : 'Easy · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + 'd'}</button>
     </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
       <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
       <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} ${CUR_AR ? 'خلط' : 'Shuffle'}</button>
