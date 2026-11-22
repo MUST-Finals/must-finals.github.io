@@ -1,14 +1,17 @@
 # MUST Finals platform - backend & account architecture
 
 Status: **backend design only**. The platform is a static GitHub Pages app with local
-browser storage and no server. The AI tutor, authenticated sync and community backend
-described below remain design work and are not active.
+browser storage and no server. The AI Study Planner has an opt-in Edge Function implementation under `supabase/`; it is
+not active for students until its migration and function are deployed and a Groq key is
+configured. The AI tutor, authenticated sync and community backend described below remain
+design work and are not active.
 
 ## Current study planner
 - The Smart Study Planner uses the existing local progress store and `x.assignments`
   and `x.timetable` data. It creates explainable schedules in the browser and records
-  sessions in the existing `plan` value. It does not call an AI API or claim cross-device
-  sync.
+  sessions in the existing `plan` value. Its deterministic planning works without AI and
+does not claim cross-device sync. Signed-in students can explicitly request an AI review
+when the server-side planner function is activated.
 - Recommendations use explicit rules: user-entered exam and due dates, open tasks,
   unfinished lectures, unresolved mistakes and measured question accuracy. Generated
   sessions avoid existing sessions and recurring timetable events.
@@ -46,3 +49,20 @@ described below remain design work and are not active.
 - No fake login, no fake AI, no fake sync on the static site. Features above ship only
   when the corresponding backend is live; until then the UI shows local-only equivalents
   (localStorage progress, clipboard-based error reports) and says so.
+
+
+## Activate the AI Study Coach
+The function and quota migration are source-controlled under `supabase/`. A maintainer with
+Supabase project access must run:
+
+    supabase link --project-ref ziczpsbryyjdwjoedtdb
+    supabase db push
+    supabase secrets set GROQ_API_KEY=your_groq_api_key
+    supabase functions deploy study-planner-ai
+
+The Edge Function authenticates the student, validates the study summary and model output,
+checks proposed sessions for conflicts, and enforces 20 requests per user per UTC day plus
+a shared platform cap (500 per day by default). Prompts and answers are not stored. The
+default model is `openai/gpt-oss-20b`; `GROQ_MODEL`, `STUDY_PLANNER_GLOBAL_DAILY_LIMIT`,
+and `ALLOWED_ORIGINS` can be set as function secrets. Never place provider or service keys
+in the static frontend.

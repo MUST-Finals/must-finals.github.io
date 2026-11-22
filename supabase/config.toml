@@ -1,0 +1,5 @@
+project_id = "ziczpsbryyjdwjoedtdb"
+
+[functions.study-planner-ai]
+verify_jwt = true
+
