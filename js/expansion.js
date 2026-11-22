@@ -681,6 +681,11 @@
   route(/^\/workspace\/gpa$/,gpa);
   route(/^\/workspace\/assignments$/,assignments);
   async function leaderboard(){
+    if(window.MFB&&!MFB.ready){
+      $('#app').innerHTML='<div class="card empty">Loading account\u2026</div>';
+      let t=0;const h=setInterval(()=>{if(location.hash!=='#/workspace/leaderboard')return clearInterval(h);if(MFB.ready||++t>30){clearInterval(h);leaderboard();}},150);
+      return;
+    }
     if(!(window.MFB&&MFB.ready&&MFB.user)){
       page('Leaderboard','An optional class ranking by study XP.',statusNote('The leaderboard is private by default: nobody is listed automatically. Only students who join can see the board, and you can leave anytime, which removes your row completely.')+`<div class="card ex-panel"><p class="hint">Sign in to join the optional leaderboard.</p><a class="btn" href="#/account">Sign in</a></div>`);
       return;
