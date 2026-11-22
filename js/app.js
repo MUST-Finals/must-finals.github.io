@@ -1512,7 +1512,7 @@ viewExamConfig = async function (key) {
   if (missed >= 3) {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'btn ghost'; btn.style.marginTop = '10px';
-    btn.innerHTML = ic('retry') + (CUR_AR ? ` أعد محاولاتي في ${missed} سؤالًا فائتًا` : ` Retry my ${missed} missed questions`);
+    btn.innerHTML = ic('retry') + (CUR_AR ? ` أعد محاولة ${arMissed(missed)}` : ` Retry my ${missed} missed questions`);
     btn.addEventListener('click', () => startRetryExam(key));
     $('#ex-start').parentElement.appendChild(btn);
   }
@@ -1764,6 +1764,7 @@ function arCount(n, f) {
   if (r >= 11 && r <= 99) return n + ' ' + f.many;
   return n + ' ' + f.sing;
 }
+function arMissed(n) { n = +n; if (n === 1) return 'السؤال الفائت'; if (n === 2) return 'السؤالين الفائتين'; const r = n % 100; if (r >= 3 && r <= 10) return n + ' أسئلة فائتة'; return n + ' سؤالًا فائتًا'; }
 const AR_Q = { zero: 'أسئلة', one: 'سؤال واحد', oneBare: 'سؤال', two: 'سؤالين', few: 'أسئلة', many: 'سؤالًا', sing: 'سؤال' };
 const AR_M = { zero: 'نتائج', one: 'نتيجة واحدة', oneBare: 'نتيجة', two: 'نتيجتين', few: 'نتائج', many: 'نتيجةً', sing: 'نتيجة' };
 const AR_D = { zero: 'أيام', one: 'يوم واحد', oneBare: 'يوم', two: 'يومين', few: 'أيام', many: 'يومًا', sing: 'يوم' };
