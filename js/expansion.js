@@ -391,7 +391,17 @@
           ['Ex. 1', "x(x' + y) = xy"], ['Ex. 2', "x + x'y = x + y"],
           ['Ex. 3', "(x + y)(x + y') = x"], ['Ex. 6', "xy + xy' = x"],
           ['Ex. 7', "(x + y)' + x = x + y'"], ['Ex. 8', "x + y + z'xy' + z'x' = x + y + z'"], ['Ex. 9', "(x + y)(x + y')(x' + z) = xz"],
-          ['Ex. 10', "xy + xy'z + xz' = x"] ] }
+          ['Ex. 10', "xy + xy'z + xz' = x"] ] },
+        { name: 'Minterms and Maxterms', src: 'L6 Boolean Algebra and Canonical Forms · p.3', rows: [
+          ['Minterm', 'An AND term containing every variable, in normal or complemented form.'],
+          ['Maxterm', 'An OR term containing every variable, in normal or complemented form.'],
+          ['Count', 'n variables give 2^n minterms and 2^n maxterms.'],
+          ['Complement relation', "Each maxterm is the complement of its minterm (m0 = x'y'z' pairs with M0 = x + y + z)."] ] },
+        { name: 'Canonical Forms', src: 'L6 Boolean Algebra and Canonical Forms · pp.4-6', rows: [
+          ['Sum of minterms', "Read the truth-table rows where F = 1: F = Σ of those indices. Lecture example: F = A + B'C = Σ(1, 4, 5, 6, 7)."],
+          ['Product of maxterms', "Read the rows where F = 0: F = Π of those indices. Lecture example: F = xy + x'z = Π(0, 2, 4, 5)."],
+          ['Σ ↔ Π conversion', 'Interchange Σ and Π and list the indices missing from the original form.'],
+          ['Complement', "F' takes the minterms missing from F."] ] }
       ]
     }
   };
