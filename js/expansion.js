@@ -27,6 +27,7 @@
         ${card('Formula Sheets','Key formulas and laws extracted from the ingested lecture slides, with page citations.','/workspace/formulas','From lectures')}
         ${card('Exam Focus','Important topics and frequently tested concepts identified from verified past exams, with per-topic provenance.','/workspace/exam-focus','From past exams')}
         ${card('Interactive Labs','Hands-on visualizers: logic gates, stack, queue, linked list, and pointers with real memory addresses.','/workspace/labs','Interactive')}
+        ${card('Performance Analytics','Scores, accuracy, difficult lectures, and recommendations from your real activity.','/workspace/analytics','From your activity')}
         ${card('Smart Revision','Review cards using your saved spaced-repetition schedule.','/revision','Ready')}
         ${card('Mind Map Studio','Create and edit a personal concept map.','/workspace/mindmap','Local')}
         ${card('Code Playground','Practice from the existing verified code-output exercises. Arbitrary execution is not enabled.','/tools/code','Practice')}
@@ -263,6 +264,57 @@
     page('Offline Learning','The app shell is cached by the existing service worker. External Drive files may require internet and cannot be guaranteed offline.',
       `<div class="grid g2"><div class="card ex-panel"><h3>PWA status</h3><p>${supported?'Service Worker supported':'Service Worker unavailable'}</p><p class="hint">${regs.length} registration(s) · ${keys.length} cache(s)</p><button class="btn ghost sm" id="off-refresh">Check status</button></div><div class="card ex-panel"><h3>Offline safety</h3><p class="hint">Your practice progress and saved workspace data use local browser storage. Do not use public/shared devices for private study records.</p><p class="hint">Google Drive PDFs and external AI or realtime services need a connection unless explicitly downloaded through a supported provider.</p></div></div>`);
     $('#off-refresh').onclick=()=>offline();
+  }
+
+  async function analytics(){
+    const p=await prog();
+    const D=window.DATA||{subjects:[],mcq:[]};
+    const mocks=(p.examHistory||[]).slice();
+    const stats=p.mcq||{};
+    const qById={};D.mcq.forEach(q=>qById[q.id]=q);
+    let totT=0,totC=0;for(const k in stats){totT+=stats[k].t||0;totC+=stats[k].c||0;}
+    const mockAvg=mocks.length?Math.round(100*mocks.reduce((s,x)=>s+(x.count?x.correct/x.count:0),0)/mocks.length):null;
+    const acc=totT?Math.round(100*totC/totT):null;
+    if(!mocks.length&&!totT){page('Performance Analytics','Your real study activity, visualized.',statusNote('Analytics appear after you answer practice questions or take a mock exam. No activity has been recorded yet, so there is nothing to estimate.')+`<p><a class="btn" href="#/bank">Open the question bank</a></p>`);return;}
+    const perSubj=D.subjects.map(s=>{
+      const sm=mocks.filter(x=>x.subj===s.key);
+      const mavg=sm.length?Math.round(100*sm.reduce((a,x)=>a+(x.count?x.correct/x.count:0),0)/sm.length):null;
+      let t=0,c=0;for(const qid in stats){const q=qById[qid];if(q&&q.subj===s.key){t+=stats[qid].t||0;c+=stats[qid].c||0;}}
+      const a2=t?Math.round(100*c/t):null;
+      const comp=s.lectures.filter(l=>!l.missing);const done=comp.filter(l=>p.completed[s.key+'-lec'+l.n]).length;
+      return {s,mavg,mocks:sm.length,acc:a2,att:t,done,total:comp.length};
+    });
+    const subjRows=perSubj.map(r=>`<div class="act ex-row" style="display:block"><div style="display:flex;justify-content:space-between;align-items:baseline"><b>${escx(r.s.code)} · ${escx(r.s.full)}</b><small class="hint">${r.att} practice answers · ${r.mocks} mocks</small></div>
+      <div class="pbar" role="progressbar" aria-valuenow="${r.acc??0}" aria-valuemin="0" aria-valuemax="100" title="Practice accuracy"><i style="width:${r.acc??0}%"></i></div>
+      <small class="hint">Practice accuracy ${r.acc===null?'no answers yet':r.acc+'%'} · Mock average ${r.mavg===null?'no mocks yet':r.mavg+'%'} · Lectures ${r.done}/${r.total}</small></div>`).join('');
+    const histRows=mocks.slice(0,10).map(x=>{const s=D.subjects.find(z=>z.key===x.subj);const pct=x.count?Math.round(100*x.correct/x.count):0;return `<div class="act"><span><b>${escx(s?s.code:x.subj)}</b> mock · ${x.correct}/${x.count} (${pct}%)</span><time>${new Date(x.ts).toLocaleDateString()}</time></div>`;}).join('');
+    const chrono=mocks.slice().reverse().slice(-10);
+    const bars=chrono.map(x=>{const pct=x.count?Math.round(100*x.correct/x.count):0;return `<div class="dz-bar" style="height:${Math.max(6,pct)}%"><title>${new Date(x.ts).toLocaleDateString()}: ${pct}%</title></div>`;}).join('');
+    const byLec={};
+    for(const qid in stats){const q=qById[qid];if(!q||q.kind!=='lec')continue;const key=q.subj+'|'+q.n;byLec[key]=byLec[key]||{t:0,c:0,subj:q.subj,n:q.n};byLec[key].t+=stats[qid].t||0;byLec[key].c+=stats[qid].c||0;}
+    const lecList=Object.values(byLec).filter(l=>l.t>=3).map(l=>({...l,acc:Math.round(100*l.c/l.t)})).sort((a,b)=>a.acc-b.acc);
+    const subjRank=perSubj.filter(r=>r.att>=5&&r.acc!==null).slice().sort((a,b)=>b.acc-a.acc);
+    const strongest=subjRank.slice(0,2).map(r=>`${escx(r.s.code)} (${r.acc}% over ${r.att} answers)`).join(' · ');
+    const weakest=subjRank.slice(-2).reverse().map(r=>`${escx(r.s.code)} (${r.acc}% over ${r.att} answers)`).join(' · ');
+    const hardRows=lecList.slice(0,3).map(l=>{const s=D.subjects.find(z=>z.key===l.subj);return `<div class="act"><span><b>${escx(s?s.code:l.subj)} Lecture ${l.n}</b> · ${l.acc}% over ${l.t} answers</span></div>`;}).join('');
+    const recs=[];
+    if(lecList.length){const l=lecList[0];const s=D.subjects.find(z=>z.key===l.subj);recs.push(`Review ${s?s.code:l.subj} Lecture ${l.n}: your accuracy there is ${l.acc}% over ${l.t} answers.`);}
+    const openMistakes=Object.values(p.mistakes||{}).filter(m=>!m.understood).length;
+    if(openMistakes)recs.push(`You have ${openMistakes} unresolved mistake${openMistakes===1?'':'s'} in the Mistakes tab; clearing them is the fastest accuracy gain.`);
+    const lowMock=perSubj.filter(r=>r.mavg!==null&&r.mavg<60).sort((a,b)=>a.mavg-b.mavg)[0];
+    if(lowMock)recs.push(`Take another ${lowMock.s.code} mock after revising; your current mock average there is ${lowMock.mavg}%.`);
+    if(!recs.length)recs.push('Keep answering practice questions; recommendations sharpen as more activity is recorded.');
+    page('Performance Analytics','Calculated only from your recorded practice answers and mock exams on this device.',
+      `<div class="ex-grid">
+        <div class="card ex-card"><span class="pill pri">Practice</span><h3>${acc===null?'—':acc+'%'}</h3><p>Overall practice accuracy across ${totT} answers</p></div>
+        <div class="card ex-card"><span class="pill pri">Mocks</span><h3>${mockAvg===null?'—':mockAvg+'%'}</h3><p>Average across ${mocks.length} mock exam${mocks.length===1?'':'s'}</p></div>
+      </div>`+
+      section('Subject-by-subject',`<div class="acts">${subjRows}</div>`)+
+      section('Improvement over time (recent mocks)',chrono.length?`<div class="dz-bars" style="display:flex;align-items:flex-end;gap:6px;height:90px">${bars}</div><small class="hint">Bar height = mock score %, oldest to newest.</small>`:'<p class="hint">No mock exams yet.</p>')+
+      section('Most difficult lectures',`<div class="acts">${hardRows||'<p class="hint">Answer more lecture questions to surface difficult lectures.</p>'}</div>`)+
+      section('Strongest and weakest topics',`<div class="acts">${strongest?`<div class="act"><span><b>Strongest:</b> ${strongest}</span></div>`:''}${weakest?`<div class="act"><span><b>Weakest:</b> ${weakest}</span></div>`:''}${!strongest&&!weakest?'<p class="hint">Not enough answers yet to rank topics.</p>':''}</div>`)+
+      section('Quiz history',`<div class="acts">${histRows||'<p class="hint">No mock exams taken yet.</p>'}</div>`)+
+      section('Recommendations',`<div class="acts">${recs.map(r=>`<div class="act"><span dir="auto">${escx(r)}</span></div>`).join('')}</div>`));
   }
 
   async function rooms() {
@@ -790,6 +842,7 @@
   route(/^\/workspace\/campus$/,campus);
   route(/^\/workspace\/mindmap$/,mindmap);
   route(/^\/workspace\/offline$/,offline);
+  route(/^\/workspace\/analytics$/,analytics);
   route(/^\/workspace\/rooms\/([\w-]+)$/,roomView);
   route(/^\/workspace\/rooms$/,rooms);
   const PDF_FILES = [["1BUgkQoRj6YdNf7ppu5zz-kXaCOct_BxG", "L1 Introduction to Data Structures and Data Types"], ["1SAgU3RvEKXBuzn3D2GD-e4i2Ot3FvOaU", "L2 The Stack and the LIFO Principle"], ["1yrPftVdYaAQR9Uk_PCTQo-OcGdqwp9L6", "L3 The Queue and the FIFO Principle"], ["11I9-A3f7AqVg7__GhhHXzsMfDUskyTP8", "L4 Memory and Pointers in C++"], ["1FWd6a0rmRvnVrG_uvBHvZUe-GHcUh7F9", "L5 Linked Lists"], ["1260o62xHgJR-CTduHMG7WsQWI3RNaeYy", "L6 Trees and Binary Search Trees"], ["1c0RDD2VRFmMpu2SmgW3j6BLxEtL8M7x5", "L2 Number Systems and Binary Numbers (Chapter 1)"], ["1cdOa0SOxU0wj1J6O6F6-NhwUzXiWW_-J", "L3 Binary Codes and Binary Logic"], ["1A9Xkx61FPEjYe1SyO_k1qO-k05looviM", "L5 Boolean Algebra Theorems and Proofs"], ["18PRCbboueiO6SU8ZRHu79k6t8AkRjmmD", "L6 Complement of a Function and Standard Forms (Minterms and Maxterms)"], ["1ExINegqb9NbuSt4QDXnJ-6iDRHWWLJkg", "L8 Gate-Level Minimization and the Karnaugh Map"], ["1DuwUpM3h0h1qEQObMuo6KM8Q_ma9FRPx", "L1 Course Intro and Why We Study Programming Languages"], ["19dF94OTNFzpIksbW5q1olslM3vjwjxLf", "L2 Programming Domains, Language Evaluation Criteria and Classifications"], ["1IavRHfn9b1LvIyhj7BwgL3Fr8FhIDsdF", "L3 Syntax and Semantics, BNF and Derivation"], ["1S5mQbLXI992_HeusO2Ynr8hd5ISPoFJs", "L4 Parse Trees, Ambiguity and Operator Precedence"], ["13Tzm1HzQ6t-tnQDlx5QFucRd367Q-gRR", "L5 EBNF, Its Extensions and Converting from BNF"], ["14ufS3MjEcLtPx1z3bqhRcKnKAsVM7H0p", "L6 Axiomatic Semantics (from the Lectures 6-7 file)"], ["1mbU1LIUaoiMu2AmhwsYq81SUBG9ca5NR", "L8 FIRST, FOLLOW and Predictive LL(1) Parsing"], ["1_UX0LVJMRM6YbmYU3-g3wq1E26YFktkh", "بنك أسئلة المحاضرة 6 واللاب 6 (PDF)"], ["1B5ztc1h66QvI8R1l3gKne2NLEJAedLeR", "Lab 1 · Visual Studio Setup and C++ Basics"], ["1QbSHcfx-qurlj6HkLytAOI-p48BYyz4C", "Lab 2 · Pointers, the Stack ADT and Expressions"], ["1ufaSzbeanI1TGDGriTD-xiHTFQb5_GWs", "Lab 3 · Queue Operations and Types"], ["1Id1KE4N9FDKkH_-dj1s1tL66cv0Za0PB", "Lab 4 · Pointers Review: Dereferencing, References, Pointers with Functions and Arrays"], ["1ogKFI4sA3TXarlF26Vop63g5hzHiB4b4", "Lab 5 · Linked Lists: Operations, Stack and Queue Implementation, Types"], ["1rgbIreMqrz0Nq74dmBjT7XxCMX_i55H9", "Lab 6 · Binary Search Tree (BST) Operations"], ["1XD4gftc8VBtLuPZCP8C6nG7dDQxmaNtz", "Section 1 · Numbering Systems and Conversions"], ["1nSZ5_UdKeNdl493Xy3ejpE786OEVVRIe", "Section 2 · Octal/Hex Conversions and Logic Gates"], ["1xWH7w7o-ipvzzPyzkw2sDgXNprOyLx-4", "Section 1 · Why Study Programming Languages, Domains and Evaluation Criteria"], ["1Tirr32dKNhPlzZ6e1hK47ZiDQm8gDA4s", "Section 2 · Syntax vs Semantics, Lexemes and Tokens"]];
