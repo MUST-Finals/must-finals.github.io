@@ -185,6 +185,7 @@
       note: 'Extracted from the ingested lecture slides. Always verify against the original PDF.',
       groups: [
         { name: 'Huntington Postulates', src: 'L5 Boolean Algebra Theorems and Proofs · p.3', rows: [
+          ['Post. 1', 'closure'],
           ['Post. 2(a)', 'x + 0 = x'], ['Post. 2(b)', 'x · 1 = x'],
           ['Post. 3(a)', 'x + y = y + x'], ['Post. 3(b)', 'x · y = y · x'],
           ['Post. 4(a)', 'x(y + z) = xy + xz'], ['Post. 4(b)', 'x + yz = (x + y)(x + z)'],
@@ -204,14 +205,14 @@
         { name: 'Useful Simplifications (worked in lecture)', src: 'L5 · pp.16, 18', rows: [
           ['Ex. 1', "x(x' + y) = xy"], ['Ex. 2', "x + x'y = x + y"],
           ['Ex. 3', "(x + y)(x + y') = x"], ['Ex. 6', "xy + xy' = x"],
-          ['Ex. 7', "(x + y)' + x = x + y'"], ['Ex. 9', "(x + y)(x + y')(x' + z) = xz"],
+          ['Ex. 7', "(x + y)' + x = x + y'"], ['Ex. 8', "x + y + z'xy' + z'x' = x + y + z'"], ['Ex. 9', "(x + y)(x + y')(x' + z) = xz"],
           ['Ex. 10', "xy + xy'z + xz' = x"] ] }
       ]
     }
   };
   const FORMULA_EMPTY = {
-    cs212: 'No formula sheet yet: the ingested CS.212 lectures (L1-L4) do not contain formula or complexity notation. The sheet appears here when relevant lectures are added.',
-    cs211: 'No formula sheet yet: the ingested CS.211 lecture text is not clean enough to extract reliable formulas. The sheet appears here when a better source is available.'
+    cs212: 'No verified formula sheet for this subject yet. The source lectures are still being reviewed, and the sheet appears here once it is checked against the actual PDFs.',
+    cs211: 'No verified formula sheet for this subject yet. The source lectures are still being reviewed, and the sheet appears here once it is checked against the actual PDFs.'
   };
 
   function formulas() {
