@@ -1909,23 +1909,23 @@ viewFlashcards = async function (key, dueOnly) {
   const dueIn = st && st.due > Date.now() ? Math.max(1, Math.round((st.due - Date.now()) / 86400000)) : null;
   $('#app').innerHTML = `
   <section class="hero" style="padding:22px 24px">
-    <div class="eyebrow">${esc(s.code)} · Flashcards${FC.dueOnly ? ' · Due review' : ''}</div>
+    <div class="eyebrow">${esc(s.code)} · ${CUR_AR ? 'بطاقات' : 'Flashcards'}${FC.dueOnly ? (CUR_AR ? ' · مراجعة مستحقة' : ' · Due review') : ''}</div>
     <h1 style="font-size:26px">${esc(s.full)}</h1>
-    <p class="sub">Spaced repetition over the real ${esc(s.code)} bank. Card ${FC.i + 1} of ${FC.cards.length}.${dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : ''}</p>
+    <p class="sub">${CUR_AR ? 'تكرار متباعد على بنك ' + esc(s.code) + ' الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' + (dueIn ? ' تُجدول مجددًا بعد ~' + arDays(dueIn) + '.' : '') : 'Spaced repetition over the real ' + esc(s.code) + ' bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.' + (dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : '')}</p>
   </section>
   <div class="fcwrap">
     <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="${CUR_AR ? 'بطاقة، اضغط للقلب' : 'Flashcard, activate to flip'}">
       <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">${CUR_AR ? 'اضغط للقلب' : 'Click to flip'}</p></div>
-      <div class="fface fback"><span class="pill good">${CUR_AR ? 'الإجابة' : 'Answer'}</span><p class="ftext">${esc(c.back)}</p><p class="hint">How well did you know it?</p></div>
+      <div class="fface fback"><span class="pill good">${CUR_AR ? 'الإجابة' : 'Answer'}</span><p class="ftext">${esc(c.back)}</p><p class="hint">${CUR_AR ? 'ما مدى معرفتك بها؟' : 'How well did you know it?'}</p></div>
     </div>
     ${FC.flipped ? `<div class="rowflex" style="justify-content:center;margin-top:14px" id="fc-grade">
-      <button type="button" class="btn ghost" data-g="0">Again · &lt;1d</button>
-      <button type="button" class="btn" data-g="1">Good · ${st && st.ivl ? Math.round(st.ivl * 2) : 1}d</button>
-      <button type="button" class="btn" data-g="2">Easy · ${st && st.ivl ? Math.round(st.ivl * 3) : 3}d</button>
+      <button type="button" class="btn ghost" data-g="0">${CUR_AR ? 'مجددًا · &lt;يوم' : 'Again · &lt;1d'}</button>
+      <button type="button" class="btn" data-g="1">${CUR_AR ? 'جيّد · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + ' يوم' : 'Good · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + 'd'}</button>
+      <button type="button" class="btn" data-g="2">${CUR_AR ? 'سهل · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + ' يوم' : 'Easy · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + 'd'}</button>
     </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
       <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
       <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} ${CUR_AR ? 'خلط' : 'Shuffle'}</button>
-      <button type="button" class="btn" id="fc-next">Flip ${ic('ar')}</button>
+      <button type="button" class="btn" id="fc-next">${CUR_AR ? 'اقلب' : 'Flip'} ${ic('ar')}</button>
     </div>`}
   </div>`;
   const flip = () => { FC.flipped = !FC.flipped; viewFlashcards(key, dueOnly); };
