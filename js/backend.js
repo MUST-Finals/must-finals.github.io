@@ -54,6 +54,16 @@ MFB.loadProfile = async function () {
 };
 
 MFB.isAdmin = () => !!(MFB.profile && MFB.profile.role === 'admin');
+MFB.lbSync = async function (xp) {
+  if (!MFB.ready || !MFB.user || !Number.isFinite(xp) || xp < 0) return;
+  try { if (Number(localStorage.getItem('mfb-lb-last')) === xp) return; } catch (e) {}
+  try {
+    const { data: row } = await MFB.sb.from('leaderboard_entries').select('user_id').eq('user_id', MFB.user.id).maybeSingle();
+    if (!row) return; // not opted in: nothing is written anywhere
+    const { error } = await MFB.sb.from('leaderboard_entries').update({ xp: Math.floor(xp), updated_at: new Date().toISOString() }).eq('user_id', MFB.user.id);
+    if (!error) { try { localStorage.setItem('mfb-lb-last', String(xp)); } catch (e) {} }
+  } catch (e) { console.warn('leaderboard sync failed', e); }
+};
 MFB.audit = async function (action, target, meta) {
   if (!MFB.ready || !MFB.user || !MFB.isAdmin()) return;
   try { await MFB.sb.from('admin_audit_log').insert({ actor: MFB.user.id, action, target: target == null ? null : String(target), meta: meta || null }); }
