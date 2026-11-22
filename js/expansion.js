@@ -170,7 +170,7 @@
     const paint=()=>{
       const cv=$('#m-canvas'),ctx=cv.getContext('2d');
       const nodes=$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean);
-      ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
+      ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#14161d';ctx.fillRect(0,0,cv.width,cv.height);
       if(!nodes.length){ctx.fillStyle='#9aa';ctx.font='16px sans-serif';ctx.fillText('Add concepts to see the map.',20,40);return;}
       ctx.translate(cv.width/2+panX,cv.height/2+panY);ctx.scale(zoom,zoom);
       const kids=nodes.slice(1),R=Math.min(210,90+kids.length*12);
