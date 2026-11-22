@@ -1906,6 +1906,7 @@ async function gameState() {
   try { window.MFCurrentXP = xp; if (window.MFB && MFB.ready && MFB.user) MFB.lbSync(xp); } catch (e) {}
   return { xp, streak, weekN, badges, level: Math.floor(xp / 100) + 1 };
 }
+window.MFComputeXP = async function () { return (await gameState()).xp; };
 
 async function gamifyCardHtml() {
   const on = await store.get('gamify', true);
