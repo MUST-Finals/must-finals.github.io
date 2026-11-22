@@ -1,6 +1,6 @@
 /* MUST Finals service worker: offline app shell. Data stays local; analytics untouched.
    Bump CACHE on every deploy so old shells are dropped. */
-const CACHE = 'must-finals-v121';
+const CACHE = 'must-finals-v122';
 const SHELL = ['./', 'index.html', 'css/styles.css', 'css/expansion.css', 'js/data.js', 'js/app.js', 'js/backend.js', 'js/expansion.js', 'js/ar-extra.js', 'manifest.webmanifest', 'icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
