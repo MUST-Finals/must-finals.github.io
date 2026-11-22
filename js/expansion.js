@@ -421,7 +421,15 @@
         ['Complete binary tree', 'All levels except possibly the last are completely filled, and nodes on the last level sit as far left as possible (the last leaf may lack a right sibling), so it does not have to be a full binary tree. Clarification: the slide says "every level must be completely filled", but its own p.34 example tree leaves the last level partially filled, so the standard definition is used here.'] ] },
       { name: 'Binary Search Tree (BST)', src: 'L6 Trees and Binary Search Trees · pp.36, 41', rows: [
         ['Main rule', 'For any node: all values in the left child and its descendants are smaller than the node value; all values in the right child and its descendants are greater.'],
-        ['Node structure', 'Each node holds: data, a left-child pointer and a right-child pointer.'] ] }
+        ['Node structure', 'Each node holds: data, a left-child pointer and a right-child pointer.'] ] },
+      { name: 'Queue Operations (Array Implementation)', src: 'Lab 3 Queue deck (CS 212_Fall 2026-2027_Lab3.pdf) · pp.4-10', rows: [
+        ['Enqueue', 'Insert/add an element at the end of the queue. Overflow when rear == n - 1; on the first insert front is set to 0, then rear++ and queue[rear] = val.'],
+        ['Dequeue', 'Remove/delete the element from the front. Underflow when front == -1 || front > rear; otherwise the front value is removed and front++.'],
+        ['isEmpty', 'Returns true when front == -1 || front > rear, false otherwise.'],
+        ['isFull', 'Returns true when rear == n - 1 (array of capacity n), false otherwise.'],
+        ['Peek', 'Returns queue[front] without removing it; if empty it prints "queue is empty" and returns -1.'],
+        ['getrear', 'Returns the rear element queue[rear] without removing it; prints "Queue is empty" and returns -1 when rear == -1.'],
+        ['size', 'Returns the total number of elements the queue contains; 0 when front == -1.'] ] }
     ]
   };
   FORMULA_SHEETS.cs211 = {
