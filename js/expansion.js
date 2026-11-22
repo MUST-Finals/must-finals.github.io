@@ -392,12 +392,12 @@
           ['Ex. 3', "(x + y)(x + y') = x"], ['Ex. 6', "xy + xy' = x"],
           ['Ex. 7', "(x + y)' + x = x + y'"], ['Ex. 8', "x + y + z'xy' + z'x' = x + y + z'"], ['Ex. 9', "(x + y)(x + y')(x' + z) = xz"],
           ['Ex. 10', "xy + xy'z + xz' = x"] ] },
-        { name: 'Minterms and Maxterms', src: 'L6 Boolean Algebra and Canonical Forms · p.3', rows: [
+        { name: 'Minterms and Maxterms', src: 'L6 Boolean Algebra and Canonical Forms (theory+lab deck) · p.3', rows: [
           ['Minterm', 'An AND term containing every variable, in normal or complemented form.'],
           ['Maxterm', 'An OR term containing every variable, in normal or complemented form.'],
           ['Count', 'n variables give 2^n minterms and 2^n maxterms.'],
           ['Complement relation', "Each maxterm is the complement of its minterm (m0 = x'y'z' pairs with M0 = x + y + z)."] ] },
-        { name: 'Canonical Forms', src: 'L6 Boolean Algebra and Canonical Forms · pp.4-6', rows: [
+        { name: 'Canonical Forms', src: 'L6 Boolean Algebra and Canonical Forms (theory+lab deck) · pp.4-6', rows: [
           ['Sum of minterms', "Read the truth-table rows where F = 1: F = Σ of those indices. Lecture example: F = A + B'C = Σ(1, 4, 5, 6, 7)."],
           ['Product of maxterms', "Read the rows where F = 0: F = Π of those indices. Lecture example: F = xy + x'z = Π(0, 2, 4, 5)."],
           ['Σ ↔ Π conversion', 'Interchange Σ and Π and list the indices missing from the original form.'],
@@ -510,9 +510,19 @@
     },
     ece202: {
       name: 'ECE202 · Digital Logic Design',
-      coverage: '',
-      format: [],
-      topics: null,
+      coverage: 'No verified FINAL paper found in the shared course pack yet. Fully analyzed from verified model-answer papers: mid-semester Exam (1) Fall 2024-25 (26/10/2024, all 6 questions, 30 marks, 1 hour) and mid-semester Exam (2) Fall 2025-26 (22/11/2025, all 4 questions, 30 marks, 1 hour). Quiz 1 PDFs are present in the pack but not yet analyzed. These are in-semester exams, not the final, so they show assessed topics and question style only; no final-exam weighting can be claimed.',
+      format: [
+        'Exam (1) Fall 2024-25: 30 marks, 1 hour, 6 questions x 5 marks - True/False on digital basics, binary arithmetic, code conversions, circuit analysis with Boolean simplification, minimal-gate realization, and gate identification with NOR-only redesign. Answers on the question sheet; no calculator.',
+        'Exam (2) Fall 2025-26: 30 marks, 1 hour, 4 questions - 5 MCQs on gates, two Boolean algebra proofs (10 marks), a 3-variable K-map simplification (5 marks), and a 4-variable Quine-McCluskey simplification (10 marks). No calculator.',
+      ],
+      topics: [
+        ['Logic gate fundamentals and identification', 'Read gate circuits and write F; identify a gate from its truth table; XNOR/NAND/NOR behavior; series switches as AND.', 'Exam (2) Fall 25-26 Q1 (5 MCQs); Exam (1) Fall 24-25 Q1 (T/F) and Q6 (identify NAND).'],
+        ['Universal-gate implementation', 'Redesign a circuit using NOR gates only (and know NAND-only equivalents).', 'Exam (1) Fall 24-25 Q6 (5 marks).'],
+        ['Number systems and codes', 'Add, subtract, multiply and divide in binary; convert a decimal value to binary, hexadecimal, Gray code, BCD and Excess-3, showing the steps.', 'Exam (1) Fall 24-25 Q2 and Q3 (10 marks total).'],
+        ['Boolean algebra proofs and simplification', "Prove identities such as A + A'B = A + B; analyze a drawn circuit to its expression and simplify with DeMorgan; realize a function with the fewest gates.", 'Exam (2) Fall 25-26 Q2 (10 marks); Exam (1) Fall 24-25 Q4 and Q5 (10 marks total).'],
+        ['Karnaugh map simplification', 'Simplify a 3-variable sum-of-minterms function on a K-map.', 'Exam (2) Fall 25-26 Q3 (5 marks).'],
+        ['Quine-McCluskey tabular method', 'Simplify a 4-variable function with the tabular method, including the prime-implicant chart.', 'Exam (2) Fall 25-26 Q4 (10 marks).'],
+      ],
     },
   };
 
