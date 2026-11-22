@@ -170,10 +170,13 @@
     const paint=()=>{
       const cv=$('#m-canvas'),ctx=cv.getContext('2d');
       const nodes=$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean);
-      ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle='#14161d';ctx.fillRect(0,0,cv.width,cv.height);
+      const dpr=window.devicePixelRatio||1,cssW=cv.clientWidth||900,cssH=Math.round(cssW*0.62);
+      const pw=Math.round(cssW*dpr),ph=Math.round(cssH*dpr);
+      if(cv.width!==pw||cv.height!==ph){cv.width=pw;cv.height=ph;}
+      ctx.setTransform(dpr,0,0,dpr,0,0);ctx.fillStyle='#14161d';ctx.fillRect(0,0,cssW,cssH);
       if(!nodes.length){ctx.fillStyle='#9aa';ctx.font='16px sans-serif';ctx.fillText('Add concepts to see the map.',20,40);return;}
-      ctx.translate(cv.width/2+panX,cv.height/2+panY);ctx.scale(zoom,zoom);
-      const kids=nodes.slice(1),R=Math.min(210,90+kids.length*12);
+      ctx.translate(cssW/2+panX,cssH/2+panY);ctx.scale(zoom,zoom);
+      const kids=nodes.slice(1),R=Math.min(cssW*0.24,90+kids.length*12);
       const pos=kids.map((n,i)=>{const a=-Math.PI/2+i*(2*Math.PI/kids.length);return {x:Math.cos(a)*R,y:Math.sin(a)*R*0.72};});
       ctx.strokeStyle='rgba(212,175,55,.5)';ctx.lineWidth=1.2;
       pos.forEach(p=>{ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(p.x,p.y);ctx.stroke();});
@@ -195,11 +198,12 @@
     const canvasEl=$('#m-canvas');
     canvasEl.style.touchAction='none';canvasEl.style.cursor='grab';
     canvasEl.addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;canvasEl.setPointerCapture(e.pointerId);canvasEl.style.cursor='grabbing';});
-    canvasEl.addEventListener('pointermove',e=>{if(!dragging)return;const r=canvasEl.getBoundingClientRect(),sx=cv0().width/r.width;panX+=(e.clientX-lx)*sx;panY+=(e.clientY-ly)*sx;lx=e.clientX;ly=e.clientY;paint();});
+    canvasEl.addEventListener('pointermove',e=>{if(!dragging)return;panX+=e.clientX-lx;panY+=e.clientY-ly;lx=e.clientX;ly=e.clientY;paint();});
     const endDrag=()=>{dragging=false;canvasEl.style.cursor='grab';};
     canvasEl.addEventListener('pointerup',endDrag);canvasEl.addEventListener('pointercancel',endDrag);
     paint();
     $('#m-nodes').oninput=paint;
+    window.addEventListener('resize',()=>{if($('#m-canvas'))paint();});
     $('#m-zin').onclick=()=>{zoom=Math.min(3,zoom*1.25);paint();};
     $('#m-zout').onclick=()=>{zoom=Math.max(.4,zoom/1.25);paint();};
     $('#m-zreset').onclick=()=>{zoom=1;panX=0;panY=0;paint();};
