@@ -230,9 +230,33 @@
         ['Node structure', 'Each node holds: data, a left-child pointer and a right-child pointer.'] ] }
     ]
   };
-  const FORMULA_EMPTY = {
-    cs211: 'No verified formula sheet for this subject yet. The source lectures are still being reviewed, and the sheet appears here once it is checked against the actual PDFs.'
+  FORMULA_SHEETS.cs211 = {
+    note: 'Extracted from the ingested lecture slides and checked against the original PDFs. Always verify against the lectures themselves.',
+    groups: [
+      { name: 'EBNF Extensions', src: 'L5 EBNF, Its Extensions and Converting from BNF · pp.5-11', rows: [
+        ['Optional part [ ]', 'Brackets delimit an optional part of a right-hand side. Example: <if_stmt> → if (<expression>) <statement> [else <statement>].'],
+        ['Repetition { }', 'Braces mean the enclosed part can be repeated indefinitely or left out altogether. Example: <ident_list> → <identifier> {, <identifier>}.'],
+        ['Multiple choice ( )', 'When a single element must be chosen from a group, the options go in parentheses separated by the OR operator |.'],
+        ['Metasymbols', 'The brackets, braces and parentheses of EBNF are metasymbols: notational tools, not terminal symbols of the syntax they describe.'] ] },
+      { name: 'Axiomatic Semantics', src: 'L6 Axiomatic Semantics (Lectures 6-7 file) · pp.7, 17, 20-21', rows: [
+        ['Hoare triple', '{P} C {Q}: P is the precondition (what must be true before command C), C is the command, Q is the postcondition (what will be true after executing C).'],
+        ['Sequence rule', 'If {P} S1 {Q} and {Q} S2 {R}, then {P} S1; S2 {R}: the postcondition of S1 becomes the precondition of S2.'],
+        ['Weakest precondition (Dijkstra)', 'wp(S, Q) is the least restrictive condition such that {wp(S, Q)} S {Q}: if wp(S, Q) is true before S, then Q will be true after S. Any weaker condition would not guarantee Q.'] ] },
+      { name: 'Recursion in Grammars', src: 'L6 Axiomatic Semantics (Lectures 6-7 file) · p.34', rows: [
+        ['Left recursion (LR)', 'A → Aα | β: the rule refers to itself at the left end of a right-hand side.'],
+        ['Right recursion (RR)', 'A → β | αA: the self-reference sits at the right end.'] ] },
+      { name: 'FIRST and FOLLOW (LL(1) Parsing)', src: 'L8 FIRST, FOLLOW and Predictive LL(1) Parsing · pp.9, 14-16, 46', rows: [
+        ['FIRST(A)', 'The terminals that can appear first in a string derived from A; includes ε only if A can derive the empty string.'],
+        ['FIRST rule R1 (lecture label)', 'Base contributions: FIRST(t) = {t} for a terminal t, and a direct production X → ε adds ε to FIRST(X). Contributions combine across alternatives.'],
+        ['FIRST rule R2 (lecture label)', 'For X → Y1…Yn, add FIRST(Yi)−{ε} and advance to the next symbol only if ALL earlier symbols are nullable.'],
+        ['FIRST rule R3 (lecture label)', 'ε enters FIRST(Y1…Yn) if and only if every Yi can derive ε.'],
+        ['FOLLOW(A)', 'The terminals that can occur immediately after A in a sentential form derived from the start symbol; may include $ (end of input) but never ε.'],
+        ['FOLLOW rule F1 (lecture label)', 'FOLLOW(start symbol) receives {$}.'],
+        ['FOLLOW rule F2 (lecture label)', 'For X → αBβ, add FIRST(β)−{ε} to FOLLOW(B).'],
+        ['FOLLOW rule F3 (lecture label)', 'If β derives ε (or B is the last symbol), copy FOLLOW(X) into FOLLOW(B). Repeat whole passes until no set grows; ε is never transferred.'] ] }
+    ]
   };
+  const FORMULA_EMPTY = {};
 
   function formulas() {
     const names = { cs212: 'CS.212 · Data Structures', ece202: 'ECE202 · Digital Logic Design', cs211: 'CS.211 · Concepts of Programming Languages' };
