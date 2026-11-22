@@ -1337,7 +1337,18 @@ route(/^\/account$/, () => {
   });
 });
 route(/^\/admin$/, () => {
-  if (window.MFB && MFB.ready) return MFB.isAdmin() ? MFB.viewAdmin() : MFB.viewAccount();
+  if (window.MFB && MFB.ready) {
+    if (MFB.user && !MFB.profile) {
+      $('#app').innerHTML = '<div class="card empty">Loading account\u2026</div>';
+      let tries = 0;
+      const t = setInterval(() => {
+        if (location.hash !== '#/admin') return clearInterval(t);
+        if (MFB.profile || ++tries > 20) { clearInterval(t); MFB.isAdmin() ? MFB.viewAdmin() : MFB.viewAccount(); }
+      }, 150);
+      return;
+    }
+    return MFB.isAdmin() ? MFB.viewAdmin() : MFB.viewAccount();
+  }
   if (!window.MFB) return viewBackendSoon('admin');
   $('#app').innerHTML = '<div class="card empty">Loading account\u2026</div>';
   MFB.init().then(() => {
@@ -1892,6 +1903,7 @@ async function gameState() {
     { id: 'streak7', name: 'Unstoppable', desc: '7-day study streak', got: streak >= 7 },
     { id: 'half', name: 'Halfway there', desc: 'Finish half of all lectures', got: lecs >= Math.ceil(D.subjects.reduce((n, s) => n + s.lectures.filter(l => !l.missing).length, 0) / 2) },
   ];
+  try { window.MFCurrentXP = xp; if (window.MFB && MFB.ready && MFB.user) MFB.lbSync(xp); } catch (e) {}
   return { xp, streak, weekN, badges, level: Math.floor(xp / 100) + 1 };
 }
 
