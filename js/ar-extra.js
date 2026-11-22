@@ -11,7 +11,7 @@
     'Your finals picture at a glance: subjects, practice and schedule.': 'صورة سريعة عن استعدادك: المواد والتدريب والجدول.',
     'Pick a subject in the sidebar to start.': 'اختر مادة من القائمة الجانبية لتبدأ.',
     'mocks': 'امتحانات تجريبية', 'mock exams taken': 'امتحانات تجريبية تم أداؤها',
-    'Passed': 'ناجح', 'Below 50%': 'أقل من 50%',
+    'Passed': 'ناجح', 'Below 50%': '\u2067أقل من 50%\u2069',
     'Pass mark shown as 50% - check your faculty for official thresholds.': 'درجة النجاح معروضة 50% - راجع كليتك لمعرفة الحدود الرسمية.',
     'Overall Score': 'الدرجة الإجمالية', 'avg mock score': 'متوسط درجات الامتحانات التجريبية',
     'Lectures': 'المحاضرات', 'Done': 'تم', 'Subjects in progress': 'المواد قيد المذاكرة',
@@ -165,6 +165,18 @@
     'Explain a concept, solve a problem step by step, get a hint only, or have code explained line by line. Answers are unofficial and may be wrong. Currently activated for the site owner while it is being tested.': 'اشرح مفهومًا، أو حُلّ مسألة خطوة بخطوة، أو احصل على تلميح فقط، أو اطلب شرح كود سطرًا بسطر. الإجابات غير رسمية وقد تكون خاطئة. مفعّل حاليًا لصاحب الموقع فقط أثناء الاختبار.',
     'Mode': 'الوضع', 'Explain code': 'اشرح الكود', 'Your question, problem, or code': 'سؤالك أو مسألتك أو الكود', 'Ask the tutor': 'اسأل المعلّم',
     'Counts toward your 20 AI calls/day': 'يُحتسب من حدّك اليومي 20 طلبًا للذكاء الاصطناعي',
+    /* question bank and per-question tools */
+    'Question bank': 'بنك الأسئلة',
+    'Every question on the platform, filterable. Answer state comes from your real attempts. Click an option to answer - wrong answers go to your mistakes notebook.': 'كل أسئلة المنصة مع إمكانية التصفية. حالة الإجابة تأتي من محاولاتك الفعلية. اضغط على اختيار للإجابة - الإجابات الخاطئة تذهب إلى دفتر الأخطاء.',
+    'Lecture / section': 'المحاضرة / السكشن', 'Type': 'النوع', 'Your answer state': 'حالة إجابتك', 'All': 'الكل',
+    'mcq': 'اختيار من متعدد', 'written': 'مقالي', 'correct': 'صحيحة', 'incorrect': 'خاطئة', 'unanswered': 'غير مجابة',
+    'Bookmark': 'حفظ', 'Share': 'مشاركة', 'Report error': 'الإبلاغ عن خطأ', 'Discussion': 'النقاش',
+    'Answer': 'الإجابة', 'Explanation': 'الشرح',
+    'Reveal model answer': 'أظهر الإجابة النموذجية', 'Hide model answer': 'أخفِ الإجابة النموذجية', 'Reveal output': 'أظهر الناتج', 'Hide output': 'أخفِ الناتج',
+    'No questions match these filters.': 'لا توجد أسئلة تطابق هذه المرشحات.',
+    'Showing the first 120 - narrow the filters to see the rest.': 'يتم عرض أول 120 سؤالًا - ضيّق المرشحات لرؤية الباقي.',
+    'Type your answer here...': 'اكتب إجابتك هنا...', 'Your answer': 'إجابتك',
+    'Search questions in the bank': 'البحث في أسئلة البنك',
     /* days and months */
     'Mon': 'الاثنين', 'Tue': 'الثلاثاء', 'Wed': 'الأربعاء', 'Thu': 'الخميس', 'Fri': 'الجمعة', 'Sat': 'السبت', 'Sun': 'الأحد',
     'Mo': 'اث', 'Tu': 'ثل', 'We': 'أر', 'Th': 'خم', 'Fr': 'جم', 'Sa': 'سب', 'Su': 'أح',
@@ -176,6 +188,7 @@
   var MONRE = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g;
   function cards(n) { n = +n; if (n === 0) return 'لا بطاقات'; if (n === 1) return 'بطاقة واحدة'; if (n === 2) return 'بطاقتان'; if (n <= 10) return n + ' بطاقات'; return n + ' بطاقة'; }
   var PAT = [
+    [/^Search all (\d+) questions\.\.\.$/, function (m) { return 'ابحث في كل الأسئلة (' + m[1] + ')...'; }],
     [/^Good (morning|afternoon|evening), (.+)$/, function (m) { return (m[1] === 'morning' ? 'صباح الخير' : 'مساء الخير') + '، ' + m[2]; }],
     [/^\w+: (\d+) study actions?$/, function (m) { return m[1] + ' نشاط دراسي'; }],
     [/^(\d+) \/ (\d+) practice answers today$/, function (m) { return m[1] + ' / ' + m[2] + ' إجابة تدريبية اليوم'; }],
@@ -211,9 +224,12 @@
     return null;
   }
   var SKIP = { SCRIPT: 1, STYLE: 1, TEXTAREA: 1, CODE: 1, PRE: 1 };
+  var CONTENT = '.mcq,.wq,.opt,.ans,.qid,#ex-qtext,#ex-opts,[contenteditable],.cm-content,.rev-q,.formula,.fx';
+  function inContent(el) { return !!(el && el.closest && el.closest(CONTENT) && !el.closest('.qtools,.achip')); }
   function doText(n) {
     var rec = store.get(n);
     if (rec && n.data === rec.out) return;
+    if (inContent(n.parentElement)) return;
     var raw = n.data, t = raw.trim();
     if (!t || t.length > 700) return;
     var r = tr(t);
@@ -222,15 +238,19 @@
     store.set(n, { orig: raw, out: out });
     n.data = out;
     var pe = n.parentElement;
-    if (pe && !pe.hasAttribute('dir') && !/^(TD|TH|OPTION|BUTTON|A|LABEL|SPAN|B|SMALL|H1|H2|H3|H4)$/.test(pe.nodeName) || (pe && /^(SPAN|B|SMALL|H1|H2|H3|H4)$/.test(pe.nodeName) && !pe.hasAttribute('dir'))) {
-      pe.setAttribute('dir', 'auto'); pe.style.textAlign = 'start'; dirSet.add(pe);
-    }
+    if (pe && !pe.hasAttribute('dir') && blockish(pe)) { pe.setAttribute('dir', 'auto'); pe.style.textAlign = 'start'; dirSet.add(pe); }
+  }
+  function blockish(el) {
+    if (/^(TD|TH|OPTION|BUTTON|A|LABEL)$/.test(el.nodeName)) return false;
+    var d = getComputedStyle(el).display;
+    return d !== 'inline' && d !== 'inline-block' && d !== 'inline-flex' && d !== 'contents';
   }
   var ATTRS = ['placeholder', 'aria-label', 'title'];
   var aStore = new Map();
   function doAttr(el) {
     ATTRS.forEach(function (a) {
       var v = el.getAttribute(a); if (!v) return;
+      if (inContent(el)) return;
       var k = el; var rec = aStore.get(k); var key = a;
       if (rec && rec[key] && rec[key].out === v) return;
       var r = tr(v.trim()); if (r == null) return;
