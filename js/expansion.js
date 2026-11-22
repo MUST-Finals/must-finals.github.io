@@ -300,7 +300,7 @@
     const recs=[];
     if(lecList.length){const l=lecList[0];const s=D.subjects.find(z=>z.key===l.subj);recs.push(`Review ${s?s.code:l.subj} Lecture ${l.n}: your accuracy there is ${l.acc}% over ${l.t} answers.`);}
     const openMistakes=Object.values(p.mistakes||{}).filter(m=>!m.understood).length;
-    if(openMistakes)recs.push(`You have ${openMistakes} unresolved mistake${openMistakes===1?'':'s'} in the Mistakes tab; clearing them is the fastest accuracy gain.`);
+    if(openMistakes)recs.push(`You have ${openMistakes} unresolved mistake${openMistakes===1?'':'s'} in the Mistakes tab; review and retry those questions to lock in the material.`);
     const lowMock=perSubj.filter(r=>r.mavg!==null&&r.mavg<60).sort((a,b)=>a.mavg-b.mavg)[0];
     if(lowMock)recs.push(`Take another ${lowMock.s.code} mock after revising; your current mock average there is ${lowMock.mavg}%.`);
     if(!recs.length)recs.push('Keep answering practice questions; recommendations sharpen as more activity is recorded.');
