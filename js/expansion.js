@@ -241,7 +241,7 @@
         <button type="button" class="btn ghost sm" data-m="code">Explain code</button>
       </div>
       <label class="hint" for="tu-in">Your question, problem, or code</label>
-      <textarea id="tu-in" class="input" rows="5" placeholder="اشرحلي الفرق بين الـstack والـqueue" style="width:100%;margin:6px 0 12px"></textarea>
+      <textarea id="tu-in" class="input" rows="5" dir="auto" placeholder="مثال: اشرحلي الفرق بين الستاك والكيو، أو الصق كود عايز تشرحه سطر سطر" style="width:100%;margin:6px 0 12px"></textarea>
       <button type="button" class="btn" id="tu-go">Ask the tutor</button>
       <span class="hint" style="margin-inline-start:10px">Counts toward your 20 AI calls/day</span>
       <div id="tu-out" style="margin-top:14px"></div>
