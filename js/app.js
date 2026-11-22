@@ -593,7 +593,7 @@ async function viewBookmarks() {
 /* global click delegation for practice interactions */
 document.addEventListener('click', async e => {
   const opt = e.target.closest('.opt');
-  if (opt && !opt.disabled) {
+  if (opt && !opt.disabled && opt.closest('.mcq')) {
     const box = opt.closest('.mcq');
     box.classList.add('answered');
     paintMcq(box, opt);
