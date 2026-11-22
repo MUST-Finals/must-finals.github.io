@@ -20,3 +20,5 @@ create policy audit_read on public.admin_audit_log for select to authenticated
 -- admins can only append rows as themselves; no update or delete policies = append-only
 create policy audit_insert on public.admin_audit_log for insert to authenticated
   with check (public.is_admin() and actor = auth.uid());
+
+grant select, insert on public.admin_audit_log to authenticated;  -- RLS: admin read, admin append-as-self
