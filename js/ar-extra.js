@@ -177,6 +177,11 @@
     'Showing the first 120 - narrow the filters to see the rest.': 'يتم عرض أول 120 سؤالًا - ضيّق المرشحات لرؤية الباقي.',
     'Type your answer here...': 'اكتب إجابتك هنا...', 'Your answer': 'إجابتك',
     'Search questions in the bank': 'البحث في أسئلة البنك',
+    'المعبأ = مُجاب · الكهرماني = مميز · الحلقة = الحالي': 'المُلوَّن = تمت الإجابة · الأصفر = مميّز · الإطار = السؤال الحالي',
+    'Focus next': 'ركّز بعد ذلك',
+    'Topics you lost marks on in this attempt. They are also in your': 'المواضيع التي خسرت فيها درجات في هذه المحاولة. وهي موجودة أيضًا في',
+    'mistakes notebook': 'دفتر الأخطاء', 'Review': 'المراجعة', 'Wrong & skipped': 'الخاطئة والمتخطاة',
+    'answered correctly since': 'أُجيب عنها صحيحًا بعد ذلك',
     /* days and months */
     'Mon': 'الاثنين', 'Tue': 'الثلاثاء', 'Wed': 'الأربعاء', 'Thu': 'الخميس', 'Fri': 'الجمعة', 'Sat': 'السبت', 'Sun': 'الأحد',
     'Mo': 'اث', 'Tu': 'ثل', 'We': 'أر', 'Th': 'خم', 'Fr': 'جم', 'Sa': 'سب', 'Su': 'أح',
@@ -187,7 +192,14 @@
     Jan: 'يناير', Feb: 'فبراير', Mar: 'مارس', Apr: 'أبريل', Jun: 'يونيو', Jul: 'يوليو', Aug: 'أغسطس', Sep: 'سبتمبر', Oct: 'أكتوبر', Nov: 'نوفمبر', Dec: 'ديسمبر' };
   var MONRE = /\b(January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\b/g;
   function cards(n) { n = +n; if (n === 0) return 'لا بطاقات'; if (n === 1) return 'بطاقة واحدة'; if (n === 2) return 'بطاقتان'; if (n <= 10) return n + ' بطاقات'; return n + ' بطاقة'; }
+  function qs(n) { n = +n; if (n === 0) return 'لا أسئلة'; if (n === 1) return 'سؤال واحد'; if (n === 2) return 'سؤالان'; if (n <= 10) return n + ' أسئلة'; return n + ' سؤالًا'; }
   var PAT = [
+    [/^(\d+) questions?$/, function (m) { return qs(m[1]); }],
+    [/^Retry the (\d+) I missed$/, function (m) { return 'أعد محاولة الأسئلة الفائتة (' + m[1] + ')'; }],
+    [/^(.+) mock exam result$/, function (m) { return 'نتيجة الامتحان التجريبي ' + m[1]; }],
+    [/^(\d+) of (\d+) correct · (\d+) min$/, function (m) { return m[1] + ' من ' + m[2] + ' صحيحة · ' + m[3] + ' دقيقة'; }],
+    [/^(\d+) wrong$/, function (m) { return m[1] + ' خاطئة'; }],
+    [/^wrong (\d+) times$/, function (m) { return 'أخطأت فيها ' + m[1] + ' مرات'; }],
     [/^Search all (\d+) questions\.\.\.$/, function (m) { return 'ابحث في كل الأسئلة (' + m[1] + ')...'; }],
     [/^Good (morning|afternoon|evening), (.+)$/, function (m) { return (m[1] === 'morning' ? 'صباح الخير' : 'مساء الخير') + '، ' + m[2]; }],
     [/^\w+: (\d+) study actions?$/, function (m) { return m[1] + ' نشاط دراسي'; }],
