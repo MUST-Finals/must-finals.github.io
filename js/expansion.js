@@ -33,7 +33,7 @@
         ${card('GPA Calculator','Calculate semester and cumulative GPA with your chosen grading scale.','/workspace/gpa','Local')}
         ${card('Admin Dashboard','Manage content and moderation using the existing protected admin area.','/admin','Role protected')}
         ${card('Offline Learning','Review offline capabilities and save supported same-origin resources.','/workspace/offline','PWA')}
-        ${card('Study Rooms','Collaborative rooms require the new database migration and realtime configuration.','/workspace/rooms','Backend')}
+        ${card('Study Rooms','Subject-based study rooms with shared chat. Currently in private testing.','/workspace/rooms','Private test')}
         ${card('Leaderboard','Optional class ranking by XP. You appear only after you join, and only joined members can see the board.','/workspace/leaderboard','Opt-in')}
         ${card('Smart Timetable','Manage weekly lectures and personal study events.','/workspace/timetable','Local')}
         ${card('Campus Hub','View official announcements and add personal event links.','/workspace/campus','Community')}
@@ -266,13 +266,40 @@
   }
 
   async function rooms() {
-    if(!window.MFB?.ready||!MFB.user){page('Study Rooms','Collaborative rooms require a signed-in account and the platform database migration.',statusNote('Sign in through Account. Apply the platform expansion migration before creating rooms.'));return;}
+    if(!window.MFB?.ready||!MFB.user){page('Study Rooms','Collaborative rooms require a signed-in account.',statusNote('Sign in through Account to use study rooms.'));return;}
+    if(!MFB.isAdmin()){page('Study Rooms','Subject-based study rooms with shared chat.',statusNote('Study Rooms are in private testing and will open after a privacy review.'));return;}
     let data=[],error=null;try{({data,error}=await MFB.sb.from('study_rooms').select('id,title,subject_key,description,visibility,created_at').order('created_at',{ascending:false}).limit(50));}catch(e){error=e;}
-    const list=(data||[]).map(r=>`<div class="act"><span><b dir="auto">${escx(r.title)}</b><br><small class="hint" dir="auto">${escx(r.description)}</small><small class="hint"> · ${escx(r.visibility)}</small></span><button class="qtool" data-join="${escx(r.id)}">Join</button></div>`).join('');
-    page('Study Rooms','Find or create a subject-based study room.',`${error?statusNote('Study Rooms database is not ready. Apply the SQL migration and enable Realtime before using this feature.'):''}<div class="card ex-panel"><label>Room name<input id="room-title" dir="auto" maxlength="100"></label><label>Subject<select id="room-subj">${subjectOptions()}</select></label><label>Description<textarea id="room-desc" dir="auto" rows="2" maxlength="500"></textarea></label><label>Visibility<select id="room-vis"><option value="private">Private</option><option value="public">Public</option></select></label><button class="btn" id="room-create" ${error?'disabled':''}>Create room</button></div>${section('Available rooms',list||'<p class="hint">No rooms found.</p>')}`);
+    const list=(data||[]).map(r=>`<div class="act"><span><b dir="auto">${escx(r.title)}</b><br><small class="hint" dir="auto">${escx(r.description)}</small><small class="hint"> · ${escx(r.visibility)}</small></span><span style="display:flex;gap:6px"><a class="qtool" href="#/workspace/rooms/${escx(r.id)}">Open</a><button class="qtool" data-join="${escx(r.id)}">Join</button></span></div>`).join('');
+    page('Study Rooms','Private testing: rooms open to students after the privacy review is approved.',`${error?statusNote('Study Rooms database is not ready. Apply the SQL migration and enable Realtime before using this feature.'):''}<div class="card ex-panel"><label>Room name<input id="room-title" dir="auto" maxlength="100"></label><label>Subject<select id="room-subj">${subjectOptions()}</select></label><label>Description<textarea id="room-desc" dir="auto" rows="2" maxlength="500"></textarea></label><label>Visibility<select id="room-vis"><option value="private">Private</option><option value="public">Public</option></select></label><button class="btn" id="room-create" ${error?'disabled':''}>Create room</button></div>${section('Available rooms',list||'<p class="hint">No rooms found.</p>')}`);
     if(error)return;
     $('#room-create').onclick=async()=>{const title=$('#room-title').value.trim();if(!title)return toast('Enter a room name');const {data:created,error:e}=await MFB.sb.from('study_rooms').insert({owner_id:MFB.user.id,title,subject_key:$('#room-subj').value||null,description:$('#room-desc').value.trim(),visibility:$('#room-vis').value}).select('id').single();if(e){toast(e.message);return;}const {error:memberError}=await MFB.sb.from('study_room_members').upsert({room_id:created.id,user_id:MFB.user.id,member_role:'owner'});if(memberError)toast('Room created, but owner membership failed: '+memberError.message);rooms();};
     $$('#app [data-join]').forEach(b=>b.onclick=async()=>{const {error:e}=await MFB.sb.from('study_room_members').upsert({room_id:b.dataset.join,user_id:MFB.user.id});toast(e?e.message:'Joined room');});
+  }
+
+  async function roomView(id){
+    if(!window.MFB?.ready||!MFB.user){page('Study Rooms','Sign in required.',statusNote('Sign in through Account to use study rooms.'));return;}
+    if(!MFB.isAdmin()){page('Study Rooms','Subject-based study rooms with shared chat.',statusNote('Study Rooms are in private testing and will open after a privacy review.'));return;}
+    const {data:room,error:rErr}=await MFB.sb.from('study_rooms').select('*').eq('id',id).maybeSingle();
+    if(rErr||!room){page('Study Rooms','Room unavailable.',statusNote('Room not found or not visible to your account.')+'<p><a class="btn ghost sm" href="#/workspace/rooms">Back to rooms</a></p>');return;}
+    const [{data:msgs},{data:members}]=await Promise.all([
+      MFB.sb.from('study_room_messages').select('id,user_id,body,created_at').eq('room_id',id).order('created_at',{ascending:true}).limit(200),
+      MFB.sb.from('study_room_members').select('user_id,member_role,joined_at').eq('room_id',id)
+    ]);
+    const ids=[...new Set([...(msgs||[]).map(m=>m.user_id),...(members||[]).map(m=>m.user_id)])];
+    const names={};
+    if(ids.length){const {data:profs}=await MFB.sb.from('profiles').select('id,display_name').in('id',ids);(profs||[]).forEach(p=>names[p.id]=p.display_name);}
+    const nameOf=u=>names[u]||'Student';
+    const mrows=(members||[]).map(m=>`<div class="act"><span><b dir="auto">${escx(nameOf(m.user_id))}</b><br><small class="hint">${escx(m.member_role)} · joined ${new Date(m.joined_at).toLocaleDateString()}</small></span></div>`).join('');
+    const chat=(msgs||[]).map(m=>`<div class="act"><span><b dir="auto">${escx(nameOf(m.user_id))}</b> <small class="hint">${new Date(m.created_at).toLocaleString()}</small><br><span dir="auto">${escx(m.body)}</span></span>${m.user_id===MFB.user.id?`<button class="qtool" data-delmsg="${escx(m.id)}">Delete</button>`:''}</div>`).join('');
+    page(room.title,room.visibility+' room · '+(room.description||''),
+      statusNote('Messages refresh on reload or via Refresh; live realtime updates are not enabled yet.')+
+      `<p><a class="btn ghost sm" href="#/workspace/rooms">← Back to rooms</a></p>`+
+      section('Members',`<div class="acts">${mrows||'<p class="hint">No members yet.</p>'}</div>`)+
+      section('Chat',`<div class="acts">${chat||'<p class="hint">No messages yet. Say hello.</p>'}</div>
+        <div class="card ex-panel"><div class="ex-form"><label>Message<textarea id="msg-body" dir="auto" rows="2" maxlength="4000"></textarea></label></div><div class="rowflex"><button class="btn" id="msg-send">Send</button><button class="btn ghost" id="msg-refresh">Refresh</button></div><p class="hint" id="msg-note"></p></div>`));
+    $('#msg-send').onclick=async()=>{const body=$('#msg-body').value.trim();if(!body)return;const {error:e}=await MFB.sb.from('study_room_messages').insert({room_id:id,user_id:MFB.user.id,body});if(e){$('#msg-note').textContent=e.message;return;}roomView(id);};
+    $('#msg-refresh').onclick=()=>roomView(id);
+    $$('#app [data-delmsg]').forEach(b=>b.onclick=async()=>{const {error:e}=await MFB.sb.from('study_room_messages').delete().eq('id',b.dataset.delmsg);if(e)toast(e.message);roomView(id);});
   }
 
   function aiGate(title,detail) {
@@ -761,6 +788,7 @@
   route(/^\/workspace\/campus$/,campus);
   route(/^\/workspace\/mindmap$/,mindmap);
   route(/^\/workspace\/offline$/,offline);
+  route(/^\/workspace\/rooms\/([\w-]+)$/,roomView);
   route(/^\/workspace\/rooms$/,rooms);
   const PDF_FILES = [["1BUgkQoRj6YdNf7ppu5zz-kXaCOct_BxG", "L1 Introduction to Data Structures and Data Types"], ["1SAgU3RvEKXBuzn3D2GD-e4i2Ot3FvOaU", "L2 The Stack and the LIFO Principle"], ["1yrPftVdYaAQR9Uk_PCTQo-OcGdqwp9L6", "L3 The Queue and the FIFO Principle"], ["11I9-A3f7AqVg7__GhhHXzsMfDUskyTP8", "L4 Memory and Pointers in C++"], ["1FWd6a0rmRvnVrG_uvBHvZUe-GHcUh7F9", "L5 Linked Lists"], ["1260o62xHgJR-CTduHMG7WsQWI3RNaeYy", "L6 Trees and Binary Search Trees"], ["1c0RDD2VRFmMpu2SmgW3j6BLxEtL8M7x5", "L2 Number Systems and Binary Numbers (Chapter 1)"], ["1cdOa0SOxU0wj1J6O6F6-NhwUzXiWW_-J", "L3 Binary Codes and Binary Logic"], ["1A9Xkx61FPEjYe1SyO_k1qO-k05looviM", "L5 Boolean Algebra Theorems and Proofs"], ["18PRCbboueiO6SU8ZRHu79k6t8AkRjmmD", "L6 Complement of a Function and Standard Forms (Minterms and Maxterms)"], ["1ExINegqb9NbuSt4QDXnJ-6iDRHWWLJkg", "L8 Gate-Level Minimization and the Karnaugh Map"], ["1DuwUpM3h0h1qEQObMuo6KM8Q_ma9FRPx", "L1 Course Intro and Why We Study Programming Languages"], ["19dF94OTNFzpIksbW5q1olslM3vjwjxLf", "L2 Programming Domains, Language Evaluation Criteria and Classifications"], ["1IavRHfn9b1LvIyhj7BwgL3Fr8FhIDsdF", "L3 Syntax and Semantics, BNF and Derivation"], ["1S5mQbLXI992_HeusO2Ynr8hd5ISPoFJs", "L4 Parse Trees, Ambiguity and Operator Precedence"], ["13Tzm1HzQ6t-tnQDlx5QFucRd367Q-gRR", "L5 EBNF, Its Extensions and Converting from BNF"], ["14ufS3MjEcLtPx1z3bqhRcKnKAsVM7H0p", "L6 Axiomatic Semantics (from the Lectures 6-7 file)"], ["1mbU1LIUaoiMu2AmhwsYq81SUBG9ca5NR", "L8 FIRST, FOLLOW and Predictive LL(1) Parsing"], ["1_UX0LVJMRM6YbmYU3-g3wq1E26YFktkh", "بنك أسئلة المحاضرة 6 واللاب 6 (PDF)"], ["1B5ztc1h66QvI8R1l3gKne2NLEJAedLeR", "Lab 1 · Visual Studio Setup and C++ Basics"], ["1QbSHcfx-qurlj6HkLytAOI-p48BYyz4C", "Lab 2 · Pointers, the Stack ADT and Expressions"], ["1ufaSzbeanI1TGDGriTD-xiHTFQb5_GWs", "Lab 3 · Queue Operations and Types"], ["1Id1KE4N9FDKkH_-dj1s1tL66cv0Za0PB", "Lab 4 · Pointers Review: Dereferencing, References, Pointers with Functions and Arrays"], ["1ogKFI4sA3TXarlF26Vop63g5hzHiB4b4", "Lab 5 · Linked Lists: Operations, Stack and Queue Implementation, Types"], ["1rgbIreMqrz0Nq74dmBjT7XxCMX_i55H9", "Lab 6 · Binary Search Tree (BST) Operations"], ["1XD4gftc8VBtLuPZCP8C6nG7dDQxmaNtz", "Section 1 · Numbering Systems and Conversions"], ["1nSZ5_UdKeNdl493Xy3ejpE786OEVVRIe", "Section 2 · Octal/Hex Conversions and Logic Gates"], ["1xWH7w7o-ipvzzPyzkw2sDgXNprOyLx-4", "Section 1 · Why Study Programming Languages, Domains and Evaluation Criteria"], ["1Tirr32dKNhPlzZ6e1hK47ZiDQm8gDA4s", "Section 2 · Syntax vs Semantics, Lexemes and Tokens"]];
   async function pdfChat() {
