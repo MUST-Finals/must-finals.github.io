@@ -17,6 +17,7 @@
   const statusNote = (text) => `<div class="notice info">${escx(text)}</div>`;
 
   async function home() {
+    dailyReminders();
     page('Your academic workspace','A single place for your study routine, academic planning, and student resources.',
       `<div class="ex-grid">
         ${card('Chat With Your PDF','Ask questions about lecture PDFs with page citations. Requires secure AI document processing.','/workspace/pdf','AI service')}
@@ -94,9 +95,10 @@
     const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
     const rows=events.map((e,i)=>({e,i})).sort((a,b)=>a.e.day-b.e.day||a.e.start.localeCompare(b.e.start)).map(({e,i})=>`<div class="act ex-row"><span><b>${days[e.day]}</b> · ${escx(e.start)}–${escx(e.end)}<br>${escx(e.title)} <small class="hint">${escx(e.location||'')}</small></span><button class="qtool" data-del="${i}">Delete</button></div>`).join('');
     page('Smart Timetable','Create a weekly schedule and check for overlapping sessions.',
-      `<div class="card ex-panel"><div class="ex-form"><label>Event title<input id="t-title" maxlength="100" placeholder="Lecture / lab / study session"></label><label>Day<select id="t-day">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></label><label>Start<input id="t-start" type="time" value="09:00"></label><label>End<input id="t-end" type="time" value="10:00"></label><label>Location<input id="t-location" maxlength="100" placeholder="Room / online"></label></div><button class="btn" id="t-add">Add to timetable</button></div>${section('Weekly events',`<div class="acts">${rows||'<p class="hint">No events scheduled.</p>'}</div>`) }`);
+      `<div class="card ex-panel"><div class="ex-form"><label>Event title<input id="t-title" maxlength="100" placeholder="Lecture / lab / study session"></label><label>Day<select id="t-day">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></label><label>Start<input id="t-start" type="time" value="09:00"></label><label>End<input id="t-end" type="time" value="10:00"></label><label>Location<input id="t-location" maxlength="100" placeholder="Room / online"></label></div><div class="rowflex" style="gap:8px"><button class="btn" id="t-add">Add to timetable</button><button class="btn ghost" id="t-export" ${events.length?'':'disabled'}>Export calendar (.ics)</button></div></div>${section('Weekly events',`<div class="acts">${rows||'<p class="hint">No events scheduled.</p>'}</div>`) }`);
     $('#t-add').onclick=async()=>{const title=$('#t-title').value.trim(),day=+$('#t-day').value,start=$('#t-start').value,end=$('#t-end').value;if(!title||!start||!end||start>=end){toast('Enter a title and a valid time range');return;}const conflict=events.some(e=>e.day===day&&start<e.end&&end>e.start);if(conflict){toast('Time conflict: this overlaps an existing event');return;}events.push({title,day,start,end,location:$('#t-location').value.trim()});await set('timetable',events);timetable();};
     $$('#app [data-del]').forEach(b=>b.onclick=async()=>{events.splice(+b.dataset.del,1);await set('timetable',events);timetable();});
+    const exBtn=$('#t-export');if(exBtn)exBtn.onclick=()=>{const ics=buildIcs(events);const blob=new Blob([ics],{type:'text/calendar'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='must-timetable.ics';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),5000);toast('Calendar file exported');};
   }
 
   async function profile() {
@@ -125,7 +127,46 @@
   async function notify(title,body,target) {
     const list=await get('notifications',[]);list.unshift({id:'n'+Date.now()+Math.random().toString(16).slice(2),title,body,target,at:Date.now(),read:false});await set('notifications',list.slice(0,100));
   }
+
+  async function dailyReminders(){
+    try{
+      const flag=await get('reminders-'+today(),null);if(flag)return;
+      const now=new Date();now.setHours(0,0,0,0);
+      const items=(await get('assignments',[])).filter(a=>a.status!=='completed'&&a.status!=='submitted'&&a.due);
+      for(const a of items){
+        const d=new Date(a.due+'T00:00:00');const diff=Math.round((d-now)/86400000);
+        if(diff>=0&&diff<=2)await notify('Assignment due '+(diff===0?'today':diff===1?'tomorrow':'in 2 days'),a.title+(a.subject?' · '+a.subject:''),'#/workspace/assignments');
+      }
+      const dow=new Date().getDay();
+      const todays=(await get('timetable',[])).filter(e=>e.day===dow).sort((a,b)=>a.start.localeCompare(b.start));
+      if(todays.length)await notify('On your timetable today',todays.map(e=>e.start+' '+e.title).slice(0,4).join(' · '),'#/workspace/timetable');
+      await set('reminders-'+today(),1);
+    }catch(e){}
+  }
+
+  function buildIcs(events){
+    const byday=['SU','MO','TU','WE','TH','FR','SA'];
+    const escIcs=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+    const stamp=new Date().toISOString().replace(/[-:]/g,'').replace(/\.\d+Z$/,'Z');
+    const pad=n=>String(n).padStart(2,'0');
+    const nextDate=d=>{const t=new Date();t.setHours(0,0,0,0);t.setDate(t.getDate()+((d-t.getDay()+7)%7));return t;};
+    const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//MUST Finals//Smart Timetable//EN','CALSCALE:GREGORIAN'];
+    events.forEach((e,i)=>{
+      const d=nextDate(e.day);
+      const ds=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());
+      lines.push('BEGIN:VEVENT','UID:tt-'+i+'-'+Date.now()+'@must-finals','DTSTAMP:'+stamp,
+        'DTSTART:'+ds+'T'+String(e.start||'00:00').replace(':','')+'00',
+        'DTEND:'+ds+'T'+String(e.end||'00:00').replace(':','')+'00',
+        'RRULE:FREQ=WEEKLY;BYDAY='+byday[e.day],
+        'SUMMARY:'+escIcs(e.title));
+      if(e.location)lines.push('LOCATION:'+escIcs(e.location));
+      lines.push('END:VEVENT');
+    });
+    lines.push('END:VCALENDAR');
+    return lines.join('\r\n');
+  }
   async function notifications() {
+    await dailyReminders();
     const list=await get('notifications',[]);
     page('Notifications Center','Local reminders and workspace updates. Browser push is not enabled until a push service is configured.',
       `${section('Inbox',`<div class="acts">`+list.map(n=>`<div class="act ex-row ${n.read?'':'ex-unread'}"><a href="#${escx(n.target||'/workspace')}" style="flex:1"><b dir="auto">${escx(n.title)}</b><br><span class="hint" dir="auto">${escx(n.body)} · ${new Date(n.at).toLocaleString()}</span></a><button class="qtool" data-read="${escx(n.id)}">${n.read?'Read':'Mark read'}</button></div>`).join('')||'<p class="hint">No notifications yet.</p>'+`</div>`)}
