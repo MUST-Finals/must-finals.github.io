@@ -374,3 +374,6 @@ body.noscroll{overflow:hidden}
 .pv-actions{display:flex;gap:8px;flex-shrink:0}
 .pv-frame{flex:1;border:0;width:100%;min-height:0;background:#525659}
 @media(max-width:640px){.pv-box{inset:8px}.pv-head{flex-wrap:wrap}}
+
+.skip-link{position:absolute;inset-inline-start:-9999px;top:8px;background:var(--surface2,#1a1a24);color:var(--ink,#fff);padding:8px 14px;border-radius:8px;z-index:200;border:1px solid var(--stroke,#333)}
+.skip-link:focus{inset-inline-start:8px}
