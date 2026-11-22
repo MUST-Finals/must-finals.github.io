@@ -510,15 +510,16 @@
     },
     ece202: {
       name: 'ECE202 · Digital Logic Design',
-      coverage: 'No verified FINAL paper found in the shared course pack yet. Fully analyzed from verified model-answer papers: mid-semester Exam (1) Fall 2024-25 (26/10/2024, all 6 questions, 30 marks, 1 hour) and mid-semester Exam (2) Fall 2025-26 (22/11/2025, all 4 questions, 30 marks, 1 hour). Quiz 1 PDFs are present in the pack but not yet analyzed. These are in-semester exams, not the final, so they show assessed topics and question style only; no final-exam weighting can be claimed.',
+      coverage: 'No verified FINAL paper found in the shared course pack yet. Fully analyzed from verified model-answer papers: mid-semester Exam (1) Fall 2024-25 (26/10/2024, all 6 questions, 30 marks, 1 hour) and mid-semester Exam (2) Fall 2025-26 (22/11/2025, all 4 questions, 30 marks, 1 hour). Also fully analyzed: Quiz 1 Fall 2025-26 (Dr. Yara AlaaEldin, 3 questions, 30 marks, 1 hour, model answer). These are in-semester assessments, not the final, so they show assessed topics and question style only; no final-exam weighting can be claimed.',
       format: [
         'Exam (1) Fall 2024-25: 30 marks, 1 hour, 6 questions x 5 marks - True/False on digital basics, binary arithmetic, code conversions, circuit analysis with Boolean simplification, minimal-gate realization, and gate identification with NOR-only redesign. Answers on the question sheet; no calculator.',
         'Exam (2) Fall 2025-26: 30 marks, 1 hour, 4 questions - 5 MCQs on gates, two Boolean algebra proofs (10 marks), a 3-variable K-map simplification (5 marks), and a 4-variable Quine-McCluskey simplification (10 marks). No calculator.',
+        'Quiz 1 Fall 2025-26: 30 marks, 1 hour, 3 questions - MCQs on digital basics (8 marks), number conversions (12 marks) and 2\'s complement subtraction (10 marks).',
       ],
       topics: [
-        ['Logic gate fundamentals and identification', 'Read gate circuits and write F; identify a gate from its truth table; XNOR/NAND/NOR behavior; series switches as AND.', 'Exam (2) Fall 25-26 Q1 (5 MCQs); Exam (1) Fall 24-25 Q1 (T/F) and Q6 (identify NAND).'],
+        ['Logic gate fundamentals and identification', 'Read gate circuits and write F; identify a gate from its truth table; XNOR/NAND/NOR behavior; series switches as AND.', 'Exam (2) Fall 25-26 Q1 (5 MCQs); Exam (1) Fall 24-25 Q1 (T/F) and Q6 (identify NAND); Quiz 1 Fall 25-26 Q1 (MCQs on voltage levels, digital-vs-analog, AND behavior).'],
         ['Universal-gate implementation', 'Redesign a circuit using NOR gates only (and know NAND-only equivalents).', 'Exam (1) Fall 24-25 Q6 (5 marks).'],
-        ['Number systems and codes', 'Add, subtract, multiply and divide in binary; convert a decimal value to binary, hexadecimal, Gray code, BCD and Excess-3, showing the steps.', 'Exam (1) Fall 24-25 Q2 and Q3 (10 marks total).'],
+        ['Number systems and codes', 'Add, subtract, multiply and divide in binary; convert between decimal, binary, hexadecimal, octal, Gray code, BCD and Excess-3, showing the steps; 2\'s complement subtraction in both directions with sign handling.', 'Exam (1) Fall 24-25 Q2 and Q3 (10 marks total); Quiz 1 Fall 25-26 Q2 (12 marks) and Q3 (10 marks).'],
         ['Boolean algebra proofs and simplification', "Prove identities such as A + A'B = A + B; analyze a drawn circuit to its expression and simplify with DeMorgan; realize a function with the fewest gates.", 'Exam (2) Fall 25-26 Q2 (10 marks); Exam (1) Fall 24-25 Q4 and Q5 (10 marks total).'],
         ['Karnaugh map simplification', 'Simplify a 3-variable sum-of-minterms function on a K-map.', 'Exam (2) Fall 25-26 Q3 (5 marks).'],
         ['Quine-McCluskey tabular method', 'Simplify a 4-variable function with the tabular method, including the prime-implicant chart.', 'Exam (2) Fall 25-26 Q4 (10 marks).'],
