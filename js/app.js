@@ -1629,6 +1629,52 @@ const AR_NAV = {
   'CS.211 · Concepts': 'CS.211 · مفاهيم لغات البرمجة',
   'Exam · CS.212': 'امتحان · CS.212', 'Exam · ECE202': 'امتحان · ECE202', 'Exam · CS.211': 'امتحان · CS.211',
   'Bookmarks': 'المحفوظات', 'Revision': 'المراجعة', 'Interactive tools': 'الأدوات التفاعلية',
+  'Sign in': 'تسجيل الدخول', 'University Workspace': 'مساحة العمل الجامعية',
+  'Question bank': 'بنك الأسئلة', 'Past exams': 'الامتحانات السابقة', 'Planner': 'الخطة', 'Mistakes': 'الأخطاء',
+};
+/* Page chrome (headings, buttons, pills, table headers). Exact-match swap of
+   pure-text elements only; anything with icons/markup or dynamic values stays
+   English. Course content itself is not translated. */
+const AR_UI = {
+  'AI Quiz Generator': 'مولّد الاختبارات بالذكاء الاصطناعي', 'AI Study Tutor': 'المعلّم الذكي',
+  'Assignment Tracker': 'متتبع الواجبات', 'Campus Hub': 'بوابة الجامعة',
+  'Chat With Your PDF': 'دردش مع ملف PDF', 'Code Runner': 'منفّذ الأكواد',
+  'Daily Challenge': 'تحدي اليوم', 'Exam Focus': 'نقاط تركيز الامتحان',
+  'Focus Mode & Pomodoro': 'وضع التركيز وبومودورو', 'Formula Sheets': 'أوراق القوانين',
+  'GPA Calculator': 'حاسبة المعدل التراكمي', 'Interactive Labs': 'المعامل التفاعلية',
+  'Leaderboard': 'لوحة المتصدرين', 'Mind Map Studio': 'استوديو الخرائط الذهنية',
+  'Notifications Center': 'مركز الإشعارات', 'Offline Learning': 'التعلم دون اتصال',
+  'Performance Analytics': 'تحليلات الأداء', 'Smart Timetable': 'الجدول الذكي',
+  'Student Profile': 'الملف الشخصي', 'Student Resources Hub': 'مركز موارد الطالب',
+  'Study Rooms': 'غرف المذاكرة', 'Your academic workspace': 'مساحتك الدراسية',
+  'Available rooms': 'الغرف المتاحة', 'Board': 'اللوحة', 'Chat': 'الدردشة',
+  'Historical exam format': 'شكل الامتحانات السابقة',
+  'Improvement over time (recent mocks)': 'التحسن عبر الوقت (الامتحانات التجريبية الأخيرة)',
+  'Inbox': 'صندوق الوارد', 'Members': 'الأعضاء', 'Most difficult lectures': 'أصعب المحاضرات',
+  'Official announcements': 'إعلانات رسمية', 'Quiz history': 'سجل الاختبارات',
+  'Recommendations': 'التوصيات', 'Saved resources': 'الموارد المحفوظة',
+  'Saved semesters': 'الفصول المحفوظة', 'Strongest and weakest topics': 'أقوى وأضعف المواضيع',
+  'Subject-by-subject': 'حسب المادة', 'Weekly events': 'فعاليات الأسبوع',
+  'What-if: required average': 'ماذا لو: المتوسط المطلوب', 'Your assignments': 'واجباتك',
+  'Your membership': 'عضويتك',
+  'Stack Visualizer (CS.212)': 'محاكي المكدس (CS.212)',
+  'Queue Visualizer (CS.212)': 'محاكي الطوابير (CS.212)',
+  'Linked List Visualizer (CS.212)': 'محاكي القوائم المتصلة (CS.212)',
+  'Pointer Visualizer (CS.212)': 'محاكي المؤشرات (CS.212)',
+  'Logic Gates Simulator (ECE202)': 'محاكي البوابات المنطقية (ECE202)',
+  'Continue with Google': 'المتابعة بحساب Google', 'Sign in with email': 'الدخول بالبريد الإلكتروني',
+  'Sign up': 'إنشاء حساب', 'Sign out': 'تسجيل الخروج',
+  'Mark read': 'تحديد كمقروء', 'Read': 'مقروء', 'Clear all': 'مسح الكل',
+  'Next': 'التالي', 'Submit': 'إرسال', 'Save': 'حفظ', 'Cancel': 'إلغاء',
+  'Close': 'إغلاق', 'Delete': 'حذف', 'Send': 'إرسال',
+  'Passed': 'ناجح', 'Below 50%': 'أقل من 50%', 'Overall score': 'النتيجة الإجمالية',
+  'avg mock score': 'متوسط درجة الامتحانات التجريبية', 'Lectures': 'المحاضرات',
+  'MCQ accuracy': 'دقة أسئلة الاختيارات', 'Done': 'منجز',
+  'Subjects in progress': 'المواد قيد الدراسة', 'Not started': 'لم يبدأ',
+  'In progress': 'جارٍ', 'Completed': 'مكتمل',
+  'Topic': 'الموضوع', 'What was asked': 'ما طُلب',
+  'Evidence (paper · question)': 'الدليل (الورقة · السؤال)',
+  'Topics identified in verified past papers': 'المواضيع المحددة من امتحانات سابقة موثقة',
 };
 async function applyLang() {
   const ar = (await store.get('lang', 'en')) === 'ar';
@@ -1637,6 +1683,11 @@ async function applyLang() {
   $$('.snav a, .snav .cat').forEach(el => {
     if (!el.dataset.en) el.dataset.en = el.textContent.trim();
     el.textContent = ar ? (AR_NAV[el.dataset.en] || el.dataset.en) : el.dataset.en;
+  });
+  $$('#app h1, #app h2, #app h3, #app button, #app a.btn, #app .pill, #app th, #app summary').forEach(el => {
+    if (el.children.length) return;
+    if (!el.dataset.en) el.dataset.en = el.textContent.trim();
+    el.textContent = ar ? (AR_UI[el.dataset.en] || el.dataset.en) : el.dataset.en;
   });
   const b = $('#lang-btn');
   if (b) { b.innerHTML = ic('globe') + '<span style="font-size:12px;font-weight:700">' + (ar ? 'EN' : 'ع') + '</span>'; b.setAttribute('aria-label', ar ? 'Switch to English' : 'التبديل إلى العربية'); }
