@@ -459,7 +459,7 @@
         ['display (linked-list stack)', 'Walk a pointer from top printing each node\'s data until NULL ("stack is empty" when top == NULL).'],
         ['enqueue (linked-list queue)', 'Append at the rear: the last node\'s address field is updated to link the new node, and rear moves to it. Deck keeps global front and rear pointers, both NULL when empty.'],
         ['dequeue (linked-list queue)', 'Remove the front node by advancing the front pointer: front = front->next.'],
-        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly. The slide pop() advances top without freeing the removed node (no delete), so a complete implementation should free it to avoid a memory leak; the queue diagram likewise advances front without showing a free.'] ] }
+        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly. The slide push() allocates nodes with malloc, and pop() advances top without freeing the removed node; a complete implementation saves the removed node and calls free on it (free, not delete, because the nodes come from malloc), otherwise it leaks. The queue diagram shows front advancing past a removed node but the queue code itself is not shown here, so no leak claim is made for the queue.'] ] }
     ]
   };
   FORMULA_SHEETS.cs211 = {
