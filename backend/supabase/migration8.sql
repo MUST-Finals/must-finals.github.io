@@ -11,9 +11,17 @@ create table public.leaderboard_entries (
 
 alter table public.leaderboard_entries enable row level security;
 
+-- membership check must be security definer: a policy that selects its own table recurses
+create or replace function public.is_leaderboard_member() returns boolean
+language sql stable security definer set search_path = public as $$
+  select exists (select 1 from public.leaderboard_entries where user_id = auth.uid())
+$$;
+revoke all on function public.is_leaderboard_member() from public;
+grant execute on function public.is_leaderboard_member() to authenticated;
+
 -- read: only opted-in members can see the board at all
 create policy lb_read on public.leaderboard_entries for select to authenticated
-  using (exists (select 1 from public.leaderboard_entries me where me.user_id = auth.uid()));
+  using (public.is_leaderboard_member());
 
 -- write: own row only
 create policy lb_insert on public.leaderboard_entries for insert to authenticated
