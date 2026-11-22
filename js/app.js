@@ -348,6 +348,10 @@ async function viewDashboard() {
       ${subjProgRows}
     </div>
   </div>
+  <section class="blk" aria-labelledby="subjects-heading">
+    <div class="blk-h"><h2 id="subjects-heading">Your subjects</h2><span class="sp"></span><a class="hint" href="#/workspace">Open workspace →</a></div>
+    <div class="dz-courses">${subjCards}</div>
+  </section>
   <div class="card" style="padding:16px;margin-bottom:14px">
     <div class="rowflex"><h2 style="margin:0;font-size:15px">Recent exam history</h2><span class="sp"></span><span class="hint">real results only</span></div>
     ${histTable}
