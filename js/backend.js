@@ -262,9 +262,9 @@ MFB.discussionHtml = function (qid) {
 };
 MFB.loadDiscussion = async function (box, qid) {
   if (!MFB.ready) { box.innerHTML = '<p class="hint">Backend not configured.</p>'; return; }
-  const { data, error } = await MFB.sb.from('posts').select('id,body,created_at,author,profiles(display_name)').eq('question_id', qid).is('parent_id', null).order('created_at', { ascending: true }).limit(50);
+  const { data, error } = await MFB.sb.from('posts').select('id,body,created_at,author,author_name').eq('question_id', qid).is('parent_id', null).order('created_at', { ascending: true }).limit(50);
   const list = error ? `<p class="hint">Could not load discussion${MFB.user ? '' : ' - sign in to read and post'}.</p>`
-    : (data && data.length ? data.map(p => `<div class="act"><span style="font-weight:700">${esc((p.profiles && p.profiles.display_name) || 'Student')}</span><span>${esc(p.body)}</span><time>${ago(new Date(p.created_at).getTime())}</time></div>`).join('')
+    : (data && data.length ? data.map(p => `<div class="act"><span style="font-weight:700">${esc(p.author_name || 'Student')}</span><span>${esc(p.body)}</span><time>${ago(new Date(p.created_at).getTime())}</time></div>`).join('')
       : '<p class="hint">No posts yet. Be the first to ask about this question.</p>');
   box.innerHTML = `<div class="acts" style="margin:8px 0">${list}</div>` + (MFB.user
     ? `<div class="rowflex" style="gap:8px"><input class="disc-in" maxlength="4000" placeholder="Ask or answer..." style="flex:1"><button type="button" class="btn sm disc-send">Post</button></div><p class="hint disc-msg"></p>`
