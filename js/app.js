@@ -1742,6 +1742,29 @@ const AR_UI = {
   'Solve step by step': 'حل خطوة بخطوة',
   'Hint only': 'تلميح فقط',
 };
+/* Composite chrome strings with embedded numbers. Regex pass over leaf text
+   elements only; runs after the exact-match pass and only fires on a full
+   pattern match, so Arabic text and course content never re-match. English
+   restoration relies on toggleLang's full re-render, not on stored text.
+   Known limit: counters updated between renders (e.g. mid-exam answer clicks
+   on #ex-counts) stay English until the next render. */
+function arDays(n) { n = +n; return n === 1 ? 'يوم واحد' : n === 2 ? 'يومين' : (n >= 3 && n <= 10) ? (n + ' أيام') : (n + ' يومًا'); }
+const AR_PAT = [
+  [/^Question (\d+) of (\d+)$/, m => 'السؤال ' + m[1] + ' من ' + m[2]],
+  [/^(\d+) answered · (\d+) left · (\d+) marked$/, m => m[1] + ' مُجابة · ' + m[2] + ' متبقية · ' + m[3] + ' مميزة'],
+  [/^(\d+) questions?$/, m => m[1] + ' ' + (+m[1] === 1 ? 'سؤال' : 'أسئلة')],
+  [/^(\d+) matches?$/, m => m[1] + ' نتيجة'],
+  [/^All (\d+) questions$/, m => 'كل الأسئلة (' + m[1] + ')'],
+  [/^(.+?) · in (\d+) days?$/, (m, g) => m[1] + ' · خلال ' + arDays(m[2])],
+  [/^(.*?) · date passed$/, m => m[1] + ' · انقضى التاريخ'],
+];
+function applyArPatterns() {
+  $$('#app .pill, #app .hint, #app option').forEach(el => {
+    if (el.children.length) return;
+    const t = el.textContent.trim();
+    for (const [re, fn] of AR_PAT) { const m = t.match(re); if (m) { el.textContent = fn(m); break; } }
+  });
+}
 async function applyLang() {
   const ar = (await store.get('lang', 'en')) === 'ar';
   document.documentElement.dir = ar ? 'rtl' : 'ltr';
@@ -1755,6 +1778,7 @@ async function applyLang() {
     if (!el.dataset.en) el.dataset.en = el.textContent.trim();
     el.textContent = ar ? (AR_UI[el.dataset.en] || el.dataset.en) : el.dataset.en;
   });
+  if (ar) applyArPatterns();
   const b = $('#lang-btn');
   if (b) { b.innerHTML = ic('globe') + '<span style="font-size:12px;font-weight:700">' + (ar ? 'EN' : 'ع') + '</span>'; b.setAttribute('aria-label', ar ? 'Switch to English' : 'التبديل إلى العربية'); }
   const note = $('#ar-note');
