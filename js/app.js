@@ -1769,6 +1769,7 @@ const AR_Q = { zero: 'أسئلة', one: 'سؤال واحد', oneBare: 'سؤال'
 const AR_M = { zero: 'نتائج', one: 'نتيجة واحدة', oneBare: 'نتيجة', two: 'نتيجتين', few: 'نتائج', many: 'نتيجةً', sing: 'نتيجة' };
 const AR_D = { zero: 'أيام', one: 'يوم واحد', oneBare: 'يوم', two: 'يومين', few: 'أيام', many: 'يومًا', sing: 'يوم' };
 function arDays(n) { return arCount(n, AR_D); }
+function arDaysBare(n) { n = +n; if (n === 1) return 'يوم واحد'; if (n === 2) return 'يومين'; return arDays(n); }
 const AR_PAT = [
   [/^Question (\d+) of (\d+)$/, m => 'السؤال ' + m[1] + ' من ' + m[2]],
   [/^(\d+) answered · (\d+) left · (\d+) marked$/, m => {
@@ -1911,7 +1912,7 @@ viewFlashcards = async function (key, dueOnly) {
   <section class="hero" style="padding:22px 24px">
     <div class="eyebrow">${esc(s.code)} · ${CUR_AR ? 'بطاقات' : 'Flashcards'}${FC.dueOnly ? (CUR_AR ? ' · مراجعة مستحقة' : ' · Due review') : ''}</div>
     <h1 style="font-size:26px">${esc(s.full)}</h1>
-    <p class="sub">${CUR_AR ? 'تكرار متباعد على بنك <bdi>' + esc(s.code) + '</bdi> الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' + (dueIn ? ' تُجدول مجددًا بعد ~' + arDays(dueIn) + '.' : '') : 'Spaced repetition over the real ' + esc(s.code) + ' bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.' + (dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : '')}</p>
+    <p class="sub">${CUR_AR ? 'تكرار متباعد على بنك <bdi>' + esc(s.code) + '</bdi> الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' + (dueIn ? ' تُجدول مجددًا بعد ~' + arDaysBare(dueIn) + '.' : '') : 'Spaced repetition over the real ' + esc(s.code) + ' bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.' + (dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : '')}</p>
   </section>
   <div class="fcwrap">
     <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="${CUR_AR ? 'بطاقة، اضغط للقلب' : 'Flashcard, activate to flip'}">
@@ -1920,8 +1921,8 @@ viewFlashcards = async function (key, dueOnly) {
     </div>
     ${FC.flipped ? `<div class="rowflex" style="justify-content:center;margin-top:14px" id="fc-grade">
       <button type="button" class="btn ghost" data-g="0">${CUR_AR ? 'مجددًا · &lt;يوم' : 'Again · &lt;1d'}</button>
-      <button type="button" class="btn" data-g="1">${CUR_AR ? 'جيّد · ' + arDays(st && st.ivl ? Math.round(st.ivl * 2) : 1) : 'Good · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + 'd'}</button>
-      <button type="button" class="btn" data-g="2">${CUR_AR ? 'سهل · ' + arDays(st && st.ivl ? Math.round(st.ivl * 3) : 3) : 'Easy · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + 'd'}</button>
+      <button type="button" class="btn" data-g="1">${CUR_AR ? 'جيّد · ' + arDaysBare(st && st.ivl ? Math.round(st.ivl * 2) : 1) : 'Good · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + 'd'}</button>
+      <button type="button" class="btn" data-g="2">${CUR_AR ? 'سهل · ' + arDaysBare(st && st.ivl ? Math.round(st.ivl * 3) : 3) : 'Easy · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + 'd'}</button>
     </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
       <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
       <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} ${CUR_AR ? 'خلط' : 'Shuffle'}</button>
