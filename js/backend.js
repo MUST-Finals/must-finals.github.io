@@ -54,6 +54,11 @@ MFB.loadProfile = async function () {
 };
 
 MFB.isAdmin = () => !!(MFB.profile && MFB.profile.role === 'admin');
+MFB.audit = async function (action, target, meta) {
+  if (!MFB.ready || !MFB.user || !MFB.isAdmin()) return;
+  try { await MFB.sb.from('admin_audit_log').insert({ actor: MFB.user.id, action, target: target == null ? null : String(target), meta: meta || null }); }
+  catch (e) { console.warn('audit log write failed', e); }
+};
 
 /* ---- nav badge ---- */
 MFB.paintNav = function () {
@@ -249,7 +254,7 @@ MFB.sendReport = async function (qid, detail) {
 MFB.viewAdmin = async function () {
   if (!MFB.ready || !MFB.user) { nav('/account'); return; }
   if (!MFB.isAdmin()) { $('#app').innerHTML = `<div class="empty">${ic('alert')}<div>Admins only. Your account has the student role.</div></div>`; return; }
-  const [reps, postsN, usersN, posts, anns, profs, cont2] = await Promise.all([
+  const [reps, postsN, usersN, posts, anns, profs, cont2, auds] = await Promise.all([
     MFB.sb.from('reports').select('id,question_id,detail,status,created_at,profiles(display_name)').order('created_at', { ascending: false }).limit(50),
     MFB.sb.from('posts').select('id', { count: 'exact', head: true }),
     MFB.sb.from('profiles').select('id', { count: 'exact', head: true }),
@@ -257,6 +262,7 @@ MFB.viewAdmin = async function () {
     MFB.sb.from('announcements').select('id,title,body,created_at').order('created_at', { ascending: false }).limit(20),
     MFB.sb.from('profiles').select('id,display_name,role,created_at').order('created_at', { ascending: false }).limit(50),
     MFB.sb.from('content_items').select('id,kind,subj,ref_id,payload,created_at').order('created_at', { ascending: false }).limit(100),
+    MFB.sb.from('admin_audit_log').select('id,action,target,meta,created_at,profiles(display_name)').order('created_at', { ascending: false }).limit(50).then(r => r, () => ({ data: [] })),
   ]);
   const postList = (posts.data || []).map(p => {
     const name = (p.profiles && p.profiles.display_name) || 'student';
@@ -273,6 +279,7 @@ MFB.viewAdmin = async function () {
       : `<button type="button" class="btn ghost sm usr-block" data-id="${pf.id}">Block</button>`)}</div>`).join('') || '<p class="hint">No accounts yet.</p>';
   const annList = (anns.data || []).map(a => `<div class="act"><span style="font-weight:700">${esc(a.title)}</span><span>${esc(a.body.slice(0, 120))}</span><time>${ago(new Date(a.created_at).getTime())}</time>
     <button type="button" class="btn ghost sm ann-del" data-id="${a.id}">Delete</button></div>`).join('') || '<p class="hint">No announcements yet.</p>';
+  const audList = (auds.data || []).map(a2 => `<div class="act"><span style="font-weight:700">${esc((a2.profiles && a2.profiles.display_name) || 'admin')}</span><span>${esc(a2.action)}${a2.target ? ' \u00b7 ' + esc(String(a2.target).slice(0, 60)) : ''}</span><time>${ago(new Date(a2.created_at).getTime())}</time></div>`).join('') || '<p class="hint">No admin actions recorded yet.</p>';
   const subjOpts = (window.DATA ? DATA.subjects : []).map(s2 => `<option value="${s2.key}">${s2.code} · ${s2.full}</option>`).join('');
   const contList = (cont2.data || []).map(c => {
     const label = c.kind === 'mcq' ? (c.payload.q || '') : (c.kind === 'written' ? (c.payload.q || '') : c.kind);
@@ -299,6 +306,7 @@ MFB.viewAdmin = async function () {
     <div class="blk"><div class="blk-h"><h2>Accounts</h2></div><div class="acts">${accList}</div></div>
   </div>
   <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Announcements</h2></div><div class="acts">${annList}</div></div>
+  <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Admin audit log</h2><p class="hint">Append-only record of admin actions. Entries cannot be edited or removed.</p></div><div class="acts">${audList}</div></div>
   <div class="grid g2" style="align-items:start;margin-top:16px">
     <div class="card" style="padding:18px">
       <h2 style="margin-top:0">Add course content</h2>
@@ -325,15 +333,15 @@ MFB.viewAdmin = async function () {
     if (!t || !b) { $('#an-msg').textContent = 'Title and body required.'; return; }
     const { error } = await MFB.sb.from('announcements').insert({ author: MFB.user.id, title: t, body: b });
     $('#an-msg').textContent = error ? ('Failed: ' + error.message) : 'Published.';
-    if (!error) { $('#an-title').value = ''; $('#an-body').value = ''; }
+    if (!error) { $('#an-title').value = ''; $('#an-body').value = ''; await MFB.audit('announcement.publish', null, { title: t }); }
   });
-  $$('.rep-res').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'resolved' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
-  $$('.rep-dis').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'dismissed' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
-  $$('.post-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('posts').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
-  $$('.ann-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('announcements').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
-  $$('.usr-block').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'blocked' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
-  $$('.usr-unblock').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'student' }).eq('id', b.dataset.id); MFB.viewAdmin(); }));
-  $$('.cont-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('content_items').delete().eq('id', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.rep-res').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'resolved' }).eq('id', b.dataset.id); await MFB.audit('report.resolve', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.rep-dis').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('reports').update({ status: 'dismissed' }).eq('id', b.dataset.id); await MFB.audit('report.dismiss', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.post-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('posts').delete().eq('id', b.dataset.id); await MFB.audit('post.delete', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.ann-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('announcements').delete().eq('id', b.dataset.id); await MFB.audit('announcement.delete', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.usr-block').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'blocked' }).eq('id', b.dataset.id); await MFB.audit('user.block', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.usr-unblock').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('profiles').update({ role: 'student' }).eq('id', b.dataset.id); await MFB.audit('user.unblock', b.dataset.id); MFB.viewAdmin(); }));
+  $$('.cont-del').forEach(b => b.addEventListener('click', async () => { await MFB.sb.from('content_items').delete().eq('id', b.dataset.id); await MFB.audit('content.delete', b.dataset.id); MFB.viewAdmin(); }));
   const kindSel = $('#cc-kind');
   if (kindSel) kindSel.addEventListener('change', () => {
     const mcq = kindSel.value === 'mcq';
@@ -356,6 +364,6 @@ MFB.viewAdmin = async function () {
     }
     const { error } = await MFB.sb.from('content_items').insert({ kind, subj, payload, author: MFB.user.id });
     $('#cc-msg').textContent = error ? ('Failed: ' + error.message) : 'Added. It is live for all students now.';
-    if (!error) { $('#cc-q').value = ''; MFB.viewAdmin(); }
+    if (!error) { $('#cc-q').value = ''; await MFB.audit('content.add', payload.id, { kind, subj }); MFB.viewAdmin(); }
   });
 };
