@@ -1920,7 +1920,7 @@ viewFlashcards = async function (key, dueOnly) {
       <div class="fface fback"><span class="pill good">${CUR_AR ? 'الإجابة' : 'Answer'}</span><p class="ftext">${esc(c.back)}</p><p class="hint">${CUR_AR ? 'ما مدى معرفتك بها؟' : 'How well did you know it?'}</p></div>
     </div>
     ${FC.flipped ? `<div class="rowflex" style="justify-content:center;margin-top:14px" id="fc-grade">
-      <button type="button" class="btn ghost" data-g="0">${CUR_AR ? 'مجددًا · &lt;يوم' : 'Again · &lt;1d'}</button>
+      <button type="button" class="btn ghost" data-g="0">${CUR_AR ? 'مجددًا · أقل من يوم' : 'Again · &lt;1d'}</button>
       <button type="button" class="btn" data-g="1">${CUR_AR ? 'جيّد · ' + arDaysBare(st && st.ivl ? Math.round(st.ivl * 2) : 1) : 'Good · ' + (st && st.ivl ? Math.round(st.ivl * 2) : 1) + 'd'}</button>
       <button type="button" class="btn" data-g="2">${CUR_AR ? 'سهل · ' + arDaysBare(st && st.ivl ? Math.round(st.ivl * 3) : 3) : 'Easy · ' + (st && st.ivl ? Math.round(st.ivl * 3) : 3) + 'd'}</button>
     </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
