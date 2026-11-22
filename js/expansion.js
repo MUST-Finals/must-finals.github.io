@@ -211,8 +211,26 @@
       ]
     }
   };
+  FORMULA_SHEETS.cs212 = {
+    note: 'Extracted from the ingested lecture slides and checked against the original PDF. Always verify against the lecture itself.',
+    groups: [
+      { name: 'Tree Facts and Terminology', src: 'L6 Trees and Binary Search Trees · pp.11, 17, 19-21', rows: [
+        ['Edges', 'A tree with n nodes has exactly (n-1) edges.'],
+        ['Level', 'Number of edges in the path from the root to the node; the root is at level 0.'],
+        ['Degree', 'Degree of a node = its number of children; degree of a tree = the highest node degree.'],
+        ['Height', 'Height of a node = edges on the longest path from it to a leaf; height of a tree = height of the root; all leaves have height 0.'],
+        ['Depth', 'Depth of a node = edges from the root to it; depth of a tree = edges from the root to the deepest leaf; root depth = 0. "Level" and "depth" are used interchangeably.'] ] },
+      { name: 'Binary Tree Types', src: 'L6 Trees and Binary Search Trees · pp.29, 32-34', rows: [
+        ['Binary tree', 'Each node can have at most two children (left and right).'],
+        ['Full binary tree', 'Every node has either two or no children.'],
+        ['Perfect binary tree', 'Every non-leaf node has exactly two children and all leaves are at the same level.'],
+        ['Complete binary tree', 'Every level is completely filled and all leaves lean left; the last leaf may lack a right sibling; does not have to be a full binary tree.'] ] },
+      { name: 'Binary Search Tree (BST)', src: 'L6 Trees and Binary Search Trees · pp.36, 41', rows: [
+        ['Main rule', 'For any node: all values in the left child and its descendants are smaller than the node value; all values in the right child and its descendants are greater.'],
+        ['Node structure', 'Each node holds: data, a left-child pointer and a right-child pointer.'] ] }
+    ]
+  };
   const FORMULA_EMPTY = {
-    cs212: 'No verified formula sheet for this subject yet. The source lectures are still being reviewed, and the sheet appears here once it is checked against the actual PDFs.',
     cs211: 'No verified formula sheet for this subject yet. The source lectures are still being reviewed, and the sheet appears here once it is checked against the actual PDFs.'
   };
 
