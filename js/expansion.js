@@ -53,7 +53,8 @@
       <div class="card ex-panel"><div class="ex-form"><label>Grade point maximum <select id="g-scale"><option value="4" ${state.scale===4?'selected':''}>4.0</option><option value="5" ${state.scale===5?'selected':''}>5.0</option><option value="100" ${state.scale===100?'selected':''}>100-point scale</option></select></label><label>Semester name <input id="g-name" placeholder="e.g. Fall 2026"></label></div>
       <div id="g-courses"><div class="ex-course"><input class="g-course" placeholder="Course name"><input class="g-grade" type="number" min="0" step=".01" placeholder="Grade points"><input class="g-credit" type="number" min=".5" step=".5" placeholder="Credit hours"></div></div>
       <div class="rowflex"><button class="btn ghost sm" id="g-add">Add course</button><button class="btn" id="g-save">Calculate & Save</button></div><p id="g-result" class="hint"></p></div>
-      ${section('Saved semesters',`<div class="acts">${rows || '<p class="hint">No saved semesters yet.</p>'}</div>`)}`);
+      ${section('Saved semesters',`<div class="acts">${rows || '<p class="hint">No saved semesters yet.</p>'}</div>`)}
+      ${section('What-if: required average',`<div class="card ex-panel"><div class="ex-form"><label>Current cumulative GPA <input id="w-cur" type="number" min="0" step=".01" placeholder="e.g. 3.10"></label><label>Completed credit hours <input id="w-done" type="number" min="0" step=".5" placeholder="e.g. 60"></label><label>Target GPA <input id="w-target" type="number" min="0" step=".01" placeholder="e.g. 3.50"></label><label>Upcoming credit hours <input id="w-next" type="number" min=".5" step=".5" placeholder="e.g. 15"></label></div><div class="rowflex"><button class="btn ghost sm" id="w-calc">Calculate required average</button></div><p id="w-result" class="hint"></p></div>`)}`);
     $('#g-add').onclick=()=>$('#g-courses').insertAdjacentHTML('beforeend','<div class="ex-course"><input class="g-course" placeholder="Course name"><input class="g-grade" type="number" min="0" step=".01" placeholder="Grade points"><input class="g-credit" type="number" min=".5" step=".5" placeholder="Credit hours"></div>');
     $('#g-save').onclick=async()=>{
       const scale=Number($('#g-scale').value), courses=[...document.querySelectorAll('.ex-course')].map(r=>({name:r.querySelector('.g-course').value.trim(),grade:Number(r.querySelector('.g-grade').value),credits:Number(r.querySelector('.g-credit').value)}));
@@ -63,6 +64,16 @@
       $('#g-result').textContent=`Semester GPA: ${score.toFixed(2)} / ${scale} · ${credits} credit hours`;toast('GPA saved');gpa();
     };
     $$('#app [data-del]').forEach(b=>b.onclick=async()=>{state.terms.splice(Number(b.dataset.del),1);await set('gpa',state);gpa();});
+    $('#w-calc').onclick=()=>{
+      const cur=Number($('#w-cur').value),doneC=Number($('#w-done').value),target=Number($('#w-target').value),nextC=Number($('#w-next').value),scale=Number($('#g-scale').value);
+      if(![cur,doneC,target,nextC].every(Number.isFinite)||doneC<0||nextC<=0||cur<0||target<0){$('#w-result').textContent='Fill all four fields with valid numbers.';return;}
+      const req=(target*(doneC+nextC)-cur*doneC)/nextC;
+      $('#w-result').textContent = req<=0
+        ? `You are already above the target: current ${cur} exceeds ${target}. Any non-negative average keeps you at or above it.`
+        : req>scale
+          ? `Required average ${req.toFixed(2)} is above the ${scale}-point maximum: the target is not reachable with only ${nextC} upcoming hours. More hours or a lower target would be needed.`
+          : `You need an average of ${req.toFixed(2)} / ${scale} across the upcoming ${nextC} credit hours to reach ${target}.`;
+    };
   }
 
   async function assignments() {
@@ -93,15 +104,19 @@
   }
 
   async function focus() {
-    const cfg=await get('focusCfg',{focus:25,short:5,long:15}), sessions=await get('focusSessions',[]);
+    const cfg=await get('focusCfg',{focus:25,short:5,long:15,goal:60}), sessions=await get('focusSessions',[]);
+    const todayMin=sessions.filter(s=>new Date(s.at).toDateString()===new Date().toDateString()).reduce((n,s)=>n+s.minutes,0);
+    let actx=null;
+    const beep=()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();[0,.18].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=i?880:660;g.gain.setValueAtTime(.15,actx.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d+.15);o.start(actx.currentTime+d);o.stop(actx.currentTime+d+.16);});}catch(e){}};
     page('Focus Mode & Pomodoro','A distraction-reduced timer. Keep sessions comfortable and take breaks when needed.',
-      `<div class="card ex-focus"><div class="eyebrow">FOCUS SESSION</div><div id="focus-clock" class="ex-clock">${String(cfg.focus).padStart(2,'0')}:00</div><div id="focus-state" class="hint">Ready when you are</div><div class="rowflex" style="justify-content:center;margin:16px"><button class="btn" id="focus-start">Start</button><button class="btn ghost" id="focus-reset">Reset</button></div><div class="ex-form"><label>Focus minutes<input id="f-min" type="number" min="1" max="120" value="${cfg.focus}"></label><label>Break minutes<input id="f-break" type="number" min="1" max="60" value="${cfg.short}"></label></div><p class="hint">Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}</p></div>`);
+      `<div class="card ex-focus"><div class="eyebrow">FOCUS SESSION</div><div id="focus-clock" class="ex-clock">${String(cfg.focus).padStart(2,'0')}:00</div><div id="focus-state" class="hint">Ready when you are</div><div class="rowflex" style="justify-content:center;margin:16px"><button class="btn" id="focus-start">Start</button><button class="btn ghost" id="focus-reset">Reset</button></div><div class="ex-form"><label>Focus minutes<input id="f-min" type="number" min="1" max="120" value="${cfg.focus}"></label><label>Break minutes<input id="f-break" type="number" min="1" max="60" value="${cfg.short}"></label><label>Daily goal (minutes)<input id="f-goal" type="number" min="5" max="480" step="5" value="${cfg.goal||60}"></label></div><p class="hint">Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}</p><p class="hint" id="f-today">Today: ${todayMin} / ${cfg.goal||60} minutes toward your daily goal.</p></div>`);
     let left=cfg.focus*60,handle=null,running=false;
     const paint=()=>$('#focus-clock').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');
-    $('#focus-start').onclick=()=>{if(running){clearInterval(handle);running=false;$('#focus-start').textContent='Resume';$('#focus-state').textContent='Paused';return;}running=true;$('#focus-start').textContent='Pause';$('#focus-state').textContent='Focus session in progress';handle=setInterval(async()=>{left--;paint();if(left<=0){clearInterval(handle);running=false;const mins=Number($('#f-min').value);sessions.unshift({minutes:mins,at:Date.now()});await set('focusSessions',sessions);await notify('Focus session completed',mins+' minutes recorded','#/workspace/focus');$('#focus-state').textContent='Session complete — take a break';$('#focus-start').textContent='Start again';left=mins*60;paint();}},1000);};
+    $('#focus-start').onclick=()=>{if(running){clearInterval(handle);running=false;$('#focus-start').textContent='Resume';$('#focus-state').textContent='Paused';return;}running=true;$('#focus-start').textContent='Pause';$('#focus-state').textContent='Focus session in progress';handle=setInterval(async()=>{left--;paint();if(left<=0){clearInterval(handle);running=false;const mins=Number($('#f-min').value);sessions.unshift({minutes:mins,at:Date.now()});await set('focusSessions',sessions);await notify('Focus session completed',mins+' minutes recorded','#/workspace/focus');beep();const newToday=todayMin+mins;const goalLine=$('#f-today');if(goalLine)goalLine.textContent=`Today: ${newToday} / ${cfg.goal||60} minutes toward your daily goal${newToday>= (cfg.goal||60) ? ' - goal reached!' : '.'}`;$('#focus-state').textContent='Session complete — take a break';$('#focus-start').textContent='Start again';left=mins*60;paint();}},1000);};
     $('#focus-reset').onclick=()=>{clearInterval(handle);running=false;left=Math.max(1,Math.min(120,+$('#f-min').value||25))*60;paint();$('#focus-start').textContent='Start';$('#focus-state').textContent='Ready when you are';};
     $('#f-min').onchange=async()=>{cfg.focus=Math.max(1,Math.min(120,+$('#f-min').value||25));await set('focusCfg',cfg);if(!running){left=cfg.focus*60;paint();}};
     $('#f-break').onchange=async()=>{cfg.short=Math.max(1,Math.min(60,+$('#f-break').value||5));await set('focusCfg',cfg);};
+    $('#f-goal').onchange=async()=>{cfg.goal=Math.max(5,Math.min(480,+$('#f-goal').value||60));await set('focusCfg',cfg);const gl=$('#f-today');if(gl)gl.textContent=`Today: ${todayMin} / ${cfg.goal} minutes toward your daily goal.`;};
   }
 
   async function notify(title,body,target) {
