@@ -47,3 +47,10 @@ plan for when infrastructure is approved.
   devices within the same window; concurrent adds on two devices are not union-merged.
 - Pushes are debounced (2.5s) and fire only on local writes; the synced-at marker is
   written directly to storage so it never triggers a push loop.
+- Deletion: removing a whole synced key (`store.del`) writes a null tombstone with a
+  fresh timestamp. The tombstone propagates like any newer value; receiving devices
+  drop the local value but keep the tombstone timestamp, so a deleted key is never
+  resurrected by later syncs. A newer legitimate value always beats an older
+  tombstone, and a stale device's delete loses to a newer value. Deletions inside
+  the `progress` object (bookmarks, mistakes, a cleared notifications inbox) are
+  ordinary value overwrites of that key, not tombstones.
