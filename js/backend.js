@@ -81,6 +81,15 @@ MFB.paintNav = function () {
 
 /* ---- progress sync: per-key last-writer-wins against progress.state {data,ts} ---- */
 const SYNC_SKIP = new Set(['syncedAt']);
+// Apply a remote value locally. null is a deletion tombstone: drop the value
+// but keep its timestamp so the delete is not resurrected by a later sync.
+function applyRemote(k, val, ts) {
+  try {
+    if (val === null) { localStorage.removeItem('mf.' + k); localStorage.setItem('mf.t.' + k, String(ts)); }
+    else { localStorage.setItem('mf.' + k, JSON.stringify(val)); localStorage.setItem('mf.t.' + k, String(ts)); }
+    return true;
+  } catch { return false; }
+}
 MFB.localState = function () {
   const data = {}, ts = {};
   for (let i = 0; i < localStorage.length; i++) {
@@ -115,7 +124,7 @@ MFB.syncUp = async function () {
   for (const k of Object.keys(merged.data)) {
     const rts = merged.ts[k] || 0, lts = local.ts[k] || 0;
     if (rts > lts) {
-      try { localStorage.setItem('mf.' + k, JSON.stringify(merged.data[k])); localStorage.setItem('mf.t.' + k, String(rts)); changed = true; } catch {}
+      if (applyRemote(k, merged.data[k], rts)) changed = true;
     }
   }
   const { error } = await MFB.sb.from('progress').upsert({ user_id: MFB.user.id, state: merged, updated_at: new Date().toISOString() });
@@ -134,7 +143,7 @@ MFB.syncDown = async function () {
     const rts = (remote.ts && remote.ts[k]) || 0;
     const lts = local.ts[k] || 0;
     if (rts > lts) {
-      try { localStorage.setItem('mf.' + k, JSON.stringify(remote.data[k])); localStorage.setItem('mf.t.' + k, String(rts)); changed = true; } catch {}
+      if (applyRemote(k, remote.data[k], rts)) changed = true;
     }
   }
   await MFB.syncUp();
