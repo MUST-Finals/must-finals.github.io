@@ -23,3 +23,11 @@
 
 /* Workspace content is English: force LTR inside RTL layouts so punctuation and alignment read correctly */
 .ex-hero,.ex-card,.ex-panel,.ex-mind,.ex-focus{direction:ltr;text-align:left}
+
+/* exam-focus topic tables: stack on narrow screens */
+@media (max-width:640px){
+  .ex-tt tr{display:block;border-top:1px solid var(--stroke);padding:8px 0}
+  .ex-tt tr:first-child{display:none;border-top:0}
+  .ex-tt td{display:block;padding:2px 0 !important;white-space:normal}
+  .ex-tt td.muted{display:block}
+}
