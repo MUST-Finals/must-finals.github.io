@@ -49,11 +49,13 @@ const ic = (n, cls) => `<svg class="ic ${cls || ''}" viewBox="0 0 24 24" fill="n
    ever awaits store.get/store.set, so no UI rewrite is needed. ---- */
 const store = {
   async get(key, fallback) {
-    try { const v = localStorage.getItem('mf.' + key); return v === null ? fallback : JSON.parse(v); }
+    try { const v = localStorage.getItem('mf.' + key); if (v === null) return fallback; const p = JSON.parse(v); return p === null ? fallback : p; }
     catch { return fallback; }
   },
   async set(key, val) { try { localStorage.setItem('mf.' + key, JSON.stringify(val)); localStorage.setItem('mf.t.' + key, String(Date.now())); } catch {} if (window.MFB) MFB.schedulePush(); },
-  async del(key) { try { localStorage.removeItem('mf.' + key); } catch {} },
+  // Tombstone delete: a bare removeItem would be resurrected by the next sync
+  // (the remote copy carries a newer timestamp). null marks the deletion and propagates.
+  async del(key) { try { localStorage.setItem('mf.' + key, 'null'); localStorage.setItem('mf.t.' + key, String(Date.now())); } catch {} if (window.MFB) MFB.schedulePush(); },
 };
 
 const DEF_PROG = { completed: {}, mcq: {}, bookmarks: {}, activity: [], lastSubject: null, examHistory: [], mistakes: {} };
