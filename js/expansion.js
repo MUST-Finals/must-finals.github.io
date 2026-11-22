@@ -24,6 +24,7 @@
         ${card('AI Quiz Generator','Generate practice questions from your course topics via the secure server-side proxy.','/workspace/quiz','AI service')}
                         ${card('Code Runner','Write and run real C, C++, Python, Java or JavaScript code with your own input, executed on the Judge0 CE service.','/workspace/code','Live execution')}
         ${card('Formula Sheets','Key formulas and laws extracted from the ingested lecture slides, with page citations.','/workspace/formulas','From lectures')}
+        ${card('Exam Focus','Important topics and frequently tested concepts identified from verified past exams, with per-topic provenance.','/workspace/exam-focus','From past exams')}
         ${card('Smart Revision','Review cards using your saved spaced-repetition schedule.','/revision','Ready')}
         ${card('Mind Map Studio','Create and edit a personal concept map.','/workspace/mindmap','Local')}
         ${card('Code Playground','Practice from the existing verified code-output exercises. Arbitrary execution is not enabled.','/tools/code','Practice')}
@@ -279,6 +280,80 @@
     page('Formula Sheets', 'Key formulas and laws from your ingested lecture slides, with the lecture and page each came from.', blocks);
   }
 
+
+  /* Exam Focus - topic analysis built ONLY from verified past papers (each row cites its paper + question).
+     Historical description only; never a prediction of future exam content. */
+  const EXAM_FOCUS = {
+    cs212: {
+      name: 'CS.212 · Data Structures',
+      coverage: 'Fully analyzed: Fall 2024-25 written final (all 6 questions, 60 marks, 2 hours). Partially analyzed: Old Exams compilation (86 pages) - pages 1-15 checked from its text layer and pages 30-34 image-sampled, which cover a Spring 2022/23 final and another MCQ set; compilation pages 16-86 are scanned images that were not fully analyzed.',
+      format: [
+        'Fall 2024-25 written final: 60 marks, 2 hours, 6 questions - a 15-mark MCQ block, then written questions on stacks, linked lists, sorting, graphs and AVL trees.',
+        'Spring 2022/23 final (inside compilation, sampled): 60 marks, 2 hours, answer-all format - MCQ block, stack/queue code outputs, tree traversals, sorting demonstrations.',
+      ],
+      topics: [
+        ['Stacks', 'Push/pop operation output sequences; underflow; meaning of "ordered" entries; stack used for recursion and postfix evaluation.', 'Fall 24-25 final Q1 (multiple MCQs) + Q2 (8 marks); Spring 22/23 final Q1, Q2 and Q4 (sampled).'],
+        ['Infix to postfix conversion and postfix evaluation', 'Convert expressions to postfix; evaluate postfix with values; count conversion steps.', 'Fall 24-25 final Q1 (2 MCQs); Spring 22/23 final Q1; compilation pp.31-32 Q4 (sampled).'],
+        ['Queues and circular queues', 'FIFO property; circular rear increment (rear+1)%CAPACITY; full/empty conditions; BFS uses a queue.', 'Fall 24-25 final Q1; Spring 22/23 final Q1; compilation p.30 Q13-15 (sampled).'],
+        ['Linked lists', 'Node fields; singly vs doubly vs circular; header nodes; outputs of list statements; valid/invalid pointer operations.', 'Fall 24-25 final Q1 + Q3 (10 marks); Spring 22/23 final Q1; compilation p.30 Q1-12 (sampled).'],
+        ['Trees and traversals', 'Pre-order, in-order, post-order traversals; depth and height; parent/children/siblings; full binary tree definition.', 'Spring 22/23 final Q3 (14 marks, sampled); compilation p.31 Q5 (sampled); Fall 24-25 final Q1 (tree MCQs).'],
+        ['Sorting algorithms', 'Demonstrate bubble, selection and insertion sorts step by step; merge and radix sort questions.', 'Fall 24-25 final Q4 (10 marks); Spring 22/23 final Q5 (9 marks, sampled).'],
+        ['Graphs', 'Adjacency matrix construction; BFS and DFS traversal order; chromatic number.', 'Fall 24-25 final Q5 (8 marks).'],
+        ['AVL trees', 'Build an AVL tree from an insertion sequence with rotations.', 'Fall 24-25 final Q6 (9 marks).'],
+      ],
+    },
+    cs211: {
+      name: 'CS.211 · Concepts of Programming Languages',
+      coverage: 'Fully analyzed: Fall 2025-26 practical (lab) final (all 3 questions, 30 marks, 1 hour, 7 pages). This is the only verified past paper for this subject, so the topics below describe that one exam; no recurrence across papers can be claimed.',
+      format: [
+        'Fall 2025-26 practical final: 30 marks, 1 hour, 3 questions - LL(1) parsing, derivations and parse trees, then grammar transformations and lexical analysis.',
+      ],
+      topics: [
+        ['LL(1) parsing', 'Construct the LL(1) parsing table from given FIRST/FOLLOW sets, then parse a token string showing the stack, remaining input and applied rule at each step.', 'Fall 25-26 practical Q1 (10 marks: table 5 + trace 5).'],
+        ['Derivations and parse trees', 'Write leftmost and rightmost derivations and draw the parse trees for an if-then-else grammar.', 'Fall 25-26 practical Q2 (10 marks).'],
+        ['Grammar transformations', 'Convert BNF to EBNF; eliminate left recursion; eliminate left factoring.', 'Fall 25-26 practical Q3.1-3.3 (7.5 marks).'],
+        ['Lexical analysis', 'List the lexemes and token types of a code statement in order.', 'Fall 25-26 practical Q3.4 (2.5 marks).'],
+      ],
+    },
+    ece202: {
+      name: 'ECE202 · Digital Logic Design',
+      coverage: '',
+      format: [],
+      topics: null,
+    },
+  };
+
+  function examFocus() {
+    const blocks = Object.keys(EXAM_FOCUS).map(k => {
+      const f = EXAM_FOCUS[k];
+      let inner;
+      if (!f.topics) {
+        inner = '<div class="notice info">No verified past exam paper found in the shared course pack for this subject yet, so no exam-focus analysis is shown. The formula sheet for this subject (built from verified lecture slides) is on the Formula Sheets page. This analysis will be added only when a real paper is verified.</div>';
+      } else {
+        const rows = f.topics.map(t =>
+          `<tr><td style="padding:8px 10px 8px 0;vertical-align:top;color:var(--gold,#d4af37);font-weight:600;white-space:normal">${escx(t[0])}</td>
+               <td style="padding:8px 10px 8px 0;vertical-align:top">${escx(t[1])}</td>
+               <td style="padding:8px 0;vertical-align:top" class="muted">${escx(t[2])}</td></tr>`).join('');
+        inner =
+          (f.coverage ? `<div class="notice info" style="margin-bottom:10px">Source coverage: ${escx(f.coverage)}</div>` : '') +
+          section('Historical exam format', `<ul class="notes" style="margin:0;padding-left:18px">${f.format.map(x => `<li>${escx(x)}</li>`).join('')}</ul>`) +
+          `<div class="card ex-card" style="margin:10px 0"><h3 style="margin:0 0 8px">Topics identified in verified past papers</h3>
+           <table style="width:100%;border-collapse:collapse;font-size:14px">
+           <tr><th style="text-align:left;padding-bottom:6px">Topic</th><th style="text-align:left;padding-bottom:6px">What was asked</th><th style="text-align:left;padding-bottom:6px">Evidence (paper · question)</th></tr>
+           ${rows}</table></div>` +
+          `<div class="rowflex" style="margin-top:8px">
+            <a class="btn ghost sm" href="#/subject/${k}">Practice this subject's question bank</a>
+            <a class="btn ghost sm" href="#/exam/${k}">Mock exam from real questions</a>
+            <a class="btn ghost sm" href="#/workspace/formulas">Formula sheet</a>
+            <a class="btn ghost sm" href="#/past-exams">Past exam archive</a>
+          </div>`;
+      }
+      return section(escx(f.name), inner);
+    }).join('');
+    page('Exam Focus', 'Important topics and frequently tested concepts, identified only from verified past exams with the exact paper and question each came from.',
+      `<div class="notice warn" style="margin-bottom:12px">This page describes past exams only. A topic appearing here is evidence that it appeared in those specific past papers - it is not a prediction, and nothing here guarantees or estimates what will be on your exam.</div>` + blocks);
+  }
+
   route(/^\/workspace$/,home);
 
   /* Code Runner — real execution via Judge0 CE public instance (ce.judge0.com).
@@ -356,6 +431,7 @@
   }
 
   route(/^\/workspace\/formulas$/,formulas);
+  route(/^\/workspace\/exam-focus$/,examFocus);
   route(/^\/workspace\/code$/,codeRunner);
   route(/^\/workspace\/gpa$/,gpa);
   route(/^\/workspace\/assignments$/,assignments);
