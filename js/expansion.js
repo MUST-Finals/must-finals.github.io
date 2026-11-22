@@ -318,7 +318,7 @@
   }
 
   async function rooms() {
-    if(!window.MFB?.ready||(MFB.ready&&MFB.user&&!MFB.profile)){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if((MFB.ready&&(!MFB.user||MFB.profile))||++t>60){clearInterval(h);rooms();}},150);return;}
+    if(!window.MFB?.ready||(MFB.ready&&MFB.user&&!MFB.profile)){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if(MFB.ready&&(!MFB.user||MFB.profile)){clearInterval(h);rooms();}else if(++t>60){clearInterval(h);if(!MFB.ready){page('Study Rooms','Study rooms need the online account service, which is unavailable right now. The rest of the site works offline.','');}else{rooms();}}},150);return;}
     if(!MFB.user){page('Study Rooms','Collaborative rooms require a signed-in account.',statusNote('Sign in through Account to use study rooms.'));return;}
     if(!MFB.isAdmin()){page('Study Rooms','Subject-based study rooms with shared chat.',statusNote('Study Rooms are in private testing and will open after a privacy review.'));return;}
     let data=[],error=null;try{({data,error}=await MFB.sb.from('study_rooms').select('id,title,subject_key,description,visibility,created_at').order('created_at',{ascending:false}).limit(50));}catch(e){error=e;}
@@ -330,7 +330,7 @@
   }
 
   async function roomView(id){
-    if(!window.MFB?.ready||(MFB.ready&&MFB.user&&!MFB.profile)){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if((MFB.ready&&(!MFB.user||MFB.profile))||++t>60){clearInterval(h);roomView(id);}},150);return;}
+    if(!window.MFB?.ready||(MFB.ready&&MFB.user&&!MFB.profile)){page('Study Rooms','Loading your account...','');let t=0;const h=setInterval(()=>{if(!location.hash.startsWith('#/workspace/rooms'))return clearInterval(h);if(MFB.ready&&(!MFB.user||MFB.profile)){clearInterval(h);roomView(id);}else if(++t>60){clearInterval(h);if(!MFB.ready){page('Study Rooms','Study rooms need the online account service, which is unavailable right now. The rest of the site works offline.','');}else{roomView(id);}}},150);return;}
     if(!MFB.user){page('Study Rooms','Sign in required.',statusNote('Sign in through Account to use study rooms.'));return;}
     if(!MFB.isAdmin()){page('Study Rooms','Subject-based study rooms with shared chat.',statusNote('Study Rooms are in private testing and will open after a privacy review.'));return;}
     const {data:room,error:rErr}=await MFB.sb.from('study_rooms').select('*').eq('id',id).maybeSingle();
