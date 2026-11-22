@@ -6,14 +6,14 @@
   const escx = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const get = async (k, d) => store.get('x.' + k, d);
   const set = async (k, v) => store.set('x.' + k, v);
-  const today = () => new Date().toISOString().slice(0,10);
+  const today = () => {const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');};
   const page = (title, subtitle, body) => {
     $('#app').innerHTML = `<section class="hero ex-hero"><div class="eyebrow">MUST FINALS · WORKSPACE</div><h1>${escx(title)}</h1><p class="sub">${escx(subtitle)}</p></section>${body}`;
   };
   const card = (title, desc, href, tag='Open') => `<a class="card ex-card" href="#${href}"><span class="pill pri">${escx(tag)}</span><h3>${escx(title)}</h3><p>${escx(desc)}</p><span class="ex-arrow">Explore →</span></a>`;
   const section = (title, html) => `<section class="blk"><div class="blk-h"><h2>${title}</h2></div>${html}</section>`;
   const subjects = () => (window.DATA?.subjects || []);
-  const subjectOptions = (v='') => '<option value="">No subject</option>' + subjects().map(s => `<option value="${s.key}" ${s.key===v?'selected':''}>${escx(s.code)} · ${escx(s.full)}</option>`).join('');
+  const subjectOptions = (v='') => '<option value="">No subject</option>' + subjects().map(s => `<option value="${escx(s.key)}" ${s.key===v?'selected':''}>${escx(s.code)} · ${escx(s.full)}</option>`).join('');
   const statusNote = (text) => `<div class="notice info">${escx(text)}</div>`;
 
   async function home() {
@@ -65,8 +65,10 @@
     };
     $$('#app [data-del]').forEach(b=>b.onclick=async()=>{state.terms.splice(Number(b.dataset.del),1);await set('gpa',state);gpa();});
     $('#w-calc').onclick=()=>{
-      const cur=Number($('#w-cur').value),doneC=Number($('#w-done').value),target=Number($('#w-target').value),nextC=Number($('#w-next').value),scale=Number($('#g-scale').value);
-      if(![cur,doneC,target,nextC].every(Number.isFinite)||doneC<0||nextC<=0||cur<0||target<0){$('#w-result').textContent='Fill all four fields with valid numbers.';return;}
+      const raw=['#w-cur','#w-done','#w-target','#w-next'].map(s=>$(s).value.trim());
+      if(raw.some(v=>v==='')){$('#w-result').textContent='Fill all four fields with valid numbers.';return;}
+      const cur=Number(raw[0]),doneC=Number(raw[1]),target=Number(raw[2]),nextC=Number(raw[3]),scale=Number($('#g-scale').value);
+      if(![cur,doneC,target,nextC].every(Number.isFinite)||doneC<0||nextC<=0||cur<0||cur>scale||target<0||target>scale){$('#w-result').textContent='Enter valid values within the selected grading scale.';return;}
       const req=(target*(doneC+nextC)-cur*doneC)/nextC;
       $('#w-result').textContent = req<=0
         ? `You are already above the target: current ${cur} exceeds ${target}. Any non-negative average keeps you at or above it.`
@@ -89,7 +91,7 @@
   async function timetable() {
     const events=await get('timetable',[]);
     const days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const rows=events.slice().sort((a,b)=>a.day-b.day||a.start.localeCompare(b.start)).map((e,i)=>`<div class="act ex-row"><span><b>${days[e.day]}</b> · ${escx(e.start)}–${escx(e.end)}<br>${escx(e.title)} <small class="hint">${escx(e.location||'')}</small></span><button class="qtool" data-del="${i}">Delete</button></div>`).join('');
+    const rows=events.map((e,i)=>({e,i})).sort((a,b)=>a.e.day-b.e.day||a.e.start.localeCompare(b.e.start)).map(({e,i})=>`<div class="act ex-row"><span><b>${days[e.day]}</b> · ${escx(e.start)}–${escx(e.end)}<br>${escx(e.title)} <small class="hint">${escx(e.location||'')}</small></span><button class="qtool" data-del="${i}">Delete</button></div>`).join('');
     page('Smart Timetable','Create a weekly schedule and check for overlapping sessions.',
       `<div class="card ex-panel"><div class="ex-form"><label>Event title<input id="t-title" maxlength="100" placeholder="Lecture / lab / study session"></label><label>Day<select id="t-day">${days.map((d,i)=>`<option value="${i}">${d}</option>`).join('')}</select></label><label>Start<input id="t-start" type="time" value="09:00"></label><label>End<input id="t-end" type="time" value="10:00"></label><label>Location<input id="t-location" maxlength="100" placeholder="Room / online"></label></div><button class="btn" id="t-add">Add to timetable</button></div>${section('Weekly events',`<div class="acts">${rows||'<p class="hint">No events scheduled.</p>'}</div>`) }`);
     $('#t-add').onclick=async()=>{const title=$('#t-title').value.trim(),day=+$('#t-day').value,start=$('#t-start').value,end=$('#t-end').value;if(!title||!start||!end||start>=end){toast('Enter a title and a valid time range');return;}const conflict=events.some(e=>e.day===day&&start<e.end&&end>e.start);if(conflict){toast('Time conflict: this overlaps an existing event');return;}events.push({title,day,start,end,location:$('#t-location').value.trim()});await set('timetable',events);timetable();};
@@ -110,11 +112,11 @@
     const beep=()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();[0,.18].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=i?880:660;g.gain.setValueAtTime(.15,actx.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d+.15);o.start(actx.currentTime+d);o.stop(actx.currentTime+d+.16);});}catch(e){}};
     page('Focus Mode & Pomodoro','A distraction-reduced timer. Keep sessions comfortable and take breaks when needed.',
       `<div class="card ex-focus"><div class="eyebrow">FOCUS SESSION</div><div id="focus-clock" class="ex-clock">${String(cfg.focus).padStart(2,'0')}:00</div><div id="focus-state" class="hint">Ready when you are</div><div class="rowflex" style="justify-content:center;margin:16px"><button class="btn" id="focus-start">Start</button><button class="btn ghost" id="focus-reset">Reset</button></div><div class="ex-form"><label>Focus minutes<input id="f-min" type="number" min="1" max="120" value="${cfg.focus}"></label><label>Break minutes<input id="f-break" type="number" min="1" max="60" value="${cfg.short}"></label><label>Daily goal (minutes)<input id="f-goal" type="number" min="5" max="480" step="5" value="${cfg.goal||60}"></label></div><p class="hint" id="f-stats">Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}</p><p class="hint" id="f-today">Today: ${todayMin} / ${cfg.goal||60} minutes toward your daily goal.</p></div>`);
-    let left=cfg.focus*60,handle=null,running=false;
+    let left=cfg.focus*60,handle=null,running=false,armed=false,sessionDuration=cfg.focus;
     const paint=()=>$('#focus-clock').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');
-    $('#focus-start').onclick=()=>{if(running){clearInterval(handle);running=false;$('#focus-start').textContent='Resume';$('#focus-state').textContent='Paused';return;}running=true;$('#focus-start').textContent='Pause';$('#focus-state').textContent='Focus session in progress';handle=setInterval(async()=>{left--;paint();if(left<=0){clearInterval(handle);running=false;const mins=Number($('#f-min').value);sessions.unshift({minutes:mins,at:Date.now()});await set('focusSessions',sessions);await notify('Focus session completed',mins+' minutes recorded','#/workspace/focus');beep();const newToday=todayMin+mins;const goalLine=$('#f-today');if(goalLine)goalLine.textContent=`Today: ${newToday} / ${cfg.goal||60} minutes toward your daily goal${newToday>= (cfg.goal||60) ? ' - goal reached!' : '.'}`;const st=$('#f-stats');if(st)st.textContent=`Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}`;$('#focus-state').textContent='Session complete — take a break';$('#focus-start').textContent='Start again';left=mins*60;paint();}},1000);};
-    $('#focus-reset').onclick=()=>{clearInterval(handle);running=false;left=Math.max(1,Math.min(120,+$('#f-min').value||25))*60;paint();$('#focus-start').textContent='Start';$('#focus-state').textContent='Ready when you are';};
-    $('#f-min').onchange=async()=>{cfg.focus=Math.max(1,Math.min(120,+$('#f-min').value||25));await set('focusCfg',cfg);if(!running){left=cfg.focus*60;paint();}};
+    $('#focus-start').onclick=()=>{if(running){clearInterval(handle);running=false;$('#focus-start').textContent='Resume';$('#focus-state').textContent='Paused';return;}if(!armed){sessionDuration=Math.max(1,Math.min(120,Number($('#f-min').value)||25));left=sessionDuration*60;armed=true;}running=true;$('#focus-start').textContent='Pause';$('#focus-state').textContent='Focus session in progress';handle=setInterval(async()=>{left--;paint();if(left<=0){clearInterval(handle);running=false;armed=false;const mins=sessionDuration;sessions.unshift({minutes:mins,at:Date.now()});await set('focusSessions',sessions);await notify('Focus session completed',mins+' minutes recorded','#/workspace/focus');beep();const newToday=sessions.filter(s=>new Date(s.at).toDateString()===new Date().toDateString()).reduce((n,s)=>n+s.minutes,0);const goalLine=$('#f-today');if(goalLine)goalLine.textContent=`Today: ${newToday} / ${cfg.goal||60} minutes toward your daily goal${newToday>= (cfg.goal||60) ? ' - goal reached!' : '.'}`;const st=$('#f-stats');if(st)st.textContent=`Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}`;$('#focus-state').textContent='Session complete — take a break';$('#focus-start').textContent='Start again';left=mins*60;paint();}},1000);};
+    $('#focus-reset').onclick=()=>{clearInterval(handle);running=false;armed=false;left=Math.max(1,Math.min(120,+$('#f-min').value||25))*60;paint();$('#focus-start').textContent='Start';$('#focus-state').textContent='Ready when you are';};
+    $('#f-min').onchange=async()=>{cfg.focus=Math.max(1,Math.min(120,+$('#f-min').value||25));await set('focusCfg',cfg);if(!running){armed=false;left=cfg.focus*60;paint();}};
     $('#f-break').onchange=async()=>{cfg.short=Math.max(1,Math.min(60,+$('#f-break').value||5));await set('focusCfg',cfg);};
     $('#f-goal').onchange=async()=>{cfg.goal=Math.max(5,Math.min(480,+$('#f-goal').value||60));await set('focusCfg',cfg);const gl=$('#f-today');if(gl)gl.textContent=`Today: ${todayMin} / ${cfg.goal} minutes toward your daily goal.`;};
   }
@@ -717,7 +719,7 @@
           else out.innerHTML = statusNote('Could not answer right now: ' + escx(detail || code || 'error'));
           return;
         }
-        const chip = x => `<a class="chip" href="https://drive.google.com/file/d/${x.file_id}/view#page=${x.page}" target="_blank" rel="noopener">${escx(x.title)} · p.${x.page}</a>`;
+        const chip = x => {const fid=String(x.file_id||''),pg=Number(x.page);if(!/^[a-zA-Z0-9_-]+$/.test(fid)||!Number.isSafeInteger(pg)||pg<1)return '';const href='https://drive.google.com/file/d/'+encodeURIComponent(fid)+'/view#page='+pg;return `<a class="chip" href="${escx(href)}" target="_blank" rel="noopener noreferrer">${escx(x.title)} · p.${pg}</a>`;};
         const cited = (data.cited || []).map(chip).join(' ');
         const rest = (data.retrieved || []).filter(r => !(data.cited || []).some(c => c.file_id === r.file_id && c.page === r.page)).map(chip).join(' ');
         out.innerHTML = `<div class="card" style="margin-top:4px"><p dir="auto" style="white-space:pre-wrap">${escx(data.answer || '')}</p>
