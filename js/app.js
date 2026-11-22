@@ -482,7 +482,7 @@ async function viewSubject(key, focusQid) {
         <div class="rowflex">
         ${l.missing ? `<span class="miss">${ic('alert')} Material missing from the folder</span>`
           : (l.link ? `<a class="matbtn" href="${l.link}" target="_blank" rel="noopener">Lecture material ${ic('ext')}</a>` : '')}
-        ${l.missing ? '' : `<button type="button" class="btn ghost sm done-btn" data-lec="${doneId}">${done ? ic('check') + ' Done' : 'Mark done'}</button>`}
+        ${l.missing ? '' : `<button type="button" class="btn ghost sm done-btn" data-lec="${doneId}">${done ? ic('check') + (CUR_AR ? ' تم' : ' Done') : (CUR_AR ? 'تحديد كمنجز' : 'Mark done')}</button>`}
         </div>
       </div>${secHtml}
     </div>`;
@@ -613,10 +613,10 @@ document.addEventListener('click', async e => {
   if (done) {
     const p = await prog();
     const id = done.dataset.lec;
-    if (p.completed[id]) { delete p.completed[id]; done.textContent = 'Mark done'; }
+    if (p.completed[id]) { delete p.completed[id]; done.textContent = CUR_AR ? 'تحديد كمنجز' : 'Mark done'; }
     else {
       p.completed[id] = Date.now();
-      done.innerHTML = ic('check') + ' Done';
+      done.innerHTML = ic('check') + (CUR_AR ? ' تم' : ' Done');
       const [k] = id.split('-');
       await logAct(`Finished ${subjByKey(k).code} · ${id.replace(k + '-', '').replace('lec', 'Lecture ')}`);
     }
@@ -981,11 +981,11 @@ async function viewTools(which) {
   const tool = which || '';
   const cards = `
   <div class="grid g3">
-    <a class="scard toolcard" href="#/tools/truthtable"><h3>${ic('cpu')} Truth Table Generator</h3><p>Type a Boolean expression with A, B, C, D and get the full truth table.</p></a>
-    <a class="scard toolcard" href="#/tools/kmap"><h3>${ic('dash')} K-Map Viewer</h3><p>Enter minterms for 2 to 4 variables and see the Karnaugh map grid.</p></a>
-    <a class="scard toolcard" href="#/tools/gates"><h3>${ic('zap')} Logic Gates</h3><p>Toggle inputs and watch AND, OR, XOR, NAND, NOR, XNOR and NOT outputs.</p></a>
-    <a class="scard toolcard" href="#/tools/ds"><h3>${ic('layers')} Data Structures Visualizer</h3><p>Push, pop, enqueue, dequeue and grow a linked list step by step.</p></a>
-    <a class="scard toolcard" href="#/tools/code"><h3>${ic('code')} Code Output Practice</h3><p>Predict what short C++ snippets print before revealing the output.</p></a>
+    <a class="scard toolcard" href="#/tools/truthtable"><h3>${ic('cpu')} ${CUR_AR ? 'مولّد جدول الحقيقة' : 'Truth Table Generator'}</h3><p>${CUR_AR ? 'اكتب تعبيرًا منطقيًا بالمتغيرات A, B, C, D واحصل على جدول الحقيقة كاملًا.' : 'Type a Boolean expression with A, B, C, D and get the full truth table.'}</p></a>
+    <a class="scard toolcard" href="#/tools/kmap"><h3>${ic('dash')} ${CUR_AR ? 'عارض خريطة كارنوف' : 'K-Map Viewer'}</h3><p>${CUR_AR ? 'أدخل الحدود الدنيا لمتغيرين إلى أربعة وشاهد شبكة خريطة كارنوف.' : 'Enter minterms for 2 to 4 variables and see the Karnaugh map grid.'}</p></a>
+    <a class="scard toolcard" href="#/tools/gates"><h3>${ic('zap')} ${CUR_AR ? 'البوابات المنطقية' : 'Logic Gates'}</h3><p>${CUR_AR ? 'بدّل المداخل وشاهد مخرجات AND وOR وXOR وNAND وNOR وXNOR وNOT.' : 'Toggle inputs and watch AND, OR, XOR, NAND, NOR, XNOR and NOT outputs.'}</p></a>
+    <a class="scard toolcard" href="#/tools/ds"><h3>${ic('layers')} ${CUR_AR ? 'مُصوّر هياكل البيانات' : 'Data Structures Visualizer'}</h3><p>${CUR_AR ? 'نفّذ Push وPop وEnqueue وDequeue ونمّي قائمة مترابطة خطوة بخطوة.' : 'Push, pop, enqueue, dequeue and grow a linked list step by step.'}</p></a>
+    <a class="scard toolcard" href="#/tools/code"><h3>${ic('code')} ${CUR_AR ? 'تدريب مخرجات الكود' : 'Code Output Practice'}</h3><p>${CUR_AR ? 'توقّع ما تطبعه مقتطفات ++C القصيرة قبل كشف الناتج.' : 'Predict what short C++ snippets print before revealing the output.'}</p></a>
   </div>`;
   const head = `<section class="hero" style="padding:22px 24px">
     <div class="eyebrow">Interactive tools</div>
@@ -999,7 +999,7 @@ async function viewTools(which) {
   if (tool === 'truthtable') {
     $('#app').innerHTML = head + notice + `
     <div class="card" style="padding:22px;max-width:720px">
-      <h3 style="margin-top:0">${ic('cpu')} Truth Table Generator</h3>
+      <h3 style="margin-top:0">${ic('cpu')} ${CUR_AR ? 'مولّد جدول الحقيقة' : 'Truth Table Generator'}</h3>
       <div class="field"><label for="tt-expr">Boolean expression (variables A-D; AND: & or · or space, OR: + or |, XOR: ^, NOT: ! or ~)</label>
       <input id="tt-expr" type="text" value="(A AND B) OR !C" style="width:100%;max-width:none;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font-family:ui-monospace,monospace;font-size:14px"></div>
       <button type="button" class="btn" id="tt-go">${ic('play')} ${CUR_AR ? 'أنشئ الجدول' : 'Generate table'}</button>
@@ -1027,7 +1027,7 @@ async function viewTools(which) {
   if (tool === 'kmap') {
     $('#app').innerHTML = head + notice + `
     <div class="card" style="padding:22px;max-width:720px">
-      <h3 style="margin-top:0">${ic('dash')} K-Map Viewer</h3>
+      <h3 style="margin-top:0">${ic('dash')} ${CUR_AR ? 'عارض خريطة كارنوف' : 'K-Map Viewer'}</h3>
       <div class="field"><label for="km-vars">Variables</label>
         <select id="km-vars"><option value="2">2 (A, B)</option><option value="3" selected>3 (A, B, C)</option><option value="4">4 (A, B, C, D)</option></select></div>
       <div class="field"><label for="km-min">Minterms (comma separated, e.g. 0,2,5,7)</label>
@@ -1066,7 +1066,7 @@ async function viewTools(which) {
   if (tool === 'gates') {
     $('#app').innerHTML = head + notice + `
     <div class="card" style="padding:22px;max-width:720px">
-      <h3 style="margin-top:0">${ic('zap')} Logic Gates</h3>
+      <h3 style="margin-top:0">${ic('zap')} ${CUR_AR ? 'البوابات المنطقية' : 'Logic Gates'}</h3>
       <div class="field"><label for="gt-sel">Gate</label>
         <select id="gt-sel"><option>AND</option><option>OR</option><option>XOR</option><option>NAND</option><option>NOR</option><option>XNOR</option><option>NOT</option></select></div>
       <div class="gatebox">
@@ -1099,7 +1099,7 @@ async function viewTools(which) {
   if (tool === 'ds') {
     $('#app').innerHTML = head + notice + `
     <div class="card" style="padding:22px;max-width:760px">
-      <h3 style="margin-top:0">${ic('layers')} Data Structures Visualizer</h3>
+      <h3 style="margin-top:0">${ic('layers')} ${CUR_AR ? 'مُصوّر هياكل البيانات' : 'Data Structures Visualizer'}</h3>
       <div class="field"><label for="ds-sel">Structure</label>
         <select id="ds-sel"><option value="stack">Stack (LIFO)</option><option value="queue">Queue (FIFO)</option><option value="list">Singly Linked List</option></select></div>
       <div class="rowflex">
@@ -1570,19 +1570,19 @@ async function viewFlashcards(key) {
   const c = FC.cards[FC.i];
   $('#app').innerHTML = `
   <section class="hero" style="padding:22px 24px">
-    <div class="eyebrow">${esc(s.code)} · Flashcards</div>
+    <div class="eyebrow">${esc(s.code)} · ${CUR_AR ? 'بطاقات' : 'Flashcards'}</div>
     <h1 style="font-size:26px">${esc(s.full)}</h1>
-    <p class="sub">Built from the real ${esc(s.code)} question bank. Card ${FC.i + 1} of ${FC.cards.length}.</p>
+    <p class="sub">${CUR_AR ? 'بطاقات مبنية من بنك أسئلة ' + esc(s.code) + ' الحقيقي. البطاقة ' + (FC.i + 1) + ' من ' + FC.cards.length + '.' : 'Built from the real ' + esc(s.code) + ' question bank. Card ' + (FC.i + 1) + ' of ' + FC.cards.length + '.'}</p>
   </section>
   <div class="fcwrap">
-    <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="Flashcard, activate to flip">
-      <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">Click to flip</p></div>
-      <div class="fface fback"><span class="pill good">Answer</span><p class="ftext">${esc(c.back)}</p><p class="hint">Click to flip back</p></div>
+    <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="${CUR_AR ? 'بطاقة، اضغط للقلب' : 'Flashcard, activate to flip'}">
+      <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">${CUR_AR ? 'اضغط للقلب' : 'Click to flip'}</p></div>
+      <div class="fface fback"><span class="pill good">${CUR_AR ? 'الإجابة' : 'Answer'}</span><p class="ftext">${esc(c.back)}</p><p class="hint">${CUR_AR ? 'اضغط للرجوع' : 'Click to flip back'}</p></div>
     </div>
     <div class="rowflex" style="justify-content:center;margin-top:14px">
       <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
       <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} ${CUR_AR ? 'خلط' : 'Shuffle'}</button>
-      <button type="button" class="btn" id="fc-next">Next ${ic('ar')}</button>
+      <button type="button" class="btn" id="fc-next">${CUR_AR ? 'التالي' : 'Next'} ${ic('ar')}</button>
     </div>
   </div>`;
   const flip = () => { FC.flipped = !FC.flipped; viewFlashcards(key); };
@@ -1616,7 +1616,7 @@ viewSubject = async function (key, focusQid) {
   if (hero && !$('#fc-link')) {
     const a = document.createElement('a');
     a.className = 'btn ghost'; a.href = '#/subject/' + key + '/flashcards'; a.id = 'fc-link';
-    a.innerHTML = ic('cards') + ' Flashcards';
+    a.innerHTML = ic('cards') + (CUR_AR ? ' بطاقات' : ' Flashcards');
     hero.appendChild(a);
   }
   const mcqH = $$('#app .blk-h h2').find(h => h.textContent.startsWith('MCQ Practice'));
@@ -1914,9 +1914,9 @@ viewFlashcards = async function (key, dueOnly) {
     <p class="sub">Spaced repetition over the real ${esc(s.code)} bank. Card ${FC.i + 1} of ${FC.cards.length}.${dueIn ? ' Scheduled again in ~' + dueIn + ' day' + (dueIn > 1 ? 's' : '') + '.' : ''}</p>
   </section>
   <div class="fcwrap">
-    <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="Flashcard, activate to flip">
-      <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">Click to flip</p></div>
-      <div class="fface fback"><span class="pill good">Answer</span><p class="ftext">${esc(c.back)}</p><p class="hint">How well did you know it?</p></div>
+    <div class="fcard ${FC.flipped ? 'flipped' : ''}" id="fcard" role="button" tabindex="0" aria-label="${CUR_AR ? 'بطاقة، اضغط للقلب' : 'Flashcard, activate to flip'}">
+      <div class="fface ffront"><span class="pill pri">${esc(c.tag)}</span><p class="ftext">${esc(c.front)}</p><p class="hint">${CUR_AR ? 'اضغط للقلب' : 'Click to flip'}</p></div>
+      <div class="fface fback"><span class="pill good">${CUR_AR ? 'الإجابة' : 'Answer'}</span><p class="ftext">${esc(c.back)}</p><p class="hint">How well did you know it?</p></div>
     </div>
     ${FC.flipped ? `<div class="rowflex" style="justify-content:center;margin-top:14px" id="fc-grade">
       <button type="button" class="btn ghost" data-g="0">Again · &lt;1d</button>
