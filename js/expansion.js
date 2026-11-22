@@ -105,7 +105,7 @@
   async function notifications() {
     const list=await get('notifications',[]);
     page('Notifications Center','Local reminders and workspace updates. Browser push is not enabled until a push service is configured.',
-      `${section('Inbox',list.map(n=>`<div class="act ex-row ${n.read?'':'ex-unread'}"><a href="#${escx(n.target||'/workspace')}" style="flex:1"><b>${escx(n.title)}</b><br><span class="hint">${escx(n.body)} · ${new Date(n.at).toLocaleString()}</span></a><button class="qtool" data-read="${escx(n.id)}">${n.read?'Read':'Mark read'}</button></div>`).join('')||'<p class="hint">No notifications yet.</p>')}`)}
+      `${section('Inbox',list.map(n=>`<div class="act ex-row ${n.read?'':'ex-unread'}"><a href="#${escx(n.target||'/workspace')}" style="flex:1"><b>${escx(n.title)}</b><br><span class="hint">${escx(n.body)} · ${new Date(n.at).toLocaleString()}</span></a><button class="qtool" data-read="${escx(n.id)}">${n.read?'Read':'Mark read'}</button></div>`).join('')||'<p class="hint">No notifications yet.</p>')}
       <button class="btn ghost sm" id="n-clear">Clear all</button>`);
     $$('#app [data-read]').forEach(b=>b.onclick=async()=>{const n=list.find(x=>x.id===b.dataset.read);if(n)n.read=true;await set('notifications',list);notifications();});
     $('#n-clear').onclick=async()=>{await set('notifications',[]);notifications();};
