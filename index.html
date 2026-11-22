@@ -11,8 +11,8 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1020">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/styles.css?v=104">
-  <link rel="stylesheet" href="css/expansion.css?v=104">
+<link rel="stylesheet" href="css/styles.css?v=105">
+  <link rel="stylesheet" href="css/expansion.css?v=105">
 <script data-goatcounter="https://must-finals.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
@@ -48,10 +48,24 @@
   </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/data.js?v=104"></script>
-<script src="js/backend.js?v=104"></script>
-<script src="js/app.js?v=104"></script>
-  <script src="js/expansion.js?v=104"></script>
+<script src="js/data.js?v=105"></script>
+<script>
+/* Auto-refresh once when a new service worker takes over an already-controlled
+   page, so returning users see the latest deploy without a manual reload.
+   Guarded: only when an older SW already controlled this page, and once per session. */
+if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (hadController && !sessionStorage.getItem('mf-sw-reload')) {
+      sessionStorage.setItem('mf-sw-reload', '1');
+      location.reload();
+    }
+  });
+}
+</script>
+<script src="js/backend.js?v=105"></script>
+<script src="js/app.js?v=105"></script>
+  <script src="js/expansion.js?v=105"></script>
 <script>
 /* Boot watchdog: if scripts were blocked (flaky SW/network), reload once per session. */
 setTimeout(function () {
