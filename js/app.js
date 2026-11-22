@@ -753,7 +753,7 @@ async function viewExamRun(key) {
   function palette() {
     return exam.qs.map((q, i) => {
       const cls = [i === exam.cur ? 'cur' : '', q.picked !== null ? 'ansd' : '', q.marked ? 'mkd' : ''].join(' ');
-      return `<button type="button" class="${cls}" data-go="${i}" aria-label="Question ${i + 1}${q.picked !== null ? ', answered' : ''}${q.marked ? ', marked' : ''}">${i + 1}</button>`;
+      return `<button type="button" class="${cls}" data-go="${i}" aria-label="${CUR_AR ? 'السؤال ' + (i + 1) + (q.picked !== null ? '، مُجاب' : '') + (q.marked ? '، مميز' : '') : 'Question ' + (i + 1) + (q.picked !== null ? ', answered' : '') + (q.marked ? ', marked' : '')}">${i + 1}</button>`;
     }).join('');
   }
   function paintQ() {
@@ -764,20 +764,21 @@ async function viewExamRun(key) {
     $('#ex-qtext').textContent = data.q;
     $('#ex-opts').innerHTML = q.order.map((oi, pos) =>
       `<button type="button" class="opt ${q.picked === pos ? 'picked' : ''}" data-pos="${pos}"><span class="ol">${OPT_LETTERS[pos]}</span><span>${esc(data.opts[oi])}</span></button>`).join('');
-    $('#ex-mark').innerHTML = (q.marked ? ic('flag') + ' Marked' : ic('flag') + ' Mark for review');
+    $('#ex-mark').innerHTML = ic('flag') + (CUR_AR ? (q.marked ? ' مميز' : ' تمييز للمراجعة') : (q.marked ? ' Marked' : ' Mark for review'));
     $('#ex-mark').classList.toggle('on', q.marked);
     $('#ex-prev').disabled = exam.cur === 0;
     $('#ex-next').disabled = exam.cur === exam.qs.length - 1;
     $('#ex-pal').innerHTML = palette();
     const ansd = exam.qs.filter(x => x.picked !== null).length;
     $('#ex-counts').textContent = `${ansd} answered · ${exam.qs.length - ansd} left · ${exam.qs.filter(x => x.marked).length} marked`;
+    if (CUR_AR) { const eq = $('#ex-qnum'), ec = $('#ex-counts'); const t1 = arPatText(eq.textContent.trim()); if (t1) eq.textContent = t1; const t2 = arPatText(ec.textContent.trim()); if (t2) ec.textContent = t2; }
   }
   async function saveExam() { await store.set('exam', exam); }
   async function submit(auto) {
     stopExamTimer();
     const unanswered = exam.qs.filter(x => x.picked === null).length;
-    if (!auto && unanswered > 0 && !confirm(`${unanswered} question(s) unanswered. Submit anyway?`)) { startTick(); return; }
-    if (!auto && unanswered === 0 && !confirm('Submit exam now?')) { startTick(); return; }
+    if (!auto && unanswered > 0 && !confirm(CUR_AR ? `${arCount(unanswered, AR_Q)} بلا إجابة. تسليم الامتحان رغم ذلك؟` : `${unanswered} question(s) unanswered. Submit anyway?`)) { startTick(); return; }
+    if (!auto && unanswered === 0 && !confirm(CUR_AR ? 'تسليم الامتحان الآن؟' : 'Submit exam now?')) { startTick(); return; }
     exam.submitted = true; exam.finishedAt = Date.now();
     let correct = 0;
     for (const q of exam.qs) { if (q.picked === q.correctIdx) correct++; }
@@ -883,7 +884,7 @@ async function viewExamResults(key) {
   const review = exam.qs.map((q, i) => {
     const data = mcqById(q.id);
     const ok = q.picked === q.correctIdx;
-    const your = q.picked === null ? 'Unanswered' : OPT_LETTERS[q.picked] + ' · ' + data.opts[q.order[q.picked]];
+    const your = q.picked === null ? (CUR_AR ? 'بلا إجابة' : 'Unanswered') : OPT_LETTERS[q.picked] + ' · ' + data.opts[q.order[q.picked]];
     const corr = OPT_LETTERS[q.correctIdx] + ' · ' + data.opts[q.order[q.correctIdx]];
     return `<div class="mcq answered" data-filter="${ok ? 'ok' : 'no'}">
       <p class="q"><span class="pill ${ok ? 'good' : 'warn'}">${ok ? 'Correct' : (q.picked === null ? 'Skipped' : 'Wrong')}</span> Q${i + 1}. ${esc(data.q)}</p>
@@ -1741,6 +1742,8 @@ const AR_UI = {
   'Explain': 'اشرح',
   'Solve step by step': 'حل خطوة بخطوة',
   'Hint only': 'تلميح فقط',
+  'Correct': 'صحيحة', 'Wrong': 'خاطئة', 'Skipped': 'متخطاة',
+  'Start exam': 'ابدأ الامتحان', 'Submit': 'تسليم',
 };
 /* Composite chrome strings with embedded numbers. Regex pass over leaf text
    elements only; runs after the exact-match pass and only fires on a full
@@ -1767,29 +1770,44 @@ const AR_D = { zero: 'أيام', one: 'يوم واحد', oneBare: 'يوم', two:
 function arDays(n) { return arCount(n, AR_D); }
 const AR_PAT = [
   [/^Question (\d+) of (\d+)$/, m => 'السؤال ' + m[1] + ' من ' + m[2]],
-  [/^(\d+) answered · (\d+) left · (\d+) marked$/, m => m[1] + ' مُجابة · ' + m[2] + ' متبقية · ' + m[3] + ' مميزة'],
+  [/^(\d+) answered · (\d+) left · (\d+) marked$/, m => {
+    const z = n => +n === 0 ? 'لا شيء' : arCount(n, AR_Q);
+    return 'مُجاب: ' + z(m[1]) + ' · متبقٍ: ' + z(m[2]) + ' · مميز: ' + z(m[3]);
+  }],
   [/^(\d+) questions?$/, m => arCount(m[1], AR_Q)],
   [/^(\d+) matches?$/, m => arCount(m[1], AR_M)],
   [/^All (\d+) questions$/, m => 'كل الأسئلة (' + m[1] + ')'],
   [/^(.+?) · in (\d+) days?$/, m => m[1] + ' · خلال ' + arDays(m[2])],
   [/^(.*?) · date passed$/, m => m[1] + ' · انقضى التاريخ'],
+  [/^Number of questions \(bank: (\d+)\)$/, m => 'عدد الأسئلة (البنك: ' + m[1] + ')'],
+  [/^Time limit \(minutes\)$/, () => 'الوقت المتاح (بالدقائق)'],
+  [/^Question source$/, () => 'مصدر الأسئلة'],
+  [/^Lectures \+ labs$/, () => 'المحاضرات + اللابات'],
+  [/^Lectures \+ sections$/, () => 'المحاضرات + السكاشن'],
+  [/^Lectures only$/, () => 'المحاضرات فقط'],
+  [/^Labs only$/, () => 'اللابات فقط'],
+  [/^Sections only$/, () => 'السكاشن فقط'],
+  [/^(\d+(?:\.\d+)?) minutes? per question$/, m => m[1] === '1' ? 'دقيقة واحدة لكل سؤال' : (m[1] === '2' ? 'دقيقتين لكل سؤال' : m[1] + ' دقيقة لكل سؤال')],
 ];
 function applyArPatterns() {
-  $$('#app .pill, #app .hint, #app option').forEach(el => {
+  $$('#app .pill, #app .hint, #app option, #app label').forEach(el => {
     if (el.children.length) return;
     const t = el.textContent.trim();
     for (const [re, fn] of AR_PAT) { const m = t.match(re); if (m) { el.textContent = fn(m); break; } }
   });
 }
+let CUR_AR = false;
+function arPatText(t) { for (const [re, fn] of AR_PAT) { const m = t.match(re); if (m) return fn(m); } return null; }
 async function applyLang() {
   const ar = (await store.get('lang', 'en')) === 'ar';
+  CUR_AR = ar;
   document.documentElement.dir = ar ? 'rtl' : 'ltr';
   document.documentElement.lang = ar ? 'ar' : 'en';
   $$('.snav a, .snav .cat').forEach(el => {
     if (!el.dataset.en) el.dataset.en = el.textContent.trim();
     el.textContent = ar ? (AR_NAV[el.dataset.en] || el.dataset.en) : el.dataset.en;
   });
-  $$('#app h1, #app h2, #app h3, #app button, #app a.btn, #app .pill, #app th, #app summary').forEach(el => {
+  $$('#app h1, #app h2, #app h3, #app button, #app a.btn, #app .pill, #app th, #app summary, #app label').forEach(el => {
     if (el.children.length) return;
     if (!el.dataset.en) el.dataset.en = el.textContent.trim();
     el.textContent = ar ? (AR_UI[el.dataset.en] || el.dataset.en) : el.dataset.en;
