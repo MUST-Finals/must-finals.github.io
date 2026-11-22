@@ -22,7 +22,8 @@
         ${card('Chat With Your PDF','Ask questions about lecture PDFs with page citations. Requires secure AI document processing.','/workspace/pdf','AI service')}
         ${card('AI Study Tutor','Explain concepts, solve step by step, hints, and line-by-line code explanation via the secure proxy.','/workspace/tutor','AI service')}
         ${card('AI Quiz Generator','Generate practice questions from your course topics via the secure server-side proxy.','/workspace/quiz','AI service')}
-                ${card('Formula Sheets','Key formulas and laws extracted from the ingested lecture slides, with page citations.','/workspace/formulas','From lectures')}
+                        ${card('Code Runner','Write and run real C, C++, Python, Java or JavaScript code with your own input, executed on the Judge0 CE service.','/workspace/code','Live execution')}
+        ${card('Formula Sheets','Key formulas and laws extracted from the ingested lecture slides, with page citations.','/workspace/formulas','From lectures')}
         ${card('Smart Revision','Review cards using your saved spaced-repetition schedule.','/revision','Ready')}
         ${card('Mind Map Studio','Create and edit a personal concept map.','/workspace/mindmap','Local')}
         ${card('Code Playground','Practice from the existing verified code-output exercises. Arbitrary execution is not enabled.','/tools/code','Practice')}
@@ -237,7 +238,83 @@
   }
 
   route(/^\/workspace$/,home);
+
+  /* Code Runner — real execution via Judge0 CE public instance (ce.judge0.com).
+     Only the code and stdin the student types are sent; nothing account-linked. */
+  const CODE_LANGS = [
+    ['105', 'C++ (GCC 14.1.0)', '#include <iostream>\nusing namespace std;\n\nint main() {\n    cout << "Hello, MUST!" << endl;\n    return 0;\n}'],
+    ['103', 'C (GCC 14.1.0)', '#include <stdio.h>\n\nint main(void) {\n    printf("Hello, MUST!\\n");\n    return 0;\n}'],
+    ['113', 'Python (3.14.0)', 'print("Hello, MUST!")'],
+    ['91', 'Java (JDK 17.0.6)', 'public class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello, MUST!");\n    }\n}'],
+    ['102', 'JavaScript (Node.js 22)', 'console.log("Hello, MUST!");']
+  ];
+  const b64e = s => btoa(unescape(encodeURIComponent(s)));
+  const b64d = s => { try { return decodeURIComponent(escape(atob(s || ''))); } catch (e) { return atob(s || ''); } };
+
+  const OWNER_UID = '2ec4e4aa-e56d-4bd2-8fb9-68c5023ccd0a';
+  function codeRunner() {
+    const isOwner = !!(window.MFB && MFB.user && MFB.user.id === OWNER_UID);
+    page('Code Runner', 'Write code, give it input, and run it for real. Currently activated for the site owner while the execution service terms are being reviewed.', '');
+    if (!isOwner) {
+      $('#app').insertAdjacentHTML('beforeend', `<section class="blk"><div class="card ex-panel">
+        <p>Code Runner is not activated for everyone yet. It is being tested with the site owner first.</p>
+      </div></section>`);
+      return;
+    }
+    $('#app').insertAdjacentHTML('beforeend', `<section class="blk"><div class="card ex-panel">
+      <p class="hint" style="margin:0 0 10px">Execution happens on the public Judge0 CE service (ce.judge0.com). Only the code and input you type are sent there, never your account or course data. Do not paste personal data. Terms and limits review is in progress before wider activation.</p>
+      <label class="hint" for="cr-lang">Language</label>
+      <select id="cr-lang" class="input" style="width:100%;margin:6px 0 10px">${CODE_LANGS.map((l, i) => `<option value="${i}">${escx(l[1])}</option>`).join('')}</select>
+      <label class="hint" for="cr-src">Code</label>
+      <textarea id="cr-src" dir="ltr" spellcheck="false" style="width:100%;min-height:220px;margin:6px 0 10px;font-family:ui-monospace,monospace;font-size:13.5px;line-height:1.55;text-align:left"></textarea>
+      <label class="hint" for="cr-in">Input (stdin, optional)</label>
+      <textarea id="cr-in" dir="ltr" spellcheck="false" style="width:100%;min-height:70px;margin:6px 0 12px;font-family:ui-monospace,monospace;font-size:13.5px;text-align:left" placeholder="Each value on its own line"></textarea>
+      <button type="button" class="btn" id="cr-go">Run</button>
+      <span class="hint" style="margin-inline-start:10px" id="cr-note">Free public service - heavy use may be rate-limited.</span>
+      <div id="cr-out" style="margin-top:14px"></div>
+    </div></section>`);
+    const srcEl = $x('#cr-src'), langEl = $x('#cr-lang'), out = $x('#cr-out');
+    const loadTemplate = () => { srcEl.value = CODE_LANGS[Number(langEl.value)][2]; };
+    langEl.addEventListener('change', loadTemplate);
+    loadTemplate();
+    $x('#cr-go').addEventListener('click', async () => {
+      const code = srcEl.value;
+      if (!code.trim()) { out.innerHTML = statusNote('Write some code first.'); return; }
+      out.innerHTML = statusNote('Compiling and running...');
+      try {
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 45000);
+        const res = await fetch('https://ce.judge0.com/submissions?base64_encoded=true&wait=true', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ language_id: Number(CODE_LANGS[Number(langEl.value)][0]), source_code: b64e(code), stdin: b64e($x('#cr-in').value) }),
+          signal: ctl.signal
+        });
+        clearTimeout(timer);
+        if (!res.ok) {
+          out.innerHTML = statusNote('The execution service rejected the request (HTTP ' + res.status + '). It may be rate-limited - wait a minute and try again.');
+          return;
+        }
+        const d = await res.json();
+        const status = d.status && d.status.description || 'Unknown';
+        const stdout = b64d(d.stdout), stderr = b64d(d.stderr), comp = b64d(d.compile_output), msg = b64d(d.message);
+        const block = (label, txt, cls) => txt ? `<div style="margin-top:10px"><div class="hint">${label}</div><pre dir="ltr" class="${cls}" style="text-align:left;white-space:pre-wrap;margin:4px 0 0;padding:10px;border-radius:8px;background:rgba(0,0,0,.25)">${escx(txt)}</pre></div>` : '';
+        out.innerHTML = `<div class="card" style="margin-top:4px">
+          <p style="margin:0"><strong>Status:</strong> ${escx(status)}${d.time ? ` &middot; <span class="hint">${escx(d.time)}s${d.memory ? ' · ' + escx(String(d.memory)) + ' KB' : ''}</span>` : ''}</p>
+          ${block('Output (stdout)', stdout)}
+          ${block('Errors (stderr)', stderr)}
+          ${block('Compiler output', comp)}
+          ${block('Service message', msg)}
+          ${(!stdout && !stderr && !comp && !msg) ? '<p class="hint" style="margin-top:8px">Program finished with no output.</p>' : ''}
+        </div>`;
+      } catch (e) {
+        out.innerHTML = statusNote('Could not reach the execution service (network error or timeout). Check your connection and try again.');
+      }
+    });
+  }
+
   route(/^\/workspace\/formulas$/,formulas);
+  route(/^\/workspace\/code$/,codeRunner);
   route(/^\/workspace\/gpa$/,gpa);
   route(/^\/workspace\/assignments$/,assignments);
   route(/^\/workspace\/timetable$/,timetable);
