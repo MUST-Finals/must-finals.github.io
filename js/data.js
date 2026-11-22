@@ -5956,7 +5956,7 @@ window.DATA = {
    "light": true
   },
   {
-   "name": "CS.211 · Concepts",
+   "name": "CS.211 · Concept",
    "window": "General window: expected Dec 26 - Jan 14",
    "note": "Exact date not released yet",
    "light": false
