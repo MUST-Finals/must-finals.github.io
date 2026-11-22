@@ -35,3 +35,15 @@ plan for when infrastructure is approved.
 - No fake login, no fake AI, no fake sync on the static site. Features above ship only
   when the corresponding backend is live; until then the UI shows local-only equivalents
   (localStorage progress, clipboard-based error reports) and says so.
+
+## 6. Progress sync behavior
+- Local-first: every progress key lives in localStorage under `mf.` with a per-key
+  timestamp under `mf.t.`.
+- Push (syncUp): per-key merge against the remote `progress.state` row; the newer
+  timestamp wins per key, so a stale device cannot drop another device's newer
+  keys. Pull (syncDown) applies the same comparison on load.
+- Conflict rule: last-writer-wins per key. List-shaped values (for example the
+  notifications inbox) are replaced as a whole when the same key is written on two
+  devices within the same window; concurrent adds on two devices are not union-merged.
+- Pushes are debounced (2.5s) and fire only on local writes; the synced-at marker is
+  written directly to storage so it never triggers a push loop.
