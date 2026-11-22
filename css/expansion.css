@@ -9,7 +9,7 @@
 .ex-panel{padding:18px;margin:14px 0}
 .ex-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .ex-panel label{display:grid;gap:6px;color:var(--ink2);font-size:13px;font-weight:650;margin:8px 0}
-.ex-panel input,.ex-panel select,.ex-panel textarea{width:100%;min-width:0;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font:inherit}
+.ex-panel input,.ex-panel select,.ex-panel textarea,.ex-focus input,.ex-focus select,.ex-focus textarea{width:100%;min-width:0;background:var(--surface2);border:1px solid var(--stroke);color:var(--ink);border-radius:9px;padding:10px 12px;font:inherit}
 .ex-course{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin:8px 0}
 .ex-row{justify-content:space-between;align-items:center}
 .ex-unread{border-color:var(--primary)}
