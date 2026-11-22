@@ -164,9 +164,39 @@
 
   async function mindmap() {
     const maps=await get('mindmaps',[]);let active=maps[0]||{title:'My first mind map',nodes:['Main topic','Concept 1','Concept 2']};
-    page('Mind Map Studio','Create a simple editable topic map. AI extraction and automatic PDF parsing require the AI backend.',
-      `<div class="card ex-panel"><label>Map title<input id="m-title" value="${escx(active.title)}" maxlength="100"></label><label>One concept per line<textarea id="m-nodes" rows="8">${escx(active.nodes.join('\n'))}</textarea></label><button class="btn" id="m-save">Save mind map</button><div id="m-preview" class="ex-mind"></div></div>`);
-    const paint=()=>{const nodes=$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean);$('#m-preview').innerHTML=nodes.map((n,i)=>`<div class="ex-node" style="margin-left:${i?Math.min(i*18,90):0}px">${escx(n)}</div>`).join('');};paint();$('#m-nodes').oninput=paint;
+    page('Mind Map Studio','Create an editable topic map with zoom and image export. AI extraction and automatic PDF parsing require the AI backend.',
+      `<div class="card ex-panel"><label>Map title<input id="m-title" value="${escx(active.title)}" maxlength="100"></label><label>One concept per line - first line is the central topic<textarea id="m-nodes" rows="8">${escx(active.nodes.join('\n'))}</textarea></label><div class="rowflex" style="gap:8px;flex-wrap:wrap"><button class="btn" id="m-save">Save mind map</button><button class="btn ghost sm" id="m-zin">Zoom +</button><button class="btn ghost sm" id="m-zout">Zoom -</button><button class="btn ghost sm" id="m-zreset">Reset zoom</button><button class="btn ghost sm" id="m-export">Export as PNG</button></div><canvas id="m-canvas" width="900" height="560" style="width:100%;max-width:900px;border:1px solid var(--gold,#d4af37);border-radius:10px;margin-top:10px;background:var(--card,#14161d)"></canvas><p class="hint" id="m-msg"></p></div>`);
+    let zoom=1;
+    const paint=()=>{
+      const cv=$('#m-canvas'),ctx=cv.getContext('2d');
+      const nodes=$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean);
+      ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
+      if(!nodes.length){ctx.fillStyle='#9aa';ctx.font='16px sans-serif';ctx.fillText('Add concepts to see the map.',20,40);return;}
+      ctx.translate(cv.width/2,cv.height/2);ctx.scale(zoom,zoom);
+      const box=(x,y,text,main)=>{
+        ctx.font=(main?'bold 15px':'13px')+' sans-serif';
+        const w=Math.min(ctx.measureText(text).width+28,220),h=main?44:34;
+        ctx.strokeStyle='#d4af37';ctx.fillStyle=main?'rgba(212,175,55,.22)':'rgba(212,175,55,.08)';ctx.lineWidth=1.4;
+        ctx.beginPath();ctx.roundRect(x-w/2,y-h/2,w,h,9);ctx.fill();ctx.stroke();
+        ctx.fillStyle='#e8e8ec';ctx.textAlign='center';ctx.textBaseline='middle';
+        let t=text;while(t.length>2&&ctx.measureText(t).width>w-16)t=t.slice(0,-2);
+        if(t!==text)t+='\u2026';ctx.fillText(t,x,y);
+      };
+      box(0,0,nodes[0],true);
+      const kids=nodes.slice(1),R=Math.min(210,90+kids.length*12);
+      kids.forEach((n,i)=>{
+        const a=-Math.PI/2+i*(2*Math.PI/kids.length),x=Math.cos(a)*R,y=Math.sin(a)*R*0.72;
+        ctx.strokeStyle='rgba(212,175,55,.5)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(x,y);ctx.stroke();
+        box(x,y,n,false);
+      });
+      $('#m-msg').textContent=nodes.length+' concept(s) · zoom '+Math.round(zoom*100)+'%';
+    };
+    paint();
+    $('#m-nodes').oninput=paint;
+    $('#m-zin').onclick=()=>{zoom=Math.min(3,zoom*1.25);paint();};
+    $('#m-zout').onclick=()=>{zoom=Math.max(.4,zoom/1.25);paint();};
+    $('#m-zreset').onclick=()=>{zoom=1;paint();};
+    $('#m-export').onclick=()=>{const a=document.createElement('a');a.download=($('#m-title').value.trim()||'mind-map')+'.png';a.href=$('#m-canvas').toDataURL('image/png');a.click();$('#m-msg').textContent='PNG exported: '+a.download;};
     $('#m-save').onclick=async()=>{active={title:$('#m-title').value.trim()||'Untitled map',nodes:$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean)};maps.unshift(active);await set('mindmaps',maps.slice(0,30));toast('Mind map saved');};
   }
 
