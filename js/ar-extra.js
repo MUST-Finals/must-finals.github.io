@@ -182,6 +182,28 @@
     'Topics you lost marks on in this attempt. They are also in your': 'المواضيع التي خسرت فيها درجات في هذه المحاولة. وهي موجودة أيضًا في',
     'mistakes notebook': 'دفتر الأخطاء', 'Review': 'المراجعة', 'Wrong & skipped': 'الخاطئة والمتخطاة',
     'answered correctly since': 'أُجيب عنها صحيحًا بعد ذلك',
+    /* admin (owner only) */
+    'Admin': 'الإدارة', 'Site administration': 'إدارة الموقع',
+    'Admins only. Your account has the student role.': 'للمشرفين فقط. حسابك لديه صلاحية طالب.',
+    'Post announcement': 'نشر إعلان', 'Title': 'العنوان', 'Body': 'النص', 'Publish': 'نشر',
+    'Question reports': 'بلاغات الأسئلة', 'Community moderation': 'إشراف المجتمع', 'Accounts': 'الحسابات', 'Announcements': 'الإعلانات',
+    'open': 'مفتوح', 'resolved': 'تم الحل', 'dismissed': 'مرفوض', 'student': 'طالب', 'admin': 'مشرف',
+    'just now': 'الآن', 'Resolve': 'تم الحل', 'Dismiss': 'رفض', 'Delete': 'حذف', 'Block': 'حظر', 'Unblock': 'إلغاء الحظر',
+    'Admin audit log': 'سجل إجراءات الإدارة',
+    'Append-only record of admin actions. Entries cannot be edited or removed.': 'سجل للإضافة فقط لإجراءات الإدارة. لا يمكن تعديل المدخلات أو حذفها.',
+    'No admin actions recorded yet.': 'لم تُسجَّل إجراءات إدارية بعد.',
+    'Add course content': 'إضافة محتوى للمقرر',
+    'Added questions merge into the live site for everyone within seconds. Only add content from real course materials - never invented questions or answers.': 'تظهر الأسئلة المضافة في الموقع للجميع خلال ثوانٍ. أضف فقط محتوى من مواد المقرر الحقيقية - لا تضف أسئلة أو إجابات مخترعة أبدًا.',
+    'MCQ': 'اختيار من متعدد', 'Written question': 'سؤال مقالي',
+    'Source label (e.g. Lecture 6 · name, or Section 3)': 'وصف المصدر (مثال: المحاضرة 6 · الاسم، أو السكشن 3)',
+    'Question': 'السؤال', 'Option A': 'الاختيار A', 'Option B': 'الاختيار B', 'Option C': 'الاختيار C', 'Option D': 'الاختيار D',
+    'Correct option': 'الاختيار الصحيح', 'Model answer (from course materials)': 'الإجابة النموذجية (من مواد المقرر)',
+    'Add question': 'إضافة السؤال', 'Managed content': 'المحتوى المُدار',
+    'No managed content yet. Added questions appear here.': 'لا محتوى مُدارًا بعد. ستظهر الأسئلة المضافة هنا.',
+    'All four options are required.': 'الاختيارات الأربعة كلها مطلوبة.',
+    'Added. It is live for all students now.': 'تمت الإضافة. أصبح متاحًا لكل الطلاب الآن.',
+    'No reports.': 'لا بلاغات.', 'No discussion posts yet.': 'لا منشورات نقاش بعد.', 'No accounts yet.': 'لا حسابات بعد.', 'No announcements yet.': 'لا إعلانات بعد.',
+    'CS.212 · Data Structures': 'CS.212 · هياكل البيانات', 'ECE202 · Logic Design': 'ECE202 · التصميم المنطقي', 'CS.211 · Concept of Programming Languages': 'CS.211 · مفاهيم لغات البرمجة',
     /* days and months */
     'Mon': 'الاثنين', 'Tue': 'الثلاثاء', 'Wed': 'الأربعاء', 'Thu': 'الخميس', 'Fri': 'الجمعة', 'Sat': 'السبت', 'Sun': 'الأحد',
     'Mo': 'اث', 'Tu': 'ثل', 'We': 'أر', 'Th': 'خم', 'Fr': 'جم', 'Sa': 'سب', 'Su': 'أح',
@@ -194,6 +216,7 @@
   function cards(n) { n = +n; if (n === 0) return 'لا بطاقات'; if (n === 1) return 'بطاقة واحدة'; if (n === 2) return 'بطاقتان'; if (n <= 10) return n + ' بطاقات'; return n + ' بطاقة'; }
   function qs(n) { n = +n; if (n === 0) return 'لا أسئلة'; if (n === 1) return 'سؤال واحد'; if (n === 2) return 'سؤالان'; if (n <= 10) return n + ' أسئلة'; return n + ' سؤالًا'; }
   var PAT = [
+    [/^(\d+) accounts · (\d+) discussion posts · (\d+) open reports$/, function (m) { return m[1] + ' حسابًا · ' + m[2] + ' منشور نقاش · ' + m[3] + ' بلاغ مفتوح'; }],
     [/^(\d+) questions?$/, function (m) { return qs(m[1]); }],
     [/^Retry the (\d+) I missed$/, function (m) { return 'أعد محاولة الأسئلة الفائتة (' + m[1] + ')'; }],
     [/^(.+) mock exam result$/, function (m) { return 'نتيجة الامتحان التجريبي ' + m[1]; }],
