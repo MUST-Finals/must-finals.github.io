@@ -422,14 +422,23 @@
       { name: 'Binary Search Tree (BST)', src: 'L6 Trees and Binary Search Trees · pp.36, 41', rows: [
         ['Main rule', 'For any node: all values in the left child and its descendants are smaller than the node value; all values in the right child and its descendants are greater.'],
         ['Node structure', 'Each node holds: data, a left-child pointer and a right-child pointer.'] ] },
-      { name: 'Queue Operations (Array Implementation)', src: 'Lab 3 Queue deck (CS 212_Fall 2026-2027_Lab3.pdf) · pp.4-10', rows: [
+      { name: 'Queue Operations (Array Implementation)', src: 'Lab 3 Queue deck (CS 212_Fall 2026-2027_Lab3.pdf) · pp.4-11 (slide-literal code; see caveat row)', rows: [
         ['Enqueue', 'Insert/add an element at the end of the queue. Overflow when rear == n - 1; on the first insert front is set to 0, then rear++ and queue[rear] = val.'],
         ['Dequeue', 'Remove/delete the element from the front. Underflow when front == -1 || front > rear; otherwise the front value is removed and front++.'],
         ['isEmpty', 'Returns true when front == -1 || front > rear, false otherwise.'],
         ['isFull', 'Returns true when rear == n - 1 (array of capacity n), false otherwise.'],
         ['Peek', 'Returns queue[front] without removing it; if empty it prints "queue is empty" and returns -1.'],
         ['getrear', 'Returns the rear element queue[rear] without removing it; prints "Queue is empty" and returns -1 when rear == -1.'],
-        ['size', 'Returns the total number of elements the queue contains; 0 when front == -1.'] ] }
+        ['size', 'Slide code: 0 when front == -1, otherwise rear - front + 1.'],
+        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly, not universally correct queue code. getrear tests only rear == -1 and size tests only front == -1, so after the queue is fully drained without resetting the indices (front > rear), getrear returns a stale rear value and size returns a non-positive number instead of 0. A correct implementation checks front == -1 || front > rear in both, the same test the slide\'s own isEmpty and Peek use.'] ] },
+      { name: 'Linked List Operations', src: 'Lab 5 Linked List deck (CS 212_Fall 2026-2027_Lab5.pdf) · pp.3-9', rows: [
+        ['Node structure', 'Each node holds data and a next pointer; HEAD points to the first node and the last node\'s next is NULL.'],
+        ['Insert', 'Add a new element to the linked list.'],
+        ['Delete', 'Remove the existing elements.'],
+        ['Traversal', 'Traverse the linked list from start to end (access each element of the linked list).'],
+        ['Display', 'Displays the complete list.'],
+        ['Search', 'Searches an element using the given key (find a node in the linked list).'],
+        ['Sort', 'Sort the nodes of the linked list.'] ] }
     ]
   };
   FORMULA_SHEETS.cs211 = {
