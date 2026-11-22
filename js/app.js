@@ -41,6 +41,8 @@ const IC = {
   menu: '<line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/>',
   zap: '<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',
   target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>',
+  plus: '<line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/>',
+  sparkles: '<path d="m12 3 1.9 5.8L20 11l-6.1 2.2L12 19l-1.9-5.8L4 11l6.1-2.2L12 3Z"/><path d="m19 14 1.2 2.8L23 18l-2.8 1.2L19 22l-1.2-2.8L15 18l2.8-1.2L19 14Z"/>',
 };
 const ic = (n, cls) => `<svg class="ic ${cls || ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n] || ''}</svg>`;
 
@@ -120,6 +122,7 @@ function route(re, fn) { routes.push([re, fn]); }
 function nav(hash) { location.hash = hash; }
 async function render() {
   const h = location.hash.slice(1) || '/';
+  if (!/^\/exam\/[a-z0-9]+\/run$/.test(h)) await pauseActiveExam();
   for (const [re, fn] of routes) {
     const m = h.match(re);
     if (m) { await fn(...m.slice(1)); markNav(h); window.scrollTo(0, 0); return; }
@@ -129,7 +132,9 @@ async function render() {
 function markNav(h) {
   $$('.snav a').forEach(a => {
     const href = a.getAttribute('href').slice(1);
-    a.classList.toggle('on', href === h || (href !== '/' && h.startsWith(href)));
+    const active = href === h || (href !== '/' && h.startsWith(href)) || (href === '/' && h === '/study-session');
+    a.classList.toggle('on', active);
+    if (active) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
   });
 }
 window.addEventListener('hashchange', render);
@@ -154,7 +159,7 @@ async function viewDashboard() {
   }
   const resumeExam = await store.get('exam', null);
   if (resumeExam && !resumeExam.submitted) {
-    continueBtn += ` <a class="btn ghost" href="#/exam/${resumeExam.subj}/run">${ic('timer')} Resume exam in progress</a>`;
+    continueBtn += ` <a class="btn ghost" href="#/exam/${resumeExam.subj}/run">${ic('timer')} Resume ${resumeExam.mode === 'quick-practice' ? 'practice' : 'exam'} in progress</a>`;
   }
 
   /* pastel subject cards (reference layout) - real completion data */
@@ -302,7 +307,7 @@ async function viewDashboard() {
   const nMocks = mocksChrono.length;
   const nPass = mocksChrono.filter(x => x.correct / x.count >= 0.5).length;
   const nFail = nMocks - nPass;
-  const ongoingN = (resumeExam && !resumeExam.submitted) ? 1 : 0;
+  const ongoingN = (resumeExam && !resumeExam.submitted && resumeExam.mode !== 'quick-practice') ? 1 : 0;
   const avgScore = nMocks ? Math.round(mocksChrono.reduce((a, x) => a + 100 * x.correct / x.count, 0) / nMocks) : null;
   const miniRing = (pct, col, label, val) => {
     const r = 15.5, C = 2 * Math.PI * r;
@@ -389,7 +394,10 @@ async function viewDashboard() {
     <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>
   </div>`;
 }
-function todayKey2() { return new Date().toISOString().slice(0, 10); }
+function localDateKey(d = new Date()) {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+function todayKey2() { return localDateKey(); }
 /* MUST Finals platform - part 2: subject pages, practice, bookmarks */
 const OPT_LETTERS = ['A', 'B', 'C', 'D'];
 
@@ -473,7 +481,7 @@ async function viewSubject(key, focusQid) {
       ${sec.missing ? `<span class="miss">${ic('alert')} Material missing from the folder</span>`
         : (sec.link ? `<a class="matbtn" href="${sec.link}" target="_blank" rel="noopener">${esc(s.seckind)} material ${ic('ext')}</a>` : '')}
     </div>`;
-    return `<div class="card pair" data-search="lecture ${l.n} ${esc(l.topic.toLowerCase())}">
+    return `<div class="card pair" id="${doneId}" data-search="lecture ${l.n} ${esc(l.topic.toLowerCase())}">
       <div class="half">
         <p class="kind">Lecture ${l.n}</p>
         <h3 class="lech">${esc(l.topic)}</h3>
@@ -666,6 +674,15 @@ document.addEventListener('click', async e => {
 /* MUST Finals platform - part 3: exam simulator */
 let examTimer = null;
 function stopExamTimer() { if (examTimer) { clearInterval(examTimer); examTimer = null; } }
+async function pauseActiveExam() {
+  if (!examTimer) return;
+  stopExamTimer();
+  const exam = await store.get('exam', null);
+  if (!exam || exam.submitted || exam.paused) return;
+  exam.remainingMs = Math.max(0, exam.deadline - Date.now());
+  exam.paused = true;
+  await store.set('exam', exam);
+}
 function shuffled(arr) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
@@ -740,8 +757,15 @@ async function viewExamRun(key) {
   const exam = await store.get('exam', null);
   if (!exam || exam.subj !== key) { nav('/exam/' + key); return; }
   if (exam.submitted) { await viewExamResults(key); return; }
+  if (exam.paused && Number.isFinite(exam.remainingMs)) {
+    exam.deadline = Date.now() + exam.remainingMs;
+    delete exam.remainingMs;
+    delete exam.paused;
+    await store.set('exam', exam);
+  }
   stopExamTimer();
   const s = subjByKey(key);
+  const quickPractice = exam.mode === 'quick-practice';
 
   function fmt(ms) {
     if (ms < 0) ms = 0;
@@ -774,8 +798,8 @@ async function viewExamRun(key) {
   async function submit(auto) {
     stopExamTimer();
     const unanswered = exam.qs.filter(x => x.picked === null).length;
-    if (!auto && unanswered > 0 && !confirm(`${unanswered} question(s) unanswered. Submit anyway?`)) { startTick(); return; }
-    if (!auto && unanswered === 0 && !confirm('Submit exam now?')) { startTick(); return; }
+    if (!auto && unanswered > 0 && !confirm(`${unanswered} question(s) unanswered. ${quickPractice ? 'Finish' : 'Submit'} anyway?`)) { startTick(); return; }
+    if (!auto && unanswered === 0 && !confirm(quickPractice ? 'Finish this practice set?' : 'Submit exam now?')) { startTick(); return; }
     exam.submitted = true; exam.finishedAt = Date.now();
     let correct = 0;
     for (const q of exam.qs) { if (q.picked === q.correctIdx) correct++; }
@@ -783,7 +807,9 @@ async function viewExamRun(key) {
     await saveExam();
     const p = await prog();
     if (!p.mistakes) p.mistakes = {};
+    let answeredCount = 0;
     for (const q of exam.qs) {
+      if (q.picked !== null) answeredCount++;
       const st = p.mcq[q.id] || { t: 0, c: 0 };
       st.t++; if (q.picked === q.correctIdx) st.c++;
       p.mcq[q.id] = st;
@@ -796,10 +822,13 @@ async function viewExamRun(key) {
         p.mistakes[q.id].sinceRight = true;
       }
     }
-    p.examHistory.unshift({ ts: Date.now(), subj: key, count: exam.qs.length, correct, secs: Math.round((exam.finishedAt - exam.started) / 1000) });
-    p.examHistory = p.examHistory.slice(0, 50);
+    if (answeredCount) await dailyBump(answeredCount);
+    if (!quickPractice) {
+      p.examHistory.unshift({ ts: Date.now(), subj: key, count: exam.qs.length, correct, secs: Math.round((exam.finishedAt - exam.started) / 1000) });
+      p.examHistory = p.examHistory.slice(0, 50);
+    }
     await saveProg();
-    await logAct(`Mock exam ${subjByKey(key).code}: ${correct}/${exam.qs.length} (${Math.round(100 * correct / exam.qs.length)}%)`);
+    await logAct(`${quickPractice ? 'Quick practice' : 'Mock exam'} ${subjByKey(key).code}: ${correct}/${exam.qs.length} (${Math.round(100 * correct / exam.qs.length)}%)`);
     await viewExamResults(key);
   }
   function startTick() {
@@ -817,8 +846,8 @@ async function viewExamRun(key) {
 
   $('#app').innerHTML = `
   <div class="exam-top">
-    <a class="btn ghost sm" href="#/subject/${key}">${ic('al')} Exit</a>
-    <span class="pill pri">${esc(s.code)} mock exam</span>
+    <a class="btn ghost sm" href="${quickPractice ? '#/study-session' : '#/subject/' + key}">${ic('al')} ${quickPractice ? 'Study session' : 'Exit exam'}</a>
+    <span class="pill pri">${esc(s.code)} ${quickPractice ? 'practice' : 'mock exam'}</span>
     <span class="timer" id="ex-timer" role="timer">${ic('clock')} --:--</span>
     <span class="sp" style="flex:1"></span>
     <span class="hint" id="ex-counts"></span>
@@ -876,6 +905,7 @@ async function viewExamResults(key) {
   document.removeEventListener('keydown', examKeys);
   const exam = await store.get('exam', null);
   const s = subjByKey(key);
+  const quickPractice = exam.mode === 'quick-practice';
   const pct = Math.round(100 * exam.correct / exam.qs.length);
   const mins = Math.floor((exam.finishedAt - exam.started) / 60000);
   const review = exam.qs.map((q, i) => {
@@ -905,17 +935,17 @@ async function viewExamResults(key) {
   const R = 54, C = 2 * Math.PI * R;
   $('#app').innerHTML = `
   <div class="card score-hero">
-    <div class="eyebrow">${esc(s.code)} mock exam result</div>
+    <div class="eyebrow">${esc(s.code)} ${quickPractice ? 'practice session' : 'mock exam'} result</div>
     <svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="Score ${pct} percent">
       <circle cx="70" cy="70" r="${R}" fill="none" stroke="var(--surface3)" stroke-width="12"/>
       <circle cx="70" cy="70" r="${R}" fill="none" stroke="url(#g1)" stroke-width="12" stroke-linecap="round"
         stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct / 100)}" transform="rotate(-90 70 70)"/>
-      <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c6cf6"/><stop offset="1" stop-color="#38bdf8"/></linearGradient></defs>
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--primary2)"/><stop offset="1" stop-color="var(--accent)"/></linearGradient></defs>
       <text x="70" y="78" text-anchor="middle" font-size="30" font-weight="800" fill="var(--ink)">${pct}%</text>
     </svg>
     <p style="font-size:17px;font-weight:700;margin:6px 0">${exam.correct} of ${exam.qs.length} correct · ${mins} min</p>
     <div class="rowflex" style="justify-content:center;margin-top:10px">
-      <a class="btn" href="#/exam/${key}">${ic('retry')} New attempt</a>
+      <a class="btn" href="${quickPractice ? '#/study-session' : '#/exam/' + key}">${ic('retry')} ${quickPractice ? 'Back to session' : 'New attempt'}</a>
       <a class="btn ghost" href="#/subject/${key}">${ic('book')} Back to subject</a>
     </div>
   </div>
@@ -1388,8 +1418,16 @@ async function boot() {
     const t = (await store.get('theme', 'dark')) === 'dark' ? 'light' : 'dark';
     await store.set('theme', t); applyTheme();
   });
-  $('#menu-btn').addEventListener('click', () => document.body.classList.toggle('navopen'));
-  $('#side').addEventListener('click', e => { if (e.target.closest('a')) document.body.classList.remove('navopen'); });
+  const setNavOpen = open => {
+    document.body.classList.toggle('navopen', open);
+    $('#menu-btn').setAttribute('aria-expanded', String(open));
+    $('#menu-btn').setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+  };
+  $('#menu-btn').addEventListener('click', () => setNavOpen(!document.body.classList.contains('navopen')));
+  $('#nav-backdrop').addEventListener('click', () => setNavOpen(false));
+  $('#side').addEventListener('click', e => { if (e.target.closest('a')) setNavOpen(false); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && document.body.classList.contains('navopen')) setNavOpen(false); });
+  $('#skip-link').addEventListener('click', e => { e.preventDefault(); $('#app').focus(); });
   await render();
   window.__MF_BOOTED = true;
   try { sessionStorage.removeItem('mf.reloaded'); } catch (e) {}
@@ -1413,9 +1451,9 @@ Object.assign(IC, {
 });
 
 /* ---- daily goal ---- */
-function todayKey() { return new Date().toISOString().slice(0, 10); }
+function todayKey() { return localDateKey(); }
 async function dailyGet() { const d = await store.get('daily', null); return (d && d.date === todayKey()) ? d : { date: todayKey(), count: 0 }; }
-async function dailyBump() { const d = await dailyGet(); d.count++; await store.set('daily', d); }
+async function dailyBump(n = 1) { const d = await dailyGet(); d.count += n; await store.set('daily', d); }
 async function goalTarget() { return await store.get('goal', 20); }
 
 const _recordMcq = recordMcq;
@@ -1776,89 +1814,306 @@ async function plan() { return Object.assign({ exams: {}, tasks: [] }, await sto
 async function savePlan(pl) { await store.set('plan', pl); }
 function daysUntil(dateStr) { const d = new Date(dateStr + 'T00:00:00'); return Math.ceil((d - new Date(new Date().toDateString())) / 86400000); }
 
-async function viewPlanner() {
-  const pl = await plan();
-  const p = await prog();
-  const today = new Date(); const dow = (today.getDay() + 6) % 7; // Mon=0
-  const weekStart = new Date(today); weekStart.setDate(today.getDate() - dow);
-  const days = [...Array(7)].map((_, i) => { const d = new Date(weekStart); d.setDate(weekStart.getDate() + i); return d; });
-  const iso = d => d.toISOString().slice(0, 10);
+let PLANNER_VIEW_DATE = '';
+let PLANNER_VIEW_MODE = 'week';
+let PLANNER_EDITING_ID = '';
+let PLANNER_NEW_DATE = '';
+const PLANNER_DAILY_GOALS = [45, 60, 90, 120, 150, 180, 240];
+const PLANNER_SESSION_LENGTHS = [25, 30, 45, 60, 75, 90];
 
-  const examCards = D.subjects.map(s => {
-    const dstr = pl.exams[s.key];
-    const du = dstr ? daysUntil(dstr) : null;
-    return `<div class="card" style="padding:14px">
-      <div class="rowflex"><b>${esc(s.code)}</b><span class="sp" style="flex:1"></span>
-      ${du === null ? '' : (du < 0 ? '<span class="pill">passed</span>' : `<span class="pill ${du <= 3 ? 'bad' : du <= 7 ? 'warn' : 'pri'}">${du} day${du === 1 ? '' : 's'} left</span>`)}</div>
-      <div class="rowflex" style="margin-top:8px"><input type="date" class="inp exam-date" data-k="${s.key}" value="${dstr || ''}" aria-label="${esc(s.code)} exam date"></div>
-      <p class="hint" style="margin:6px 0 0;font-size:11px">You set this date. ${esc((D.exams.find(e => e.name.includes(s.code.replace('CS.', 'CS.'))) || {}).window || 'See dashboard for the general window')}</p>
-    </div>`;
-  }).join('');
-
-  const taskRow = t => `<div class="act taskrow ${t.done ? 'done' : ''}">
-    <button type="button" class="qtool task-check ${t.done ? 'on' : ''}" data-id="${t.id}" aria-label="Toggle done">${ic('check')}</button>
-    <span style="flex:1">${esc(t.text)}</span>
-    ${t.subj ? `<span class="pill">${esc(subjByKey(t.subj).code)}</span>` : ''}
-    <button type="button" class="qtool task-del" data-id="${t.id}" aria-label="Delete task">${ic('x')}</button>
-  </div>`;
-
-  const cal = days.map(d => {
-    const list = pl.tasks.filter(t => t.date === iso(d));
-    const isToday = iso(d) === iso(today);
-    return `<div class="calday ${isToday ? 'today' : ''}">
-      <div class="calh">${d.toLocaleDateString('en-GB', { weekday: 'short' })} <b>${d.getDate()}</b></div>
-      ${list.map(taskRow).join('') || '<div class="hint" style="font-size:11px">No tasks</div>'}
-    </div>`;
-  }).join('');
-
-  const noDate = pl.tasks.filter(t => !t.date);
-  const recs = [];
-  for (const s of D.subjects) {
-    const dstr = pl.exams[s.key];
-    if (!dstr) continue;
-    const du = daysUntil(dstr);
-    if (du === null || du < 0) continue;
-    const c = subjCompletion(p, s.key);
-    const left = c.total - c.done;
-    if (left > 0) recs.push(`${s.code}: ${left} lecture${left === 1 ? '' : 's'} left, ${du} day${du === 1 ? '' : 's'} - about ${Math.max(1, Math.ceil(left / Math.max(1, du)))} per day`);
-  }
-
-  $('#app').innerHTML = `
-  <section class="hero" style="padding:22px 24px">
-    <div class="eyebrow">Planner</div><h1 style="font-size:26px">Study planner</h1>
-    <p class="sub">Enter your real exam dates when the university publishes them - nothing here invents dates for you.</p>
-  </section>
-  <div class="blk"><div class="blk-h"><h2>Exam countdown</h2><span class="sp"></span><span class="hint">Set each date yourself</span></div>
-    <div class="grid g3">${examCards}</div></div>
-  <div class="blk"><div class="blk-h"><h2>Add a study task</h2></div>
-    <div class="card" style="padding:16px"><div class="rowflex">
-      <input type="text" class="inp" id="task-text" placeholder="e.g. Revise Lecture 4 and do its MCQs" style="flex:2" aria-label="Task text">
-      <select class="inp" id="task-subj" aria-label="Subject"><option value="">No subject</option>${D.subjects.map(s => `<option value="${s.key}">${esc(s.code)}</option>`).join('')}</select>
-      <input type="date" class="inp" id="task-date" aria-label="Task date">
-      <button type="button" class="btn" id="task-add">${ic('play')} Add</button>
-    </div></div></div>
-  <div class="blk"><div class="blk-h"><h2>This week</h2></div><div class="calweek">${cal}</div></div>
-  ${noDate.length ? `<div class="blk"><div class="blk-h"><h2>Unscheduled</h2></div><div class="card" style="padding:8px 14px">${noDate.map(taskRow).join('')}</div></div>` : ''}
-  ${recs.length ? `<div class="blk"><div class="blk-h"><h2>Revision recommendations</h2><span class="sp"></span><span class="hint">From your dates and real completion</span></div>
-    <div class="card" style="padding:14px">${recs.map(r => `<div class="act">${ic('target')}<span>${esc(r)}</span></div>`).join('')}</div></div>` : ''}`;
-
-  $$('.exam-date').forEach(inp => inp.addEventListener('change', async () => {
-    const pl2 = await plan();
-    if (inp.value) pl2.exams[inp.dataset.k] = inp.value; else delete pl2.exams[inp.dataset.k];
-    await savePlan(pl2); viewPlanner();
+function plannerMonday(date) {
+  const d = new Date(date); d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - (d.getDay() + 6) % 7);
+  return d;
+}
+function plannerDaysBetween(start, end) {
+  return (Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) - Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) / 86400000;
+}
+function plannerDateText(key, options) {
+  const d = MFStudyPlanner.fromDateKey(key);
+  return d ? d.toLocaleDateString('en-GB', options || { day: 'numeric', month: 'short' }) : '';
+}
+function plannerSubjects(p) {
+  return D.subjects.map(s => ({
+    key: s.key, code: s.code, lectures: s.lectures, mcqCount: subjMcqs(s.key).length,
+    accuracy: subjAccuracy(p, s.key), completionPct: subjCompletion(p, s.key).pct,
+    mistakeCount: unresolvedMistakes(p, s.key).length,
   }));
-  $('#task-add').addEventListener('click', async () => {
-    const text = $('#task-text').value.trim(); if (!text) { toast('Write the task first'); return; }
-    const pl2 = await plan();
-    pl2.tasks.push({ id: 't' + Date.now(), text, subj: $('#task-subj').value || null, date: $('#task-date').value || null, done: false });
-    await savePlan(pl2); viewPlanner();
-  });
-  $('#app').addEventListener('click', async e => {
-    const chk = e.target.closest('.task-check');
-    if (chk) { const pl2 = await plan(); const t = pl2.tasks.find(x => x.id === chk.dataset.id); if (t) { t.done = !t.done; await savePlan(pl2); viewPlanner(); } return; }
-    const del = e.target.closest('.task-del');
-    if (del) { const pl2 = await plan(); pl2.tasks = pl2.tasks.filter(x => x.id !== del.dataset.id); await savePlan(pl2); viewPlanner(); }
-  });
+}
+
+async function viewPlanner() {
+  const app = $('#app');
+  app.innerHTML = '<section class="hero"><div class="eyebrow">Smart Study Planner</div><h1>Building your study plan…</h1><p class="sub">Bringing your course progress and deadlines together.</p></section>';
+  try {
+    const [pl, p, assignments, timetable, settings] = await Promise.all([
+      plan(), prog(), store.get('x.assignments', []), store.get('x.timetable', []), store.get('study-planner-settings', {}),
+    ]);
+    const assignmentList = Array.isArray(assignments) ? assignments.filter(a => a && typeof a === 'object') : [];
+    const timetableList = Array.isArray(timetable) ? timetable.filter(e => e && typeof e === 'object') : [];
+    pl.sessions = Array.isArray(pl.sessions) ? pl.sessions.filter(s => s && typeof s.id === 'string' && s.id.length < 160 && MFStudyPlanner.fromDateKey(s.date) && typeof s.title === 'string' && s.title.trim() && ['pending', 'completed'].includes(s.status) && MFStudyPlanner.toMinutes(s.start) !== null && MFStudyPlanner.toMinutes(s.end) > MFStudyPlanner.toMinutes(s.start)).slice(0, 1000) : [];
+    pl.tasks = Array.isArray(pl.tasks) ? pl.tasks.filter(t => t && typeof t.text === 'string' && t.text.trim().length <= 120).slice(0, 500) : [];
+    pl.exams = pl.exams && typeof pl.exams === 'object' ? pl.exams : {};
+    const savedPrefs = settings && typeof settings === 'object' ? settings : {};
+    const rawStart = MFStudyPlanner.toMinutes(savedPrefs.start) === null ? '17:00' : savedPrefs.start;
+    const rawEnd = MFStudyPlanner.toMinutes(savedPrefs.end) === null ? '21:00' : savedPrefs.end;
+    const validWindow = MFStudyPlanner.toMinutes(rawEnd) > MFStudyPlanner.toMinutes(rawStart);
+    const savedStart = validWindow ? rawStart : '17:00';
+    const savedEnd = validWindow ? rawEnd : '21:00';
+    const prefs = {
+      dailyMinutes: PLANNER_DAILY_GOALS.includes(Number(savedPrefs.dailyMinutes)) ? Number(savedPrefs.dailyMinutes) : 90,
+      sessionMinutes: PLANNER_SESSION_LENGTHS.includes(Number(savedPrefs.sessionMinutes)) ? Number(savedPrefs.sessionMinutes) : 45,
+      start: savedStart, end: savedEnd,
+    };
+    const today = MFStudyPlanner.dateKey(new Date());
+    if (!PLANNER_VIEW_DATE) PLANNER_VIEW_DATE = today;
+    const viewDate = MFStudyPlanner.fromDateKey(PLANNER_VIEW_DATE) || new Date();
+    const weekStart = plannerMonday(viewDate);
+    const monthStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
+    const periodStart = PLANNER_VIEW_MODE === 'month' ? plannerMonday(monthStart) : weekStart;
+    const periodDays = PLANNER_VIEW_MODE === 'month'
+      ? plannerDaysBetween(periodStart, plannerMonday(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0))) + 7
+      : 7;
+    const calendarDays = Array.from({ length: periodDays }, (_, i) => MFStudyPlanner.addDays(periodStart, i));
+    const periodEnd = MFStudyPlanner.dateKey(calendarDays[calendarDays.length - 1]);
+    const viewSessions = pl.sessions.filter(s => s.date >= MFStudyPlanner.dateKey(periodStart) && s.date <= periodEnd);
+    const subjects = plannerSubjects(p);
+    const candidates = MFStudyPlanner.makeCandidates({ subjects, plan: pl, assignments: assignmentList, progress: p, now: new Date() });
+    const currentWeekStart = plannerMonday(new Date());
+    const currentWeekEnd = MFStudyPlanner.dateKey(MFStudyPlanner.addDays(currentWeekStart, 6));
+    const currentDate = MFStudyPlanner.fromDateKey(today);
+    const planningWeekStart = PLANNER_VIEW_MODE === 'month' && viewDate.getFullYear() === currentDate.getFullYear() && viewDate.getMonth() === currentDate.getMonth() ? currentWeekStart : weekStart;
+    const viewWeekEnd = MFStudyPlanner.addDays(planningWeekStart, 6);
+    const generationStartDate = planningWeekStart < currentDate ? currentDate : planningWeekStart;
+    const generationDays = viewWeekEnd < currentDate ? 0 : plannerDaysBetween(generationStartDate, viewWeekEnd) + 1;
+    const weekSessions = pl.sessions.filter(s => s.date >= MFStudyPlanner.dateKey(currentWeekStart) && s.date <= currentWeekEnd);
+    const todaySessions = pl.sessions.filter(s => s.date === today);
+    const minutes = list => list.reduce((n, s) => n + Math.max(0, (MFStudyPlanner.toMinutes(s.end) || 0) - (MFStudyPlanner.toMinutes(s.start) || 0)), 0);
+    const todayDone = todaySessions.filter(s => s.status === 'completed');
+    const weekDone = weekSessions.filter(s => s.status === 'completed');
+    const goalPct = Math.min(100, Math.round(100 * minutes(todayDone) / prefs.dailyMinutes));
+    const weekPct = weekSessions.length ? Math.round(100 * weekDone.length / weekSessions.length) : 0;
+    const completedBySubject = {};
+    weekSessions.filter(s => s.status === 'completed' && s.subj).forEach(s => { completedBySubject[s.subj] = (completedBySubject[s.subj] || 0) + 1; });
+    const progressCards = subjects.map(s => {
+      const done = completedBySubject[s.key] || 0;
+      return `<div class="sp-subject"><div class="sp-subject-head"><b>${esc(s.code)}</b><span class="hint">${s.completionPct}% lectures · ${done} session${done === 1 ? '' : 's'} done</span></div><div class="sp-bar"><i style="width:${s.completionPct}%"></i></div></div>`;
+    }).join('');
+
+    const sessionCard = session => {
+      const subj = session.subj && subjByKey(session.subj);
+      return `<article class="sp-event ${session.status === 'completed' ? 'is-done' : ''}" draggable="${session.status !== 'completed'}" data-session-id="${esc(session.id)}" title="${esc(session.reason || 'Study session')}" aria-label="${esc(session.title)} ${esc(session.start)} to ${esc(session.end)}">
+        <div class="sp-event-time">${esc(session.start)}–${esc(session.end)} <span>${session.source === 'smart' ? 'PLAN' : 'MANUAL'}</span></div>
+        <b>${esc(session.title)}</b><small>${esc(subj ? subj.code : 'General study')}</small>
+        ${session.reason ? `<small class="sp-reason">${esc(session.reason)}</small>` : ''}
+        <div class="sp-event-actions">
+          <button type="button" class="qtool" data-session-action="toggle" data-session-id="${esc(session.id)}" aria-label="${session.status === 'completed' ? 'Mark session pending' : 'Mark session complete'}">${ic(session.status === 'completed' ? 'retry' : 'check')}${session.status === 'completed' ? 'Undo' : 'Done'}</button>
+          <button type="button" class="qtool" data-session-action="edit" data-session-id="${esc(session.id)}" aria-label="Edit session">Edit</button>
+          <button type="button" class="qtool" data-session-action="delete" data-session-id="${esc(session.id)}" aria-label="Delete session">${ic('x')}</button>
+        </div>
+      </article>`;
+    };
+    const taskCard = task => `<article class="sp-task ${task.done ? 'is-done' : ''}">
+      <span class="sp-task-date">${MFStudyPlanner.fromDateKey(task.date) ? esc(plannerDateText(task.date)) : 'Unscheduled'}</span><b>${esc(task.text)}</b>
+      ${task.subj && subjByKey(task.subj) ? `<small>${esc(subjByKey(task.subj).code)}</small>` : ''}
+      <div class="sp-event-actions"><button type="button" class="qtool" data-task-action="toggle" data-task-id="${esc(task.id)}">${ic(task.done ? 'retry' : 'check')}${task.done ? 'Undo' : 'Done'}</button><button type="button" class="qtool" data-task-action="delete" data-task-id="${esc(task.id)}" aria-label="Delete task">${ic('x')}</button></div>
+    </article>`;
+    const assignmentCard = assignment => `<article class="sp-task sp-assignment"><span class="sp-task-date">Assignment deadline</span><b>${esc(assignment.title)}</b><small>${esc(subjByKey(assignment.subject)?.code || assignment.subject || 'General')}</small><div class="sp-event-actions"><a class="qtool" href="#/workspace/assignments">Open tracker ${ic('ar')}</a></div></article>`;
+    const calendar = calendarDays.map(day => {
+      const key = MFStudyPlanner.dateKey(day);
+      const dayEvents = viewSessions.filter(s => s.date === key).sort((a, b) => a.start.localeCompare(b.start));
+      const dayTasks = pl.tasks.filter(t => t.date === key);
+      const dayAssignments = assignmentList.filter(a => !/^(completed|submitted|done)$/i.test(String(a.status || '')) && a.due === key && String(a.title || '').trim());
+      const inMonth = day.getMonth() === viewDate.getMonth();
+      return `<div class="sp-day ${key === today ? 'is-today' : ''} ${PLANNER_VIEW_MODE === 'month' && !inMonth ? 'is-outside' : ''}" data-drop-date="${key}">
+        <div class="sp-day-head"><div><span>${esc(day.toLocaleDateString('en-GB', { weekday: 'short' }))}</span><b>${day.getDate()}</b></div><button type="button" class="qtool" data-add-date="${key}" aria-label="Add a study session on ${key}">+</button></div>
+        <div class="sp-day-events">${dayEvents.map(sessionCard).join('')}${dayAssignments.map(assignmentCard).join('')}${dayTasks.map(taskCard).join('')}${dayEvents.length || dayTasks.length || dayAssignments.length ? '' : `<span class="sp-empty-day">${PLANNER_VIEW_MODE === 'month' ? 'Open' : 'No sessions'}</span>`}</div>
+      </div>`;
+    }).join('');
+    const dateLabel = PLANNER_VIEW_MODE === 'month'
+      ? viewDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
+      : `${plannerDateText(MFStudyPlanner.dateKey(weekStart), { day: 'numeric', month: 'short' })} – ${plannerDateText(MFStudyPlanner.dateKey(MFStudyPlanner.addDays(weekStart, 6)), { day: 'numeric', month: 'short', year: 'numeric' })}`;
+    const recommendationCards = candidates.slice(0, 3).map((c, i) => `<article class="sp-recommendation ${i === 0 ? 'is-next' : ''} ${c.daysToDue !== null && c.daysToDue !== undefined && c.daysToDue <= 2 || c.daysToExam !== null && c.daysToExam !== undefined && c.daysToExam <= 3 ? 'is-urgent' : ''}">
+      <span class="sp-rec-rank">${i === 0 ? 'NEXT UP' : 'ALSO CONSIDER'}${c.daysToDue !== null && c.daysToDue !== undefined && c.daysToDue <= 2 || c.daysToExam !== null && c.daysToExam !== undefined && c.daysToExam <= 3 ? ' · URGENT' : ''}</span><b>${esc(c.title)}</b><small>${esc(c.subj ? (subjByKey(c.subj) || {}).code || 'Course task' : 'Course task')} · ${esc(c.type)}</small><p>${esc(c.reason)}</p>
+      ${c.type === 'lecture' && c.subj ? `<a class="btn ghost sm" href="#/subject/${c.subj}/lecture/${(c.title.match(/^Lecture (\d+)/) || [])[1] || ''}">${ic('bookopen')} Open lecture</a>` : c.type === 'assignment' ? `<a class="btn ghost sm" href="#/workspace/assignments">${ic('list')} View assignment</a>` : ''}
+    </article>`).join('');
+    const examCards = D.subjects.map(s => {
+      const rawDate = pl.exams[s.key];
+      const dstr = MFStudyPlanner.fromDateKey(rawDate) ? rawDate : '';
+      const du = dstr ? daysUntil(dstr) : null;
+      return `<label class="sp-exam-card"><span><b>${esc(s.code)}</b>${du === null ? '<small>Exam date not set</small>' : `<small>${du < 0 ? 'Date passed' : du === 0 ? 'Exam today' : du + ' days left'}</small>`}</span><input type="date" class="inp exam-date" data-k="${esc(s.key)}" value="${esc(dstr || '')}" aria-label="${esc(s.code)} exam date"></label>`;
+    }).join('');
+    const editing = pl.sessions.find(s => s.id === PLANNER_EDITING_ID);
+    const plannerTaskCards = pl.tasks.map(taskCard).join('');
+    const formDate = editing ? editing.date : PLANNER_NEW_DATE || today;
+    const subjectOptions = `<option value="">General</option>${D.subjects.map(s => `<option value="${s.key}" ${editing && editing.subj === s.key ? 'selected' : ''}>${esc(s.code)}</option>`).join('')}`;
+    app.innerHTML = `
+      <section class="hero sp-hero"><div class="eyebrow">MUST Finals · Personal planning</div><h1>AI Smart Study Planner</h1><p class="sub">A schedule shaped around your lectures, exam dates, assignment deadlines and practice history.</p>
+        <div class="sp-hero-meta"><span class="pill pri">${ic('target')} Rule-based assistant · uses your saved course data</span><button type="button" class="btn" id="sp-generate" ${generationDays ? '' : 'disabled'}>${ic('sparkles')} Build weekly plan</button></div>
+      </section>
+      <section class="sp-stats" aria-label="Study progress dashboard">
+        <article class="card sp-stat"><div class="sp-stat-top"><span>Today’s goal</span>${ic('target')}</div><strong>${minutes(todayDone)}<small> / ${prefs.dailyMinutes} min</small></strong><div class="sp-bar"><i style="width:${goalPct}%"></i></div><small>${goalPct}% complete · ${todayDone.length} of ${todaySessions.length} sessions</small></article>
+        <article class="card sp-stat"><div class="sp-stat-top"><span>This week</span>${ic('cal')}</div><strong>${minutes(weekDone)}<small> min</small></strong><small>${weekDone.length} completed · ${weekSessions.filter(s => s.status !== 'completed').length} pending</small><div class="sp-bar"><i style="width:${weekPct}%"></i></div></article>
+        <article class="card sp-stat"><div class="sp-stat-top"><span>Sessions planned</span>${ic('layers')}</div><strong>${weekSessions.length}</strong><small>${weekSessions.filter(s => s.status !== 'completed').length} still to do this week</small></article>
+      </section>
+      <section class="sp-layout">
+        <div class="sp-main">
+          <section class="card sp-calendar-card">
+            <div class="sp-calendar-toolbar"><div><div class="eyebrow">Your schedule</div><h2>${esc(dateLabel)}</h2></div><div class="sp-calendar-actions">
+              <div class="sp-switch" role="group" aria-label="Calendar view"><button type="button" data-view="week" class="${PLANNER_VIEW_MODE === 'week' ? 'on' : ''}">Week</button><button type="button" data-view="month" class="${PLANNER_VIEW_MODE === 'month' ? 'on' : ''}">Month</button></div>
+              <button type="button" class="iconbtn" data-shift="-1" aria-label="Previous ${PLANNER_VIEW_MODE}">${ic('al')}</button><button type="button" class="iconbtn" data-shift="1" aria-label="Next ${PLANNER_VIEW_MODE}">${ic('ar')}</button><button type="button" class="btn ghost sm" id="sp-today">Today</button>
+            </div></div>
+            <p class="hint sp-drag-hint">Drag a pending session to another day to reschedule it. Use Edit to change the time or subject.</p>
+            <div class="sp-calendar ${PLANNER_VIEW_MODE === 'month' ? 'is-month' : 'is-week'}">${calendar}</div>
+            ${!viewSessions.length && !pl.tasks.some(t => t.date >= MFStudyPlanner.dateKey(periodStart) && t.date <= periodEnd) && !assignmentList.some(a => MFStudyPlanner.fromDateKey(a.due) && a.due >= MFStudyPlanner.dateKey(periodStart) && a.due <= periodEnd && !/^(completed|submitted|done)$/i.test(String(a.status || ''))) ? `<div class="sp-empty card"><div class="sp-empty-icon">${ic('cal')}</div><b>Your calendar is clear</b><p>Generate a study plan or add a session to get started.</p></div>` : ''}
+          </section>
+          <section class="card sp-editor" id="sp-editor">
+            <div class="blk-h"><div><div class="eyebrow">Personal schedule</div><h2>${editing ? 'Edit study session' : 'Add a study session'}</h2></div><span class="sp"></span>${editing ? '<button type="button" class="btn ghost sm" id="sp-cancel-edit">Cancel</button>' : ''}</div>
+            <form id="sp-session-form" class="sp-form" novalidate>
+              <label>Session title<input class="inp" id="sp-title" maxlength="120" required value="${esc(editing ? editing.title : '')}" placeholder="e.g. Review Lecture 3 and solve practice"></label>
+              <label>Subject<select class="inp" id="sp-subject">${subjectOptions}</select></label>
+              <label>Date<input class="inp" id="sp-date" type="date" required value="${esc(formDate)}"></label>
+              <label>Start<input class="inp" id="sp-start" type="time" required value="${esc(editing ? editing.start : prefs.start)}"></label>
+              <label>End<input class="inp" id="sp-end" type="time" required value="${esc(editing ? editing.end : prefs.end)}"></label>
+              <button type="submit" class="btn">${ic(editing ? 'check' : 'plus')}${editing ? 'Save changes' : 'Add session'}</button>
+            </form>
+            <form id="sp-settings-form" class="sp-settings-form">
+              <div><b>Available study time</b><small>Used when building your weekly plan</small></div>
+              <label>Daily goal<select class="inp" id="sp-goal">${PLANNER_DAILY_GOALS.map(n => `<option value="${n}" ${Number(prefs.dailyMinutes) === n ? 'selected' : ''}>${n} minutes</option>`).join('')}</select></label>
+              <label>Session length<select class="inp" id="sp-duration">${PLANNER_SESSION_LENGTHS.map(n => `<option value="${n}" ${Number(prefs.sessionMinutes) === n ? 'selected' : ''}>${n} minutes</option>`).join('')}</select></label>
+              <label>From<input class="inp" id="sp-window-start" type="time" value="${esc(prefs.start)}" required></label>
+              <label>Until<input class="inp" id="sp-window-end" type="time" value="${esc(prefs.end)}" required></label>
+              <button type="submit" class="btn ghost sm">Save availability</button>
+            </form>
+          </section>
+          <section class="card sp-editor sp-task-manager">
+            <div class="eyebrow">Your study tasks</div><h2>Keep track of what’s due</h2><p class="hint">Tasks you add here feed into your next smart plan. Assignment Tracker items are included automatically.</p>
+            <form id="sp-task-form" class="sp-task-form"><input class="inp" id="sp-task-title" maxlength="120" required placeholder="e.g. Finish the lab report" aria-label="Task name"><select class="inp" id="sp-task-subject" aria-label="Task subject"><option value="">General</option>${D.subjects.map(s => `<option value="${s.key}">${esc(s.code)}</option>`).join('')}</select><input class="inp" id="sp-task-date" type="date" aria-label="Task due date"><button type="submit" class="btn">${ic('plus')} Add task</button></form>
+            <div class="sp-task-list">${plannerTaskCards || '<div class="sp-empty-inline"><b>No personal tasks yet</b><p>Add a task or manage coursework in the Assignment Tracker.</p><a href="#/workspace/assignments">Open Assignment Tracker</a></div>'}</div>
+          </section>
+          <section class="blk sp-subject-progress"><div class="blk-h"><div><div class="eyebrow">Progress by course</div><h2>Subject momentum</h2></div></div><div class="sp-subject-grid">${progressCards}</div></section>
+          <section class="blk"><div class="blk-h"><div><div class="eyebrow">Exam countdown</div><h2>Your exam dates</h2></div><span class="sp"></span><span class="hint">Dates are supplied by you</span></div><div class="sp-exam-grid">${examCards}</div></section>
+        </div>
+        <aside class="sp-aside">
+          <section class="card sp-assistant"><div class="sp-assistant-head"><span class="sp-assistant-mark">${ic('sparkles')}</span><div><div class="eyebrow">Study assistant</div><h2>What should I study next?</h2></div></div>
+            <p class="hint">Recommendations are calculated from your local progress, saved mistakes, deadlines and course dates. They update as your data changes.</p>
+            <div class="sp-recommendations">${recommendationCards || '<div class="sp-empty-inline"><b>Nothing urgent right now</b><p>Add an exam date or assignment, or keep making progress in your subjects. Recommendations appear as the platform learns your study activity.</p></div>'}</div>
+            <button type="button" class="btn ghost" id="sp-refresh">${ic('retry')} Refresh recommendations</button>
+          </section>
+          <section class="card sp-settings"><div class="eyebrow">Planning inputs</div><h2>Included in your plan</h2><ul><li>Unfinished lectures</li><li>Open assignments and tasks</li><li>Exam countdowns you entered</li><li>Practice accuracy and missed questions</li><li>Existing timetable and session conflicts</li></ul><p>Smart suggestions run on this device. No AI service or account sync is configured for this planner.</p></section>
+        </aside>
+      </section>`;
+
+    $$('.exam-date').forEach(input => input.addEventListener('change', async () => {
+      const updated = await plan();
+      if (input.value && !MFStudyPlanner.fromDateKey(input.value)) { toast('Choose a valid exam date'); return; }
+      if (input.value) updated.exams[input.dataset.k] = input.value; else delete updated.exams[input.dataset.k];
+      await savePlan(updated); await viewPlanner();
+    }));
+    $('#sp-generate').addEventListener('click', async () => {
+      if (!generationDays) { toast('Choose a current or upcoming week to build a plan'); return; }
+      const updated = await plan();
+      updated.sessions = Array.isArray(updated.sessions) ? updated.sessions : [];
+      const start = MFStudyPlanner.dateKey(generationStartDate), end = MFStudyPlanner.dateKey(viewWeekEnd);
+      const retained = updated.sessions.filter(s => !(s.source === 'smart' && s.status !== 'completed' && s.date >= start && s.date <= end));
+      const generated = MFStudyPlanner.generateSchedule({ candidates, startDate: start, days: generationDays, targetMinutes: prefs.dailyMinutes,
+        sessionMinutes: prefs.sessionMinutes, windowStart: prefs.start, windowEnd: prefs.end, timetable: timetableList, busySessions: retained });
+      updated.sessions = retained.concat(generated);
+      await savePlan(updated);
+      toast(generated.length ? `Built a ${generated.length}-session plan around your availability` : 'No open study time found in the selected week. Adjust your availability or timetable.');
+      await viewPlanner();
+    });
+    $('#sp-refresh').addEventListener('click', () => viewPlanner());
+    $('#sp-today').addEventListener('click', () => { PLANNER_VIEW_DATE = today; viewPlanner(); });
+    $$('[data-view]').forEach(button => button.addEventListener('click', () => { PLANNER_VIEW_MODE = button.dataset.view; viewPlanner(); }));
+    $$('[data-shift]').forEach(button => button.addEventListener('click', () => {
+      const date = MFStudyPlanner.fromDateKey(PLANNER_VIEW_DATE) || new Date();
+      const next = PLANNER_VIEW_MODE === 'month' ? new Date(date.getFullYear(), date.getMonth() + Number(button.dataset.shift), 1) : MFStudyPlanner.addDays(plannerMonday(date), Number(button.dataset.shift) * 7);
+      PLANNER_VIEW_DATE = MFStudyPlanner.dateKey(next); viewPlanner();
+    }));
+    $$('[data-add-date]').forEach(button => button.addEventListener('click', () => {
+      PLANNER_EDITING_ID = ''; PLANNER_NEW_DATE = button.dataset.addDate; viewPlanner().then(() => $('#sp-title')?.focus());
+    }));
+    $('#sp-cancel-edit')?.addEventListener('click', () => { PLANNER_EDITING_ID = ''; viewPlanner(); });
+    $('#sp-session-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const title = $('#sp-title').value.trim();
+      const subject = $('#sp-subject').value || null;
+      const date = $('#sp-date').value, start = $('#sp-start').value, end = $('#sp-end').value;
+      if (!title || title.length > 120 || !MFStudyPlanner.fromDateKey(date) || (subject && !subjByKey(subject))) { toast('Enter a valid title, subject and date'); return; }
+      const updated = await plan(); updated.sessions = Array.isArray(updated.sessions) ? updated.sessions : [];
+      const old = updated.sessions.find(s => s.id === PLANNER_EDITING_ID);
+      const item = Object.assign({}, old || {}, { id: old ? old.id : 'manual-' + Date.now(), title, subj: subject, date, start, end, status: old ? old.status : 'pending', source: old && old.source === 'smart' ? 'manual' : (old ? old.source : 'manual'), reason: old && old.source === 'smart' ? 'Edited by you.' : old ? old.reason : 'Added by you.' });
+      const error = MFStudyPlanner.validateSession(item, updated.sessions, timetableList, old && old.id);
+      if (error) { toast(error); return; }
+      if (old) updated.sessions = updated.sessions.map(s => s.id === old.id ? item : s); else updated.sessions.push(item);
+      await savePlan(updated); PLANNER_EDITING_ID = ''; PLANNER_NEW_DATE = ''; await viewPlanner();
+    });
+    $('#sp-settings-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const next = { dailyMinutes: Number($('#sp-goal').value), sessionMinutes: Number($('#sp-duration').value), start: $('#sp-window-start').value, end: $('#sp-window-end').value };
+      if (!PLANNER_DAILY_GOALS.includes(next.dailyMinutes) || !PLANNER_SESSION_LENGTHS.includes(next.sessionMinutes) || !next.start || !next.end || MFStudyPlanner.toMinutes(next.end) <= MFStudyPlanner.toMinutes(next.start)) { toast('Choose a valid goal, session length and availability window'); return; }
+      await store.set('study-planner-settings', next); await viewPlanner();
+    });
+    $('#sp-task-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const title = $('#sp-task-title').value.trim(), subject = $('#sp-task-subject').value || null, due = $('#sp-task-date').value || null;
+      if (!title || title.length > 120 || (subject && !subjByKey(subject)) || (due && !MFStudyPlanner.fromDateKey(due))) { toast('Enter a valid task, subject and due date'); return; }
+      const updated = await plan(); updated.tasks = Array.isArray(updated.tasks) ? updated.tasks : [];
+      updated.tasks.push({ id: 'task-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7), text: title, subj: subject, date: due, done: false });
+      await savePlan(updated); await viewPlanner();
+    });
+    app.addEventListener('click', async event => {
+      const taskButton = event.target.closest('[data-task-action]');
+      if (taskButton) {
+        const updated = await plan(); updated.tasks = Array.isArray(updated.tasks) ? updated.tasks : [];
+        const task = updated.tasks.find(t => t.id === taskButton.dataset.taskId); if (!task) return;
+        if (taskButton.dataset.taskAction === 'toggle') task.done = !task.done;
+        else updated.tasks = updated.tasks.filter(t => t.id !== task.id);
+        await savePlan(updated); await viewPlanner(); return;
+      }
+      const button = event.target.closest('[data-session-action]'); if (!button) return;
+      const updated = await plan(); updated.sessions = Array.isArray(updated.sessions) ? updated.sessions : [];
+      const item = updated.sessions.find(s => s.id === button.dataset.sessionId); if (!item) return;
+      if (button.dataset.sessionAction === 'toggle') {
+        item.status = item.status === 'completed' ? 'pending' : 'completed';
+        item.completedAt = item.status === 'completed' ? Date.now() : null;
+        await savePlan(updated);
+        if (item.status === 'completed') await logAct('Completed study session: ' + item.title);
+      } else if (button.dataset.sessionAction === 'edit') { PLANNER_EDITING_ID = item.id; PLANNER_NEW_DATE = ''; }
+      else if (button.dataset.sessionAction === 'delete') updated.sessions = updated.sessions.filter(s => s.id !== item.id);
+      if (button.dataset.sessionAction !== 'edit') await savePlan(updated);
+      await viewPlanner();
+      if (button.dataset.sessionAction === 'edit') $('#sp-title')?.focus();
+    });
+    app.addEventListener('dragstart', event => {
+      const card = event.target.closest('[data-session-id][draggable="true"]');
+      if (!card || !event.dataTransfer) return;
+      event.dataTransfer.setData('text/plain', card.dataset.sessionId); event.dataTransfer.effectAllowed = 'move';
+    });
+    app.addEventListener('dragover', event => {
+      const day = event.target.closest('[data-drop-date]');
+      if (day) { event.preventDefault(); day.classList.add('is-drop-target'); if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'; }
+    });
+    app.addEventListener('dragleave', event => { const day = event.target.closest('[data-drop-date]'); if (day && !day.contains(event.relatedTarget)) day.classList.remove('is-drop-target'); });
+    app.addEventListener('drop', async event => {
+      const day = event.target.closest('[data-drop-date]'); if (!day || !event.dataTransfer) return;
+      event.preventDefault(); day.classList.remove('is-drop-target');
+      const updated = await plan(); updated.sessions = Array.isArray(updated.sessions) ? updated.sessions : [];
+      const item = updated.sessions.find(s => s.id === event.dataTransfer.getData('text/plain'));
+      if (!item || item.status === 'completed') return;
+      const original = item.date; item.date = day.dataset.dropDate;
+      const error = MFStudyPlanner.validateSession(item, updated.sessions, timetableList, item.id);
+      if (error) { item.date = original; toast(error); return; }
+      item.source = 'manual'; item.reason = 'Rescheduled by you.';
+      await savePlan(updated);
+      if (PLANNER_VIEW_MODE === 'month' && item.date.slice(0, 7) !== PLANNER_VIEW_DATE.slice(0, 7)) PLANNER_VIEW_DATE = item.date;
+      await viewPlanner();
+    });
+  } catch (error) {
+    console.error('Study planner could not load', error);
+    app.innerHTML = `<section class="hero"><div class="eyebrow">Smart Study Planner</div><h1>We couldn’t load your study plan</h1><p class="sub">Your saved course data is still on this device. Try loading the planner again.</p><button class="btn" type="button" id="sp-retry">Try again</button></section>`;
+    $('#sp-retry').addEventListener('click', viewPlanner);
+  }
 }
 
 /* ---- gamification: XP, streak, badges - all computed from real state ---- */
@@ -1874,13 +2129,13 @@ async function gameState() {
   // streak: consecutive days with activity ending today or yesterday
   let streak = 0;
   const d = new Date();
-  if (!days[d.toISOString().slice(0, 10)]) d.setDate(d.getDate() - 1);
-  while (days[d.toISOString().slice(0, 10)] > 0) { streak++; d.setDate(d.getDate() - 1); }
+  if (!days[localDateKey(d)]) d.setDate(d.getDate() - 1);
+  while (days[localDateKey(d)] > 0) { streak++; d.setDate(d.getDate() - 1); }
   // week answers
   const now = new Date(); const dow = (now.getDay() + 6) % 7;
   const ws = new Date(now); ws.setDate(now.getDate() - dow);
   let weekN = 0;
-  for (let i = 0; i < 7; i++) { const dd = new Date(ws); dd.setDate(ws.getDate() + i); weekN += days[dd.toISOString().slice(0, 10)] || 0; }
+  for (let i = 0; i < 7; i++) { const dd = new Date(ws); dd.setDate(ws.getDate() + i); weekN += days[localDateKey(dd)] || 0; }
   const badges = [
     { id: 'first', name: 'First steps', desc: 'Answer your first question', got: att >= 1 },
     { id: 'ten', name: 'Warming up', desc: 'Answer 25 questions', got: att >= 25 },
@@ -1914,11 +2169,11 @@ async function gamifyCardHtml() {
 
 /* record per-day counts for streaks (extends dailyBump) */
 const _dailyBump = dailyBump;
-dailyBump = async function () {
-  await _dailyBump();
+dailyBump = async function (n = 1) {
+  await _dailyBump(n);
   const days = await store.get('days', {});
   const k = todayKey();
-  days[k] = (days[k] || 0) + 1;
+  days[k] = (days[k] || 0) + n;
   await store.set('days', days);
 };
 
@@ -1999,10 +2254,11 @@ async function viewSearch(q) {
 const _viewDashboard2 = viewDashboard;
 viewDashboard = async function () {
   await _viewDashboard2();
-  const heroRow = $('#app .hero .rowflex');
-  if (heroRow && !$('#gs-home')) {
-    heroRow.insertAdjacentHTML('afterend', `<div class="search" style="margin-top:14px">${ic('search')}<input id="gs-home" type="search" placeholder="Search everything: lectures, questions, notes..." aria-label="Global search"></div>`);
+  const homeTop = $('#app .dz-top');
+  if (homeTop && !$('#gs-home')) {
+    homeTop.insertAdjacentHTML('afterend', `<div class="search home-search">${ic('search')}<input id="gs-home" type="search" placeholder="Search lectures, questions and course notes..." aria-label="Search the whole platform"><button type="button" class="btn sm" id="gs-home-go">Search</button></div>`);
     $('#gs-home').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.value.trim()) nav('/search/' + encodeURIComponent(e.target.value.trim())); });
+    $('#gs-home-go').addEventListener('click', () => { const q = $('#gs-home').value.trim(); if (q) nav('/search/' + encodeURIComponent(q)); });
   }
   const gh = await gamifyCardHtml();
   if (gh) {
@@ -2016,7 +2272,7 @@ viewDashboard = async function () {
 patchRoute('^\\/$', viewDashboard);
 patchRoute('^\\/revision$', viewRevision);
 patchRoute('^\\/subject\\/([a-z0-9]+)\\/flashcards$', viewFlashcards);
-Object.assign(AR_NAV, { 'Planner': '\u0627\u0644\u0645\u062e\u0637\u0637', 'Past exams': '\u0627\u0645\u062a\u062d\u0627\u0646\u0627\u062a \u0633\u0627\u0628\u0642\u0629' });
+Object.assign(AR_NAV, { 'Smart Planner': '\u0627\u0644\u0645\u062e\u0637\u0637 \u0627\u0644\u0630\u0643\u064a', 'Past exams': '\u0627\u0645\u062a\u062d\u0627\u0646\u0627\u062a \u0633\u0627\u0628\u0642\u0629' });
 
 /* routes */
 route(/^\/planner$/, viewPlanner);
@@ -2029,7 +2285,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav = $('.snav');
   if (nav && !nav.querySelector('a[href="#/planner"]')) {
     const anchor = nav.querySelector('a[href="#/revision"]') || nav.querySelector('a[href="#/bookmarks"]');
-    anchor.insertAdjacentHTML('beforebegin', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
+    anchor.insertAdjacentHTML('beforebegin', '<a href="#/planner">Smart Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
     if (window.MFB) MFB.paintNav();
   }
 });
@@ -2168,3 +2424,125 @@ document.addEventListener('DOMContentLoaded', ensureFocusWidget);
 
 /* repoint tools route at the evaluator wrapper */
 patchRoute('^\\/tools(?:\\/([a-z]+))?$', viewTools);
+
+/* ---- start studying now: a focused session built from real local progress ---- */
+function unresolvedMistakes(p, key) {
+  return Object.entries(p.mistakes || {}).filter(([, m]) => m.subj === key && !m.understood);
+}
+
+function nextLectureFor(s, p) {
+  return s.lectures.find(l => !l.missing && !p.completed[s.key + '-lec' + l.n]) || null;
+}
+
+async function buildStudySession() {
+  const p = await prog();
+  const pl = await plan();
+  const today = todayKey();
+  const todayTask = (pl.tasks || []).find(t => !t.done && t.date === today);
+  const candidates = D.subjects.map(s => {
+    const next = nextLectureFor(s, p);
+    const accuracy = subjAccuracy(p, s.key);
+    const days = pl.exams[s.key] ? daysUntil(pl.exams[s.key]) : null;
+    const urgency = days !== null && days >= 0 ? Math.max(0, 40 - Math.min(days, 40)) : 0;
+    const weak = accuracy && accuracy.t >= 3 ? Math.max(0, 100 - accuracy.pct) : 0;
+    const unfinished = subjCompletion(p, s.key).total - subjCompletion(p, s.key).done;
+    return { s, next, urgency, weak, unfinished, mistakes: unresolvedMistakes(p, s.key) };
+  }).filter(x => x.next || x.mistakes.length);
+
+  const taskSubject = todayTask && subjByKey(todayTask.subj);
+  let pick = taskSubject && candidates.find(x => x.s.key === taskSubject.key);
+  if (!pick) pick = candidates.sort((a, b) =>
+    (b.urgency + b.weak + Math.min(b.unfinished, 12)) - (a.urgency + a.weak + Math.min(a.unfinished, 12))
+  )[0];
+  if (!pick) pick = { s: D.subjects[0], next: null, mistakes: [] };
+
+  const practice = subjMcqs(pick.s.key).slice(0, 10).length;
+  return {
+    created: Date.now(), subj: pick.s.key, lecture: pick.next ? pick.next.n : null,
+    lectureTopic: pick.next ? pick.next.topic : null,
+    mistakeCount: pick.mistakes.length, practiceCount: practice,
+    task: todayTask ? todayTask.text : null
+  };
+}
+
+async function startStudyPractice(key, count) {
+  const saved = await store.get('exam', null);
+  if (saved && !saved.submitted) {
+    if (saved.subj === key) { nav('/exam/' + key + '/run'); return; }
+    const savedSubject = subjByKey(saved.subj);
+    toast(`Resume your ${savedSubject ? savedSubject.code : 'saved'} ${saved.mode === 'quick-practice' ? 'practice' : 'exam'} before starting another set`);
+    return;
+  }
+  const p = await prog();
+  const ranked = subjMcqs(key).slice().sort((a, b) => {
+    const score = q => {
+      const state = p.mcq[q.id], mistake = p.mistakes[q.id];
+      if (mistake && !mistake.understood) return -100 - (mistake.n || 1);
+      if (state && state.t) return 10 + 40 * state.c / state.t;
+      return 70;
+    };
+    return score(a) - score(b) || Math.random() - 0.5;
+  });
+  const pool = ranked.slice(0, Math.min(count || 10, ranked.length));
+  if (!pool.length) { toast('No practice questions are available for this subject yet'); return; }
+  const exam = {
+    subj: key, started: Date.now(), deadline: Date.now() + pool.length * 90 * 1000,
+    mode: 'quick-practice',
+    qs: pool.map(q => { const order = shuffled(q.opts.map((_, i) => i)); return { id: q.id, order, correctIdx: order.indexOf(q.a), picked: null, marked: false }; }),
+    cur: 0, submitted: false,
+  };
+  await store.set('exam', exam);
+  await logAct(`Started today's ${pool.length}-question practice in ${subjByKey(key).code}`);
+  nav('/exam/' + key + '/run');
+}
+
+async function viewStudySession() {
+  const session = await store.get('study-session', null);
+  if (!session || !subjByKey(session.subj)) { nav('/'); return; }
+  const s = subjByKey(session.subj);
+  const lecture = session.lecture ? s.lectures.find(l => l.n === session.lecture) : null;
+  $('#app').innerHTML = `
+    <section class="hero ss-hero"><div class="eyebrow">Today's study session</div>
+      <h1>${esc(s.code)} · a clear next step</h1>
+      <p class="sub">A practical session based on your unfinished lectures, practice history, mistakes, and dates you entered in the planner.</p>
+    </section>
+    <section class="ss-card card" aria-label="Today's study plan">
+      <div class="ss-head"><div><span class="pill pri">About 35–50 minutes</span><h2>Start studying now</h2></div><button type="button" class="btn ghost" id="ss-refresh">${ic('shuffle')} Rebuild session</button></div>
+      <ol class="ss-steps">
+        ${lecture ? `<li><span class="ss-num">1</span><div><b>Study Lecture ${lecture.n}: ${esc(lecture.topic)}</b><p>Open the material, then mark it done when you finish.</p></div><a class="btn sm" href="#/subject/${s.key}/lecture/${lecture.n}">${ic('bookopen')} Open lecture</a></li>` : ''}
+        ${session.mistakeCount ? `<li><span class="ss-num">${lecture ? 2 : 1}</span><div><b>Review ${session.mistakeCount} saved question${session.mistakeCount === 1 ? '' : 's'}</b><p>Revisit questions you missed before starting new practice.</p></div><a class="btn ghost sm" href="#/mistakes">${ic('retry')} Review</a></li>` : ''}
+        ${session.practiceCount ? `<li><span class="ss-num">${(lecture ? 1 : 0) + (session.mistakeCount ? 1 : 0) + 1}</span><div><b>Answer ${session.practiceCount} practice questions</b><p>Quick timed practice from the ${esc(s.code)} question bank.</p></div><button type="button" class="btn sm" id="ss-practice">${ic('play')} Start practice</button></li>` : ''}
+        ${session.task ? `<li><span class="ss-num">+</span><div><b>Your planned task</b><p>${esc(session.task)}</p></div><a class="btn ghost sm" href="#/planner">Open planner</a></li>` : ''}
+      </ol>
+    </section>`;
+  $('#ss-practice')?.addEventListener('click', () => startStudyPractice(session.subj, session.practiceCount));
+  $('#ss-refresh').addEventListener('click', async () => { await store.set('study-session', await buildStudySession()); await viewStudySession(); });
+}
+
+const _viewDashboard3 = viewDashboard;
+viewDashboard = async function () {
+  await _viewDashboard3();
+  const host = $('#app .dz-top');
+  if (!host || $('#study-now')) return;
+  const session = await buildStudySession();
+  const subject = subjByKey(session.subj);
+  const headline = session.lecture
+    ? `Lecture ${session.lecture}: ${session.lectureTopic}`
+    : session.mistakeCount ? `Review ${session.mistakeCount} saved question${session.mistakeCount === 1 ? '' : 's'}` : `Practice questions for ${subject.code}`;
+  host.insertAdjacentHTML('afterend', `<section class="study-now" id="study-now">
+    <div class="study-now-copy"><div class="eyebrow">Your next session</div><h2>${esc(subject.code)} · ${esc(headline)}</h2>
+      <p>${session.practiceCount ? `Then finish with ${session.practiceCount} targeted practice questions.` : 'Your session will update as you add progress.'}</p></div>
+    <div class="study-now-actions"><a class="btn ghost" href="#/planner">${ic('cal')} Plan my week</a><button type="button" class="btn" id="study-now-start">${ic('play')} Start studying now</button></div>
+  </section>`);
+  $('#study-now-start').addEventListener('click', async () => {
+    await store.set('study-session', session);
+    await logAct(`Started today's study session for ${subject.code}`);
+    nav('/study-session');
+  });
+};
+patchRoute('^\\/$', viewDashboard);
+route(/^\/study-session$/, viewStudySession);
+route(/^\/subject\/([a-z0-9]+)\/lecture\/(\d+)$/, async (key, n) => {
+  await viewSubject(key);
+  setTimeout(() => document.getElementById(`${key}-lec${n}`)?.scrollIntoView({ block: 'center' }), 0);
+});

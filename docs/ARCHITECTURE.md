@@ -1,9 +1,20 @@
 # MUST Finals platform - backend & account architecture
 
-Status: **design only, not active**. The live site is a fully static GitHub Pages app
-(localStorage progress, no server). Nothing below is implemented on the live site, and
-no feature on the live site pretends to be any of this. This document is the integration
-plan for when infrastructure is approved.
+Status: **backend design only**. The platform is a static GitHub Pages app with local
+browser storage and no server. The AI tutor, authenticated sync and community backend
+described below remain design work and are not active.
+
+## Current study planner
+- The Smart Study Planner uses the existing local progress store and `x.assignments`
+  and `x.timetable` data. It creates explainable schedules in the browser and records
+  sessions in the existing `plan` value. It does not call an AI API or claim cross-device
+  sync.
+- Recommendations use explicit rules: user-entered exam and due dates, open tasks,
+  unfinished lectures, unresolved mistakes and measured question accuracy. Generated
+  sessions avoid existing sessions and recurring timetable events.
+- Availability preferences are stored locally in `study-planner-settings`. A future
+  authenticated backend should keep these keys under the same user-owned progress
+  policy as the rest of the client data.
 
 ## 1. Accounts and roles (RBAC)
 - Provider: a managed auth service (e.g. Supabase Auth / Firebase Auth) with email sign-in.

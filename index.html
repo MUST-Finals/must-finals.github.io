@@ -11,13 +11,15 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1020">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/styles.css?v=71">
-  <link rel="stylesheet" href="css/expansion.css?v=71">
+<link rel="stylesheet" href="css/styles.css?v=73">
+<link rel="stylesheet" href="css/expansion.css?v=73">
 <script data-goatcounter="https://must-finals.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body>
+<a class="skip-link" id="skip-link" href="#app">Skip to content</a>
 <div class="shell">
-  <button type="button" class="iconbtn" id="menu-btn" aria-label="Open navigation"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+  <button type="button" class="iconbtn" id="menu-btn" aria-label="Open navigation" aria-controls="side" aria-expanded="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
+  <button type="button" id="nav-backdrop" aria-label="Close navigation"></button>
   <aside id="side" aria-label="Main navigation">
     <div class="brand"><span class="logo">M</span><span>MUST Finals<small>Finals prep platform</small></span></div>
     <nav class="snav">
@@ -42,15 +44,16 @@
       <span class="credit">Made by Mazen</span>
     </div>
   </aside>
-  <main id="app" aria-live="polite">
+  <main id="app" aria-live="polite" tabindex="-1">
     <div class="empty" style="padding-top:80px">Loading...</div>
   </main>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="js/data.js?v=71"></script>
-<script src="js/backend.js?v=71"></script>
-<script src="js/app.js?v=71"></script>
-  <script src="js/expansion.js?v=71"></script>
+<script src="js/data.js?v=73"></script>
+<script src="js/backend.js?v=73"></script>
+<script src="js/study-planner.js?v=73"></script>
+<script src="js/app.js?v=73"></script>
+<script src="js/expansion.js?v=73"></script>
 <script>
 /* Boot watchdog: if scripts were blocked (flaky SW/network), reload once per session. */
 setTimeout(function () {
