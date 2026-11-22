@@ -708,8 +708,8 @@ async function viewExamConfig(key) {
         <option value="2">2 minutes per question</option>
       </select></div>
     <p class="hint">No difficulty labels exist in the question bank, so none are invented here. Review shows the correct answer, plus the source explanation when the question has one.</p>
-    <button type="button" class="btn" id="ex-start">${ic('play')} Start exam</button>
-    <a class="btn ghost" href="#/subject/${key}" style="margin-left:8px">${ic('al')} Back</a>
+    <button type="button" class="btn" id="ex-start">${ic('play')} ${CUR_AR ? 'ابدأ الامتحان' : 'Start exam'}</button>
+    <a class="btn ghost" href="#/subject/${key}" style="margin-left:8px">${ic('al')} ${CUR_AR ? 'رجوع' : 'Back'}</a>
   </div>`;
   $('#ex-start').addEventListener('click', async () => {
     const count = Math.min(parseInt($('#ex-count').value, 10), pool.length);
@@ -820,12 +820,12 @@ async function viewExamRun(key) {
 
   $('#app').innerHTML = `
   <div class="exam-top">
-    <a class="btn ghost sm" href="#/subject/${key}">${ic('al')} Exit</a>
-    <span class="pill pri">${esc(s.code)} mock exam</span>
+    <a class="btn ghost sm" href="#/subject/${key}">${ic('al')} ${CUR_AR ? 'خروج' : 'Exit'}</a>
+    <span class="pill pri">${esc(s.code)} ${CUR_AR ? 'امتحان تجريبي' : 'mock exam'}</span>
     <span class="timer" id="ex-timer" role="timer">${ic('clock')} --:--</span>
     <span class="sp" style="flex:1"></span>
     <span class="hint" id="ex-counts"></span>
-    <button type="button" class="btn" id="ex-finish">${ic('check')} Finish</button>
+    <button type="button" class="btn" id="ex-finish">${ic('check')} ${CUR_AR ? 'إنهاء' : 'Finish'}</button>
   </div>
   <div class="examlay">
     <div class="card" style="padding:20px">
@@ -833,16 +833,16 @@ async function viewExamRun(key) {
       <p style="font-size:16.5px;font-weight:600" id="ex-qtext"></p>
       <div class="opts" id="ex-opts"></div>
       <div class="rowflex" style="margin-top:16px">
-        <button type="button" class="btn ghost" id="ex-prev">${ic('al')} Previous</button>
+        <button type="button" class="btn ghost" id="ex-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
         <button type="button" class="qtool" id="ex-mark"></button>
-        <button type="button" class="btn ghost" id="ex-next">Next ${ic('ar')}</button>
+        <button type="button" class="btn ghost" id="ex-next">${CUR_AR ? 'التالي' : 'Next'} ${ic('ar')}</button>
       </div>
-      <p class="hint" style="margin-top:10px">Keyboard: 1-4 pick an option, arrows move between questions.</p>
+      <p class="hint" style="margin-top:10px">${CUR_AR ? 'لوحة المفاتيح: 1-4 لاختيار إجابة، والأسهم للتنقل بين الأسئلة.' : 'Keyboard: 1-4 pick an option, arrows move between questions.'}</p>
     </div>
     <div class="card" style="padding:16px">
       <div class="blk-h" style="margin-bottom:8px"><h2 style="font-size:15px">Questions</h2></div>
       <div class="qnav" id="ex-pal" role="navigation" aria-label="Question palette"></div>
-      <div class="hint" style="font-size:12px">Filled = answered · amber = marked · ring = current</div>
+      <div class="hint" style="font-size:12px">${CUR_AR ? 'المعبأ = مُجاب · الكهرماني = مميز · الحلقة = الحالي' : 'Filled = answered · amber = marked · ring = current'}</div>
     </div>
   </div>`;
   paintQ(); startTick();
@@ -1512,7 +1512,7 @@ viewExamConfig = async function (key) {
   if (missed >= 3) {
     const btn = document.createElement('button');
     btn.type = 'button'; btn.className = 'btn ghost'; btn.style.marginTop = '10px';
-    btn.innerHTML = ic('retry') + ` Retry my ${missed} missed questions`;
+    btn.innerHTML = ic('retry') + (CUR_AR ? ` أعد محاولاتي في ${missed} سؤالًا فائتًا` : ` Retry my ${missed} missed questions`);
     btn.addEventListener('click', () => startRetryExam(key));
     $('#ex-start').parentElement.appendChild(btn);
   }
@@ -1580,7 +1580,7 @@ async function viewFlashcards(key) {
       <div class="fface fback"><span class="pill good">Answer</span><p class="ftext">${esc(c.back)}</p><p class="hint">Click to flip back</p></div>
     </div>
     <div class="rowflex" style="justify-content:center;margin-top:14px">
-      <button type="button" class="btn ghost" id="fc-prev">${ic('al')} Previous</button>
+      <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
       <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} Shuffle</button>
       <button type="button" class="btn" id="fc-next">Next ${ic('ar')}</button>
     </div>
@@ -1921,7 +1921,7 @@ viewFlashcards = async function (key, dueOnly) {
       <button type="button" class="btn" data-g="1">Good · ${st && st.ivl ? Math.round(st.ivl * 2) : 1}d</button>
       <button type="button" class="btn" data-g="2">Easy · ${st && st.ivl ? Math.round(st.ivl * 3) : 3}d</button>
     </div>` : `<div class="rowflex" style="justify-content:center;margin-top:14px">
-      <button type="button" class="btn ghost" id="fc-prev">${ic('al')} Previous</button>
+      <button type="button" class="btn ghost" id="fc-prev">${ic('al')} ${CUR_AR ? 'السابق' : 'Previous'}</button>
       <button type="button" class="btn ghost" id="fc-shuffle">${ic('shuffle')} Shuffle</button>
       <button type="button" class="btn" id="fc-next">Flip ${ic('ar')}</button>
     </div>`}
