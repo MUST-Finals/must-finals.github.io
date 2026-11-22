@@ -50,16 +50,28 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="js/data.js?v=105"></script>
 <script>
-/* Auto-refresh once when a new service worker takes over an already-controlled
-   page, so returning users see the latest deploy without a manual reload.
-   Guarded: only when an older SW already controlled this page, and once per session. */
+/* Freshness: when a new service worker takes over an already-controlled page,
+   offer a user-controlled update toast. NEVER auto-reload: an active exam,
+   running code or an unsaved edit must not be interrupted. */
 if ('serviceWorker' in navigator) {
   const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (hadController && !sessionStorage.getItem('mf-sw-reload')) {
-      sessionStorage.setItem('mf-sw-reload', '1');
-      location.reload();
-    }
+    if (!hadController || document.getElementById('sw-update-toast')) return;
+    const t = document.createElement('div');
+    t.id = 'sw-update-toast';
+    t.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);z-index:9999;background:#1a1d24;border:1px solid #d4af37;color:#eee;padding:10px 14px;border-radius:10px;font:14px/1.4 system-ui;display:flex;gap:10px;align-items:center;box-shadow:0 4px 16px rgba(0,0,0,.4);max-width:92vw';
+    const msg = document.createElement('span');
+    msg.textContent = 'New version ready · نسخة جديدة جاهزة';
+    const go = document.createElement('button');
+    go.type = 'button'; go.textContent = 'Reload · تحديث';
+    go.style.cssText = 'background:#d4af37;border:0;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;white-space:nowrap';
+    go.addEventListener('click', () => location.reload());
+    const x = document.createElement('button');
+    x.type = 'button'; x.textContent = '✕'; x.setAttribute('aria-label', 'Dismiss');
+    x.style.cssText = 'background:transparent;border:0;color:#aaa;font-size:16px;cursor:pointer';
+    x.addEventListener('click', () => t.remove());
+    t.appendChild(msg); t.appendChild(go); t.appendChild(x);
+    document.body.appendChild(t);
   });
 }
 </script>
