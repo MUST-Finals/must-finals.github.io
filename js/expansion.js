@@ -33,6 +33,7 @@
         ${card('Admin Dashboard','Manage content and moderation using the existing protected admin area.','/admin','Role protected')}
         ${card('Offline Learning','Review offline capabilities and save supported same-origin resources.','/workspace/offline','PWA')}
         ${card('Study Rooms','Collaborative rooms require the new database migration and realtime configuration.','/workspace/rooms','Backend')}
+        ${card('Leaderboard','Optional class ranking by XP. You appear only after you join, and only joined members can see the board.','/workspace/leaderboard','Opt-in')}
         ${card('Smart Timetable','Manage weekly lectures and personal study events.','/workspace/timetable','Local')}
         ${card('Campus Hub','View official announcements and add personal event links.','/workspace/campus','Community')}
         ${card('Assignment Tracker','Track deadlines, priorities, and submission status.','/workspace/assignments','Local')}
@@ -679,6 +680,32 @@
   route(/^\/workspace\/code$/,codeRunner);
   route(/^\/workspace\/gpa$/,gpa);
   route(/^\/workspace\/assignments$/,assignments);
+  async function leaderboard(){
+    if(!(window.MFB&&MFB.ready&&MFB.user)){
+      page('Leaderboard','An optional class ranking by study XP.',statusNote('The leaderboard is private by default: nobody is listed automatically. Only students who join can see the board, and you can leave anytime, which removes your row completely.')+`<div class="card ex-panel"><p class="hint">Sign in to join the optional leaderboard.</p><a class="btn" href="#/account">Sign in</a></div>`);
+      return;
+    }
+    const {data:mine,error:mErr}=await MFB.sb.from('leaderboard_entries').select('user_id,display_name,xp').eq('user_id',MFB.user.id).maybeSingle();
+    if(mErr&&mErr.code!=='PGRST116'){page('Leaderboard','An optional class ranking by study XP.',statusNote('Leaderboard database is not ready. Apply the SQL migration before using this feature.'));return;}
+    let board='';
+    if(mine){
+      const {data,error}=await MFB.sb.from('leaderboard_entries').select('user_id,display_name,xp').order('xp',{ascending:false}).limit(50);
+      if(error){board='<p class="hint">Could not load the board: '+escx(error.message)+'</p>';}
+      else board=(data||[]).map((r,i)=>`<div class="act ex-row"><span><b>#${i+1} <span dir="auto">${escx(r.display_name)}</span></b>${r.user_id===MFB.user.id?' <span class="pill">you</span>':''}<br><small class="hint">${r.xp} XP</small></span></div>`).join('')||'<p class="hint">No members yet.</p>';
+    }
+    page('Leaderboard','An optional class ranking by study XP, computed from your real practice activity.',
+      statusNote('Privacy: nobody is listed automatically. Only joined members can see this board. Your XP updates from your study activity while you use the site, and leaving removes your row completely.')+
+      (mine
+        ? `${section('Your membership',`<div class="card ex-panel"><p class="hint">Joined as <b dir="auto">${escx(mine.display_name)}</b> with ${mine.xp} XP. XP syncs automatically as you study.</p><div class="rowflex"><button class="btn ghost sm" id="lb-sync">Sync my XP now</button><button class="btn ghost sm" id="lb-leave">Leave leaderboard</button></div><p class="hint" id="lb-msg"></p></div>`)}${section('Board',`<div class="acts">${board}</div>`)}`
+        : `<div class="card ex-panel"><label>Display name on the board<input id="lb-name" dir="auto" maxlength="40" value="${escx((MFB.profile&&MFB.profile.display_name)||'')}"></label><button class="btn" id="lb-join">Join leaderboard</button><p class="hint" id="lb-msg"></p></div>`));
+    if(mine){
+      $('#lb-sync').onclick=async()=>{const xp=Number(window.MFCurrentXP);if(!Number.isFinite(xp)){$('#lb-msg').textContent='Open the dashboard once so your current XP is computed, then sync.';return;}const {error}=await MFB.sb.from('leaderboard_entries').update({xp:Math.floor(xp),updated_at:new Date().toISOString()}).eq('user_id',MFB.user.id);$('#lb-msg').textContent=error?('Failed: '+error.message):('Synced: '+Math.floor(xp)+' XP');if(!error)setTimeout(leaderboard,700);};
+      $('#lb-leave').onclick=async()=>{const {error}=await MFB.sb.from('leaderboard_entries').delete().eq('user_id',MFB.user.id);if(error){$('#lb-msg').textContent='Failed: '+error.message;return;}try{localStorage.removeItem('mfb-lb-last');}catch(e){}toast('You left the leaderboard');leaderboard();};
+    }else{
+      $('#lb-join').onclick=async()=>{const name=$('#lb-name').value.trim();if(!name){$('#lb-msg').textContent='Enter a display name.';return;}const xp=Number.isFinite(Number(window.MFCurrentXP))?Math.floor(Number(window.MFCurrentXP)):0;const {error}=await MFB.sb.from('leaderboard_entries').insert({user_id:MFB.user.id,display_name:name.slice(0,40),xp});if(error){$('#lb-msg').textContent='Failed: '+error.message;return;}toast('Joined the leaderboard');leaderboard();};
+    }
+  }
+  route(/^\/workspace\/leaderboard$/,leaderboard);
   route(/^\/workspace\/timetable$/,timetable);
   route(/^\/workspace\/profile$/,profile);
   route(/^\/workspace\/focus$/,focus);
