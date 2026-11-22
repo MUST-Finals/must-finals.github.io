@@ -1797,6 +1797,7 @@ function applyArPatterns() {
   });
 }
 let CUR_AR = false;
+try { CUR_AR = JSON.parse(localStorage.getItem('mf.lang') || '""') === 'ar'; } catch {}
 function arPatText(t) { for (const [re, fn] of AR_PAT) { const m = t.match(re); if (m) return fn(m); } return null; }
 async function applyLang() {
   const ar = (await store.get('lang', 'en')) === 'ar';
