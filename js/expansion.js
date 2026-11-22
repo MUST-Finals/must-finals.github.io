@@ -109,10 +109,10 @@
     let actx=null;
     const beep=()=>{try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();[0,.18].forEach((d,i)=>{const o=actx.createOscillator(),g=actx.createGain();o.connect(g);g.connect(actx.destination);o.frequency.value=i?880:660;g.gain.setValueAtTime(.15,actx.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+d+.15);o.start(actx.currentTime+d);o.stop(actx.currentTime+d+.16);});}catch(e){}};
     page('Focus Mode & Pomodoro','A distraction-reduced timer. Keep sessions comfortable and take breaks when needed.',
-      `<div class="card ex-focus"><div class="eyebrow">FOCUS SESSION</div><div id="focus-clock" class="ex-clock">${String(cfg.focus).padStart(2,'0')}:00</div><div id="focus-state" class="hint">Ready when you are</div><div class="rowflex" style="justify-content:center;margin:16px"><button class="btn" id="focus-start">Start</button><button class="btn ghost" id="focus-reset">Reset</button></div><div class="ex-form"><label>Focus minutes<input id="f-min" type="number" min="1" max="120" value="${cfg.focus}"></label><label>Break minutes<input id="f-break" type="number" min="1" max="60" value="${cfg.short}"></label><label>Daily goal (minutes)<input id="f-goal" type="number" min="5" max="480" step="5" value="${cfg.goal||60}"></label></div><p class="hint">Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}</p><p class="hint" id="f-today">Today: ${todayMin} / ${cfg.goal||60} minutes toward your daily goal.</p></div>`);
+      `<div class="card ex-focus"><div class="eyebrow">FOCUS SESSION</div><div id="focus-clock" class="ex-clock">${String(cfg.focus).padStart(2,'0')}:00</div><div id="focus-state" class="hint">Ready when you are</div><div class="rowflex" style="justify-content:center;margin:16px"><button class="btn" id="focus-start">Start</button><button class="btn ghost" id="focus-reset">Reset</button></div><div class="ex-form"><label>Focus minutes<input id="f-min" type="number" min="1" max="120" value="${cfg.focus}"></label><label>Break minutes<input id="f-break" type="number" min="1" max="60" value="${cfg.short}"></label><label>Daily goal (minutes)<input id="f-goal" type="number" min="5" max="480" step="5" value="${cfg.goal||60}"></label></div><p class="hint" id="f-stats">Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}</p><p class="hint" id="f-today">Today: ${todayMin} / ${cfg.goal||60} minutes toward your daily goal.</p></div>`);
     let left=cfg.focus*60,handle=null,running=false;
     const paint=()=>$('#focus-clock').textContent=String(Math.floor(left/60)).padStart(2,'0')+':'+String(left%60).padStart(2,'0');
-    $('#focus-start').onclick=()=>{if(running){clearInterval(handle);running=false;$('#focus-start').textContent='Resume';$('#focus-state').textContent='Paused';return;}running=true;$('#focus-start').textContent='Pause';$('#focus-state').textContent='Focus session in progress';handle=setInterval(async()=>{left--;paint();if(left<=0){clearInterval(handle);running=false;const mins=Number($('#f-min').value);sessions.unshift({minutes:mins,at:Date.now()});await set('focusSessions',sessions);await notify('Focus session completed',mins+' minutes recorded','#/workspace/focus');beep();const newToday=todayMin+mins;const goalLine=$('#f-today');if(goalLine)goalLine.textContent=`Today: ${newToday} / ${cfg.goal||60} minutes toward your daily goal${newToday>= (cfg.goal||60) ? ' - goal reached!' : '.'}`;$('#focus-state').textContent='Session complete — take a break';$('#focus-start').textContent='Start again';left=mins*60;paint();}},1000);};
+    $('#focus-start').onclick=()=>{if(running){clearInterval(handle);running=false;$('#focus-start').textContent='Resume';$('#focus-state').textContent='Paused';return;}running=true;$('#focus-start').textContent='Pause';$('#focus-state').textContent='Focus session in progress';handle=setInterval(async()=>{left--;paint();if(left<=0){clearInterval(handle);running=false;const mins=Number($('#f-min').value);sessions.unshift({minutes:mins,at:Date.now()});await set('focusSessions',sessions);await notify('Focus session completed',mins+' minutes recorded','#/workspace/focus');beep();const newToday=todayMin+mins;const goalLine=$('#f-today');if(goalLine)goalLine.textContent=`Today: ${newToday} / ${cfg.goal||60} minutes toward your daily goal${newToday>= (cfg.goal||60) ? ' - goal reached!' : '.'}`;const st=$('#f-stats');if(st)st.textContent=`Completed sessions: ${sessions.length} · Total focus minutes: ${sessions.reduce((n,s)=>n+s.minutes,0)}`;$('#focus-state').textContent='Session complete — take a break';$('#focus-start').textContent='Start again';left=mins*60;paint();}},1000);};
     $('#focus-reset').onclick=()=>{clearInterval(handle);running=false;left=Math.max(1,Math.min(120,+$('#f-min').value||25))*60;paint();$('#focus-start').textContent='Start';$('#focus-state').textContent='Ready when you are';};
     $('#f-min').onchange=async()=>{cfg.focus=Math.max(1,Math.min(120,+$('#f-min').value||25));await set('focusCfg',cfg);if(!running){left=cfg.focus*60;paint();}};
     $('#f-break').onchange=async()=>{cfg.short=Math.max(1,Math.min(60,+$('#f-break').value||5));await set('focusCfg',cfg);};
@@ -166,36 +166,43 @@
     const maps=await get('mindmaps',[]);let active=maps[0]||{title:'My first mind map',nodes:['Main topic','Concept 1','Concept 2']};
     page('Mind Map Studio','Create an editable topic map with zoom and image export. AI extraction and automatic PDF parsing require the AI backend.',
       `<div class="card ex-panel"><label>Map title<input id="m-title" value="${escx(active.title)}" maxlength="100"></label><label>One concept per line - first line is the central topic<textarea id="m-nodes" rows="8">${escx(active.nodes.join('\n'))}</textarea></label><div class="rowflex" style="gap:8px;flex-wrap:wrap"><button class="btn" id="m-save">Save mind map</button><button class="btn ghost sm" id="m-zin">Zoom +</button><button class="btn ghost sm" id="m-zout">Zoom -</button><button class="btn ghost sm" id="m-zreset">Reset zoom</button><button class="btn ghost sm" id="m-export">Export as PNG</button></div><canvas id="m-canvas" width="900" height="560" style="width:100%;max-width:900px;border:1px solid var(--gold,#d4af37);border-radius:10px;margin-top:10px;background:var(--card,#14161d)"></canvas><p class="hint" id="m-msg"></p></div>`);
-    let zoom=1;
+    let zoom=1,panX=0,panY=0;
     const paint=()=>{
       const cv=$('#m-canvas'),ctx=cv.getContext('2d');
       const nodes=$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean);
       ctx.setTransform(1,0,0,1,0,0);ctx.clearRect(0,0,cv.width,cv.height);
       if(!nodes.length){ctx.fillStyle='#9aa';ctx.font='16px sans-serif';ctx.fillText('Add concepts to see the map.',20,40);return;}
-      ctx.translate(cv.width/2,cv.height/2);ctx.scale(zoom,zoom);
+      ctx.translate(cv.width/2+panX,cv.height/2+panY);ctx.scale(zoom,zoom);
+      const kids=nodes.slice(1),R=Math.min(210,90+kids.length*12);
+      const pos=kids.map((n,i)=>{const a=-Math.PI/2+i*(2*Math.PI/kids.length);return {x:Math.cos(a)*R,y:Math.sin(a)*R*0.72};});
+      ctx.strokeStyle='rgba(212,175,55,.5)';ctx.lineWidth=1.2;
+      pos.forEach(p=>{ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(p.x,p.y);ctx.stroke();});
       const box=(x,y,text,main)=>{
         ctx.font=(main?'bold 15px':'13px')+' sans-serif';
         const w=Math.min(ctx.measureText(text).width+28,220),h=main?44:34;
-        ctx.strokeStyle='#d4af37';ctx.fillStyle=main?'rgba(212,175,55,.22)':'rgba(212,175,55,.08)';ctx.lineWidth=1.4;
+        ctx.strokeStyle='#d4af37';ctx.fillStyle=main?'#3a2f10':'#1b1d27';ctx.lineWidth=1.4;
         ctx.beginPath();ctx.roundRect(x-w/2,y-h/2,w,h,9);ctx.fill();ctx.stroke();
         ctx.fillStyle='#e8e8ec';ctx.textAlign='center';ctx.textBaseline='middle';
         let t=text;while(t.length>2&&ctx.measureText(t).width>w-16)t=t.slice(0,-2);
         if(t!==text)t+='\u2026';ctx.fillText(t,x,y);
       };
       box(0,0,nodes[0],true);
-      const kids=nodes.slice(1),R=Math.min(210,90+kids.length*12);
-      kids.forEach((n,i)=>{
-        const a=-Math.PI/2+i*(2*Math.PI/kids.length),x=Math.cos(a)*R,y=Math.sin(a)*R*0.72;
-        ctx.strokeStyle='rgba(212,175,55,.5)';ctx.lineWidth=1.2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(x,y);ctx.stroke();
-        box(x,y,n,false);
-      });
-      $('#m-msg').textContent=nodes.length+' concept(s) · zoom '+Math.round(zoom*100)+'%';
+      kids.forEach((n,i)=>box(pos[i].x,pos[i].y,n,false));
+      $('#m-msg').textContent=nodes.length+' concept(s) · zoom '+Math.round(zoom*100)+'% · drag to pan';
     };
+    const cv0=()=>$('#m-canvas');
+    let dragging=false,lx=0,ly=0;
+    const canvasEl=$('#m-canvas');
+    canvasEl.style.touchAction='none';canvasEl.style.cursor='grab';
+    canvasEl.addEventListener('pointerdown',e=>{dragging=true;lx=e.clientX;ly=e.clientY;canvasEl.setPointerCapture(e.pointerId);canvasEl.style.cursor='grabbing';});
+    canvasEl.addEventListener('pointermove',e=>{if(!dragging)return;const r=canvasEl.getBoundingClientRect(),sx=cv0().width/r.width;panX+=(e.clientX-lx)*sx;panY+=(e.clientY-ly)*sx;lx=e.clientX;ly=e.clientY;paint();});
+    const endDrag=()=>{dragging=false;canvasEl.style.cursor='grab';};
+    canvasEl.addEventListener('pointerup',endDrag);canvasEl.addEventListener('pointercancel',endDrag);
     paint();
     $('#m-nodes').oninput=paint;
     $('#m-zin').onclick=()=>{zoom=Math.min(3,zoom*1.25);paint();};
     $('#m-zout').onclick=()=>{zoom=Math.max(.4,zoom/1.25);paint();};
-    $('#m-zreset').onclick=()=>{zoom=1;paint();};
+    $('#m-zreset').onclick=()=>{zoom=1;panX=0;panY=0;paint();};
     $('#m-export').onclick=()=>{const a=document.createElement('a');a.download=($('#m-title').value.trim()||'mind-map')+'.png';a.href=$('#m-canvas').toDataURL('image/png');a.click();$('#m-msg').textContent='PNG exported: '+a.download;};
     $('#m-save').onclick=async()=>{active={title:$('#m-title').value.trim()||'Untitled map',nodes:$('#m-nodes').value.split('\n').map(x=>x.trim()).filter(Boolean)};maps.unshift(active);await set('mindmaps',maps.slice(0,30));toast('Mind map saved');};
   }
