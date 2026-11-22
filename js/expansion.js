@@ -224,7 +224,7 @@
         ['Binary tree', 'Each node can have at most two children (left and right).'],
         ['Full binary tree', 'Every node has either two or no children.'],
         ['Perfect binary tree', 'Every non-leaf node has exactly two children and all leaves are at the same level.'],
-        ['Complete binary tree', 'Every level is completely filled and all leaves lean left; the last leaf may lack a right sibling; does not have to be a full binary tree.'] ] },
+        ['Complete binary tree', 'All levels except possibly the last are completely filled, and nodes on the last level sit as far left as possible (the last leaf may lack a right sibling), so it does not have to be a full binary tree. Clarification: the slide says "every level must be completely filled", but its own p.34 example tree leaves the last level partially filled, so the standard definition is used here.'] ] },
       { name: 'Binary Search Tree (BST)', src: 'L6 Trees and Binary Search Trees · pp.36, 41', rows: [
         ['Main rule', 'For any node: all values in the left child and its descendants are smaller than the node value; all values in the right child and its descendants are greater.'],
         ['Node structure', 'Each node holds: data, a left-child pointer and a right-child pointer.'] ] }
