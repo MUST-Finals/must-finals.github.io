@@ -491,7 +491,7 @@
   const FORMULA_EMPTY = {};
 
   function formulas() {
-    const names = { cs212: 'CS.212 · Data Structures', ece202: 'ECE202 · Digital Logic Design', cs211: 'CS.211 · Concepts of Programming Languages' };
+    const names = { cs212: 'CS.212 · Data Structures', ece202: 'ECE202 · Digital Logic Design', cs211: 'CS.211 · Concept of Programming Languages' };
     const blocks = Object.keys(names).map(k => {
       const sheet = FORMULA_SHEETS[k];
       let inner;
@@ -539,7 +539,7 @@
       ],
     },
     cs211: {
-      name: 'CS.211 · Concepts of Programming Languages',
+      name: 'CS.211 · Concept of Programming Languages',
       coverage: 'Fully analyzed: Fall 2025-26 practical (lab) final (all 3 questions, 30 marks, 1 hour, 7 pages). Also fully analyzed: Fall 2026 Exam (1) versions A, B and C (printed semester "Fall - 2026", printed type "Exam (1) A/B/C", an in-semester assessment, not the final; printed date 19/10/2026; 30 marks, 1 hour, answer-all 3 questions, 2 pages each, model-answer versions).',
       format: [
         'Fall 2025-26 practical final: 30 marks, 1 hour, 3 questions - LL(1) parsing, derivations and parse trees, then grammar transformations and lexical analysis.',
