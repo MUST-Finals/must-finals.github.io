@@ -192,6 +192,7 @@
   route(/^\/workspace\/quiz$/,()=>aiGate('AI Quiz Generator','Secure AI question generation, source citations, answer validation, and saved quiz integration.'));
   document.addEventListener('DOMContentLoaded',()=>{
     const nav=$x('.snav');
-    if(nav&&!$x('[data-workspace-nav]'))nav.insertAdjacentHTML('beforeend','<div class="cat">Workspace</div><a href="#/workspace" data-workspace-nav>University Workspace</a>');
+    // index.html already contains this link; only add it on older shells that do not.
+    if(nav&&!$x('a[href="#/workspace"]',nav))nav.insertAdjacentHTML('beforeend','<div class="cat">Workspace</div><a href="#/workspace" data-workspace-nav>University Workspace</a>');
   });
 })();
