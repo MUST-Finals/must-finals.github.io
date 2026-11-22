@@ -430,7 +430,7 @@
         ['Peek', 'Returns queue[front] without removing it; if empty it prints "queue is empty" and returns -1.'],
         ['getrear', 'Returns the rear element queue[rear] without removing it; prints "Queue is empty" and returns -1 when rear == -1.'],
         ['size', 'Slide code: 0 when front == -1, otherwise rear - front + 1.'],
-        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly, not universally correct queue code. getrear tests only rear == -1 and size tests only front == -1, so after the queue is fully drained without resetting the indices (front > rear), getrear returns a stale rear value and size returns a non-positive number instead of 0. A correct implementation checks front == -1 || front > rear in both, the same test the slide\'s own isEmpty and Peek use.'] ] },
+        ['Caveat: slide-literal code', 'These rows reproduce the lab slides exactly, not universally correct queue code. getrear tests only rear == -1, so after the queue is fully drained (front > rear, rear unchanged) it returns the stale last-rear value instead of signaling empty; a correct getrear uses the same front == -1 || front > rear test the slide\'s own isEmpty and Peek use. size stays correct in the slide\'s own flow: the guarded dequeue stops at front = rear + 1, so a drained queue gives rear - front + 1 = 0.'] ] },
       { name: 'Linked List Operations', src: 'Lab 5 Linked List deck (CS 212_Fall 2026-2027_Lab5.pdf) · pp.3-9', rows: [
         ['Node structure', 'Each node holds data and a next pointer; HEAD points to the first node and the last node\'s next is NULL.'],
         ['Insert', 'Add a new element to the linked list.'],
