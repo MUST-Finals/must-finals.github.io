@@ -521,7 +521,7 @@
           (f.coverage ? `<div class="notice info" style="margin-bottom:10px">Source coverage: ${escx(f.coverage)}</div>` : '') +
           section('Historical exam format', `<ul class="notes" style="margin:0;padding-left:18px">${f.format.map(x => `<li>${escx(x)}</li>`).join('')}</ul>`) +
           `<div class="card ex-card" style="margin:10px 0"><h3 style="margin:0 0 8px">Topics identified in verified past papers</h3>
-           <table style="width:100%;border-collapse:collapse;font-size:14px">
+           <table class="ex-tt" style="width:100%;border-collapse:collapse;font-size:14px">
            <tr><th style="text-align:left;padding-bottom:6px">Topic</th><th style="text-align:left;padding-bottom:6px">What was asked</th><th style="text-align:left;padding-bottom:6px">Evidence (paper · question)</th></tr>
            ${rows}</table></div>` +
           `<div class="rowflex" style="margin-top:8px">
