@@ -11,8 +11,36 @@ const MFB = {
 };
 window.MFB = MFB;  // classic-script const doesn't attach to window; boot() guards on window.MFB
 
+const AUTH_RETURN_KEY = 'mf.auth.returnTo';
+const AUTH_PENDING_KEY = 'mf.auth.pending';
+MFB._authMode = 'signin';
+MFB.rememberReturnTo = function (path) {
+  const safe = typeof path === 'string' && path.startsWith('/') && !path.startsWith('//') && path !== '/account' ? path : '/';
+  try { sessionStorage.setItem(AUTH_RETURN_KEY, safe); } catch (e) {}
+};
+MFB.finishSignIn = function () {
+  let next = '/';
+  try {
+    const saved = sessionStorage.getItem(AUTH_RETURN_KEY);
+    if (saved && saved.startsWith('/') && !saved.startsWith('//') && saved !== '/account') next = saved;
+    sessionStorage.removeItem(AUTH_RETURN_KEY);
+    sessionStorage.removeItem(AUTH_PENDING_KEY);
+  } catch (e) {}
+  document.body.classList.remove('auth-pending', 'auth-gate', 'auth-error');
+  const target = '#' + next;
+  if (location.hash === target) { if (typeof window.render === 'function') window.render(); }
+  else location.hash = target;
+};
+
 MFB._doInit = async function () {
-  if (!window.supabase || !MFB.url || !MFB.key) return;
+  if (!window.supabase && window.__MF_SUPABASE_READY) {
+    const loaded = await Promise.race([
+      window.__MF_SUPABASE_READY,
+      new Promise(resolve => setTimeout(() => resolve(false), 12000)),
+    ]);
+    if (!loaded) throw new Error('Supabase sign-in could not be loaded.');
+  }
+  if (!window.supabase || !MFB.url || !MFB.key) throw new Error('Authentication service is not configured.');
   MFB.sb = window.supabase.createClient(MFB.url, MFB.key);
   // OAuth returns to #/account#access_token=... : the router hash prefix breaks
   // the SDK's URL detection, so hand the fragment to setSession ourselves.
@@ -30,12 +58,27 @@ MFB._doInit = async function () {
   const { data: { session } } = await MFB.sb.auth.getSession();
   MFB.user = session ? session.user : null;
   if (MFB.user) await MFB.loadProfile();
+  MFB.ready = true;
+  MFB._authFailed = false;
+  MFB.paintNav();
   MFB.sb.auth.onAuthStateChange(async (_e, s) => {
     MFB.user = s ? s.user : null;
     MFB.profile = null;
     if (MFB.user) { await MFB.loadProfile(); await MFB.syncDown(); }
     MFB.paintNav();
-    if (/^#\/account/.test(location.hash) && typeof MFB.viewAccount === 'function') MFB.viewAccount();
+    if (!MFB.user) {
+      const current = location.hash.slice(1) || '/';
+      if (current !== '/account') MFB.rememberReturnTo(current);
+      else { try { sessionStorage.removeItem(AUTH_RETURN_KEY); } catch (e) {} }
+      document.body.classList.add('auth-gate');
+      if (location.hash !== '#/account') history.replaceState(null, '', location.pathname + location.search + '#/account');
+      if (MFB.ready && typeof MFB.viewAccount === 'function') MFB.viewAccount();
+      return;
+    }
+    let authPending = false;
+    try { authPending = sessionStorage.getItem(AUTH_PENDING_KEY) === '1'; } catch (e) {}
+    if (authPending) MFB.finishSignIn();
+    else if (/^#\/account/.test(location.hash) && typeof MFB.viewAccount === 'function') MFB.viewAccount();
   });
   MFB.ready = true;
   MFB.paintNav();
@@ -44,7 +87,7 @@ MFB._doInit = async function () {
 };
 
 MFB.init = function () {
-  if (!MFB._p) MFB._p = MFB._doInit().catch(() => { MFB._p = null; });
+  if (!MFB._p) MFB._p = MFB._doInit().catch(() => { MFB._p = null; MFB._authFailed = true; });
   return MFB._p;
 };
 
@@ -157,60 +200,149 @@ MFB.paintSync = function () {
 };
 
 /* ---- account page ---- */
+MFB.viewAuthUnavailable = function () {
+  document.body.classList.add('auth-gate', 'auth-error');
+  $('#app').innerHTML = `
+    <section class="auth-unavailable" aria-labelledby="auth-unavailable-title">
+      <div class="auth-unavailable-card">
+        <div class="auth-mark" aria-hidden="true">M</div>
+        <p class="auth-kicker">MUST FINALS · SECURE ACCESS</p>
+        <h1 id="auth-unavailable-title">Sign-in is temporarily unavailable</h1>
+        <p class="auth-muted">We couldn't connect to the secure sign-in service. Your study space stays private until we can verify your account.</p>
+        <button type="button" class="btn" id="auth-retry">Try again</button>
+        <p class="auth-status" id="auth-retry-status" role="status" aria-live="polite"></p>
+      </div>
+    </section>`;
+  $('#auth-retry').addEventListener('click', async () => {
+    const button = $('#auth-retry');
+    button.disabled = true; button.textContent = 'Reloading…';
+    location.reload();
+  });
+};
+
 MFB.viewAccount = async function () {
-  if (!MFB.ready) { $('#app').innerHTML = '<div class="empty"><div>Backend not configured.</div></div>'; return; }
+  if (!MFB.ready) { MFB.viewAuthUnavailable(); return; }
   if (!MFB.user) {
+    document.body.classList.remove('auth-pending', 'auth-error');
+    document.body.classList.add('auth-gate');
+    const signup = MFB._authMode === 'signup';
     $('#app').innerHTML = `
-    <section class="hero"><div class="eyebrow">Account</div><h1>Sign in to sync and join discussions</h1>
-    <p class="sub">Your progress, planner and bookmarks sync across devices. Discussion posts show your display name to other students.</p></section>
-    <div class="grid g2" style="align-items:start">
-      <div class="card" style="padding:18px">
-        <h2 style="margin-top:0">Sign in</h2>
-        <button type="button" class="btn" id="google-go" style="width:100%;justify-content:center">${ic('play')} Continue with Google</button>
-        <p class="hint" id="google-msg" style="margin-top:6px">Fastest way - uses your Google account securely. We only receive your name, email and profile picture.</p>
-        <hr style="border-color:var(--stroke);margin:14px 0">
-        <label class="hint">Email</label><input id="si-email" type="email" autocomplete="email" style="width:100%">
-        <label class="hint">Password</label><input id="si-pass" type="password" autocomplete="current-password" style="width:100%">
-        <button type="button" class="btn ghost" id="si-go" style="margin-top:12px">Sign in with email</button>
-        <p class="hint" id="si-msg"></p>
+    <section class="auth-page" aria-label="MUST Finals welcome">
+      <div class="auth-frame">
+        <header class="auth-header">
+          <a class="auth-brand" href="#/account" aria-label="MUST Finals home"><span class="auth-mark" aria-hidden="true">M</span><span><b>MUST Finals</b><small>Student study platform</small></span></a>
+          <nav class="auth-links" aria-label="Welcome page">
+            <button type="button" data-scroll-target="auth-why">Platform</button><span aria-hidden="true">·</span>
+            <button type="button" data-scroll-target="auth-features">Study tools</button><span aria-hidden="true">·</span>
+            <a href="privacy.html">Privacy</a>
+          </nav>
+          <div class="auth-actions">
+            <button type="button" class="auth-login-link" id="auth-nav-login">Log in</button>
+            <button type="button" class="auth-register-link" id="auth-nav-register">Register</button>
+            <button type="button" class="auth-menu-toggle" id="auth-menu-toggle" aria-label="Open menu" aria-controls="auth-mobile-menu" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+          </div>
+        </header>
+        <div class="auth-mobile-menu" id="auth-mobile-menu" hidden><button type="button" data-auth-mode="signin">Log in</button><button type="button" data-auth-mode="signup">Create account</button><a href="privacy.html">Privacy policy</a></div>
+        <main class="auth-hero" id="auth-why">
+          <div class="auth-hero-copy">
+            <p class="auth-kicker"><span class="auth-live-dot" aria-hidden="true"></span> A smarter space for your next exam</p>
+            <h1>Your finals journey,<br><span>all in focus.</span></h1>
+            <p class="auth-intro">One calm place for MUST lectures, practice exams, your progress, and a study plan that keeps you moving.</p>
+            <div class="auth-hero-actions"><button type="button" class="auth-cta auth-cta-primary" id="auth-open-login">Enter your study space <span aria-hidden="true">→</span></button><button type="button" class="auth-cta auth-cta-secondary" id="auth-open-register">Create an account</button></div>
+            <div class="auth-proof" id="auth-features" aria-label="What's inside MUST Finals"><span><i aria-hidden="true">✦</i> Course lectures</span><span><i aria-hidden="true">✓</i> MCQs &amp; mock exams</span><span><i aria-hidden="true">↗</i> Smart study planner</span></div>
+          </div>
+          <div class="auth-art" aria-hidden="true"><div class="auth-art-glow"></div>
+            <svg class="auth-landscape" viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice">
+              <defs><linearGradient id="auth-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#09101c" stop-opacity="0"/><stop offset=".55" stop-color="#102639" stop-opacity=".35"/><stop offset="1" stop-color="#07111e"/></linearGradient><linearGradient id="auth-aurora" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#31d9cf" stop-opacity="0"/><stop offset=".38" stop-color="#25c9bc" stop-opacity=".46"/><stop offset=".68" stop-color="#6976ff" stop-opacity=".34"/><stop offset="1" stop-color="#fe8d8f" stop-opacity=".3"/></linearGradient><radialGradient id="auth-sunset"><stop stop-color="#ffbd83" stop-opacity=".8"/><stop offset=".35" stop-color="#ed6c8c" stop-opacity=".34"/><stop offset="1" stop-color="#d55c9c" stop-opacity="0"/></radialGradient><filter id="auth-blur"><feGaussianBlur stdDeviation="28"/></filter></defs>
+              <rect width="1440" height="520" fill="url(#auth-sky)"/><ellipse cx="790" cy="475" rx="510" ry="230" fill="url(#auth-sunset)"/>
+              <g filter="url(#auth-blur)" opacity=".8" fill="none" stroke="url(#auth-aurora)" stroke-linecap="round" stroke-width="76"><path d="M80 520C240 395 310 234 474 200s244 151 365 135 210-168 344-166 193 138 310 177"/><path d="M-40 514C159 450 269 340 398 325s265 108 385 92 202-151 326-144 239 130 388 146" stroke="#26d8c4" stroke-opacity=".56"/></g>
+              <path d="M0 394 116 355 210 389 334 285 445 376 562 315 684 407 814 327 920 396 1054 276 1177 377 1294 310 1440 378V520H0Z" fill="#10273c" fill-opacity=".82"/><path d="m0 445 138-55 113 28 119-80 122 90 132-48 111 75 134-66 133 69 120-62 116 47 102-55v132H0Z" fill="#091523"/><path d="M0 469c210-49 386-26 563 7s365 34 530-8 254-47 347-22v74H0Z" fill="#070b13" fill-opacity=".82"/>
+            </svg>
+          </div>
+          <div class="auth-bottomline"><span>Made for focused study.</span><span>Lectures · Practice · Progress</span></div>
+        </main>
       </div>
-      <div class="card" style="padding:18px">
-        <h2 style="margin-top:0">Create account</h2>
-        <label class="hint">Display name (shown on discussion posts)</label><input id="su-name" maxlength="40" style="width:100%">
-        <label class="hint">Email</label><input id="su-email" type="email" autocomplete="email" style="width:100%">
-        <label class="hint">Password (8+ characters)</label><input id="su-pass" type="password" autocomplete="new-password" style="width:100%">
-        <button type="button" class="btn" id="su-go" style="margin-top:12px">${ic('check')} Sign up</button>
-        <p class="hint" id="su-msg"></p>
-      </div>
-    </div>`;
-    $('#google-go').addEventListener('click', async () => {
-      $('#google-msg').textContent = 'Opening Google sign-in...';
-      const { error } = await MFB.sb.auth.signInWithOAuth({
-        provider: 'google',
-        options: { redirectTo: location.origin + location.pathname + '#/account', scopes: 'openid email profile' },
-      });
-      if (error) $('#google-msg').textContent = 'Could not start Google sign-in: ' + error.message;
+      <dialog class="auth-dialog" id="auth-dialog" aria-labelledby="auth-dialog-title">
+        <div class="auth-card"><button type="button" class="auth-dialog-close" id="auth-dialog-close" aria-label="Close sign-in window">×</button>
+          <p class="auth-kicker">MUST FINALS · STUDENT ACCESS</p><h2 id="auth-dialog-title">${signup ? 'Create your account' : 'Welcome back'}</h2>
+          <p class="auth-card-sub">${signup ? 'Create an account to enter your MUST Finals workspace.' : 'Sign in to continue to your MUST Finals workspace.'}</p>
+          <button type="button" class="auth-google" id="google-go"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#4285F4" d="M43.6 24.5c0-1.4-.1-2.8-.4-4.1H24v7.8h11a9.4 9.4 0 0 1-4.1 6.2v5.1h6.6c3.9-3.6 6.1-8.8 6.1-15z"/><path fill="#34A853" d="M24 44c5.5 0 10.1-1.8 13.5-4.9l-6.6-5.1c-1.8 1.2-4.1 2-6.9 2-5.3 0-9.8-3.6-11.4-8.4H5.8v5.3A20 20 0 0 0 24 44z"/><path fill="#FBBC05" d="M12.6 27.6a12 12 0 0 1 0-7.2v-5.3H5.8a20 20 0 0 0 0 17.8z"/><path fill="#EA4335" d="M24 12c3 0 5.7 1 7.8 3.1l5.8-5.8C34.1 6 29.5 4 24 4A20 20 0 0 0 5.8 15.1l6.8 5.3C14.2 15.6 18.7 12 24 12z"/></svg>Continue with Google</button>
+          <p class="auth-provider-note">Secure sign-in with your Google account.</p><div class="auth-divider"><span>or use email</span></div>
+          <form id="auth-form" novalidate>
+            ${signup ? '<label for="auth-name">Display name</label><input id="auth-name" name="name" type="text" maxlength="40" autocomplete="name" required placeholder="Your name">' : ''}
+            <label for="auth-email">Email address</label><input id="auth-email" name="email" type="email" autocomplete="email" required placeholder="you@example.com">
+            <label for="auth-password">Password</label><input id="auth-password" name="password" type="password" autocomplete="${signup ? 'new-password' : 'current-password'}" ${signup ? 'minlength="8"' : 'minlength="1"'} required placeholder="${signup ? 'At least 8 characters' : 'Enter your password'}">
+            <button type="submit" class="btn auth-submit" id="auth-submit">${signup ? 'Create account' : 'Sign in'}</button><p class="auth-status" id="auth-status" role="status" aria-live="polite"></p>
+          </form>
+          <p class="auth-switch">${signup ? 'Already have an account?' : 'New to MUST Finals?'} <button type="button" id="auth-mode-toggle">${signup ? 'Sign in' : 'Create an account'}</button></p>
+          <p class="auth-privacy">By continuing, you agree to use this platform for your own study account. <a href="privacy.html">Privacy policy</a></p>
+        </div>
+      </dialog>
+    </section>`;
+
+    const openAuth = async mode => {
+      MFB._authMode = mode;
+      await MFB.viewAccount();
+      const dialog = $('#auth-dialog');
+      if (dialog && !dialog.open) dialog.showModal();
+      setTimeout(() => $('#auth-email')?.focus({ preventScroll: true }), 30);
+    };
+    $('#auth-nav-login').addEventListener('click', () => openAuth('signin'));
+    $('#auth-nav-register').addEventListener('click', () => openAuth('signup'));
+    $('#auth-open-login').addEventListener('click', () => openAuth('signin'));
+    $('#auth-open-register').addEventListener('click', () => openAuth('signup'));
+    $$('.auth-links [data-scroll-target]').forEach(link => link.addEventListener('click', () => document.getElementById(link.dataset.scrollTarget)?.scrollIntoView({ behavior: 'smooth', block: 'center' })));
+    $('#auth-menu-toggle').addEventListener('click', event => {
+      const button = event.currentTarget, menu = $('#auth-mobile-menu'), expanded = button.getAttribute('aria-expanded') === 'true';
+      button.setAttribute('aria-expanded', String(!expanded)); button.setAttribute('aria-label', expanded ? 'Open menu' : 'Close menu'); menu.hidden = expanded;
     });
-    $('#si-go').addEventListener('click', async () => {
-      $('#si-msg').textContent = 'Signing in...';
-      const { error } = await MFB.sb.auth.signInWithPassword({ email: $('#si-email').value.trim(), password: $('#si-pass').value });
-      $('#si-msg').textContent = error ? ('Could not sign in: ' + error.message) : 'Signed in.';
-      if (!error) MFB.viewAccount();
+    $$('#auth-mobile-menu [data-auth-mode]').forEach(button => button.addEventListener('click', () => {
+      $('#auth-mobile-menu').hidden = true; $('#auth-menu-toggle').setAttribute('aria-expanded', 'false'); openAuth(button.dataset.authMode);
+    }));
+    $('#auth-dialog-close').addEventListener('click', () => $('#auth-dialog').close());
+    $('#auth-dialog').addEventListener('click', event => { if (event.target === event.currentTarget) event.currentTarget.close(); });
+
+    const status = $('#auth-status'), googleButton = $('#google-go');
+    googleButton.addEventListener('click', async () => {
+      status.textContent = 'Opening Google sign-in…'; googleButton.disabled = true;
+      try { sessionStorage.setItem(AUTH_PENDING_KEY, '1'); } catch (e) {}
+      try {
+        const { error } = await MFB.sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: location.origin + location.pathname + location.search + '#/account', scopes: 'openid email profile' } });
+        if (!error) return;
+        try { sessionStorage.removeItem(AUTH_PENDING_KEY); } catch (e) {}
+        googleButton.disabled = false; status.textContent = 'Could not start Google sign-in: ' + error.message;
+      } catch (error) {
+        try { sessionStorage.removeItem(AUTH_PENDING_KEY); } catch (e) {}
+        googleButton.disabled = false; status.textContent = 'Could not start Google sign-in. Check your connection and try again.';
+      }
     });
-    $('#su-go').addEventListener('click', async () => {
-      const name = $('#su-name').value.trim();
-      if (!name) { $('#su-msg').textContent = 'Pick a display name first.'; return; }
-      $('#su-msg').textContent = 'Creating account...';
-      const { error } = await MFB.sb.auth.signUp({
-        email: $('#su-email').value.trim(), password: $('#su-pass').value,
-        options: { data: { display_name: name } },
-      });
-      $('#su-msg').textContent = error ? ('Could not sign up: ' + error.message)
-        : 'Account created. If email confirmation is on, confirm from your inbox, then sign in.';
-      if (!error) { const { data: s } = await MFB.sb.auth.getSession(); if (s.session) MFB.viewAccount(); }
+    $('#auth-mode-toggle').addEventListener('click', () => openAuth(signup ? 'signin' : 'signup'));
+    $('#auth-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = event.currentTarget, email = $('#auth-email').value.trim(), password = $('#auth-password').value;
+      const name = signup ? $('#auth-name').value.trim() : '';
+      if (!form.reportValidity()) return;
+      if (signup && !name) { status.textContent = 'Enter a display name to continue.'; return; }
+      const submit = $('#auth-submit'); submit.disabled = true; googleButton.disabled = true; status.textContent = signup ? 'Creating your account…' : 'Signing in…';
+      try {
+        if (signup) {
+          const { data, error } = await MFB.sb.auth.signUp({ email, password, options: { data: { display_name: name } } });
+          if (error) { status.textContent = 'Could not create account: ' + error.message; return; }
+          if (!data.session) { status.textContent = 'Account created. Check your email to confirm it, then sign in here.'; return; }
+          MFB.user = data.session.user;
+        } else {
+          const { data, error } = await MFB.sb.auth.signInWithPassword({ email, password });
+          if (error) { status.textContent = 'Could not sign in: ' + error.message; return; }
+          MFB.user = data.session?.user || null;
+        }
+        if (MFB.user) { MFB.profile = null; await MFB.loadProfile(); MFB.paintNav(); MFB.finishSignIn(); }
+        else status.textContent = 'We could not verify the new session. Try signing in again.';
+      } catch (error) { status.textContent = 'Sign-in could not be completed. Check your connection and try again.'; }
+      finally { submit.disabled = false; googleButton.disabled = false; }
     });
     return;
   }
+  document.body.classList.remove('auth-gate', 'auth-error');
   const name = MFB.profile ? MFB.profile.display_name : '';
   $('#app').innerHTML = `
   <section class="hero"><div class="eyebrow">Account</div><h1>${esc(name || MFB.user.email)}</h1>
@@ -243,7 +375,13 @@ MFB.viewAccount = async function () {
     $('#pf-msg').textContent = error ? ('Save failed: ' + error.message) : 'Saved.';
     if (!error) { await MFB.loadProfile(); MFB.paintNav(); }
   });
-  $('#sign-out').addEventListener('click', async () => { await MFB.sb.auth.signOut(); MFB.viewAccount(); });
+  $('#sign-out').addEventListener('click', async () => {
+    const { error } = await MFB.sb.auth.signOut();
+    if (error) { toast('Could not sign out. Please try again.'); return; }
+    MFB.user = null; MFB.profile = null;
+    document.body.classList.add('auth-gate');
+    MFB.viewAccount();
+  });
 };
 
 /* ---- announcements (public read) ---- */
