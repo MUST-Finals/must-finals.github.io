@@ -48,6 +48,7 @@
       const group = document.createElement('details');
       group.className = 'nav-group';
       group.dataset.navGroup = section.id;
+      group.open = section.id === 'study';
       const heading = document.createElement('summary');
       heading.className = 'cat';
       heading.dataset.en = section.label;
