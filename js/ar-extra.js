@@ -224,7 +224,7 @@
     [/^(\d+) wrong$/, function (m) { return m[1] + ' خاطئة'; }],
     [/^wrong (\d+) times$/, function (m) { return 'أخطأت فيها ' + m[1] + ' مرات'; }],
     [/^Search all (\d+) questions\.\.\.$/, function (m) { return 'ابحث في كل الأسئلة (' + m[1] + ')...'; }],
-    [/^Good (morning|afternoon|evening), (.+)$/, function (m) { return (m[1] === 'morning' ? 'صباح الخير' : 'مساء الخير') + '، ' + m[2]; }],
+    [/^Good (morning|afternoon|evening)(?:, (.+))?$/, function (m) { return (m[1] === 'morning' ? 'صباح الخير' : 'مساء الخير') + (m[2] ? '، ' + m[2] : ''); }],
     [/^\w+: (\d+) study actions?$/, function (m) { return m[1] + ' نشاط دراسي'; }],
     [/^(\d+) \/ (\d+) practice answers today$/, function (m) { return m[1] + ' / ' + m[2] + ' إجابة تدريبية اليوم'; }],
     [/^(\d+) cards? due$/, function (m) { return cards(m[1]) + ' مستحقة'; }],
