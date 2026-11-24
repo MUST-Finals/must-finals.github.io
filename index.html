@@ -7,7 +7,8 @@
 <meta name="description" content="MUST finals prep platform: lectures and sections with material links, MCQ and written practice, timed mock exams, progress tracking and interactive tools for CS.212, ECE202 and CS.211.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></noscript>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1020">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -47,7 +48,19 @@
     <div class="empty" style="padding-top:80px">Loading...</div>
   </main>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+/* Load supabase-js without blocking parsing or boot (a slow CDN used to leave the page blank).
+   Re-run backend init once the library arrives; backend.js tolerates it being absent until then. */
+(function () {
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+  s.async = true;
+  s.onload = function () {
+    try { if (window.MFB && window.supabase && !MFB.sb) { MFB._p = null; MFB.init(); } } catch (e) {}
+  };
+  document.head.appendChild(s);
+})();
+</script>
 <script src="js/data.js?v=121"></script>
 <script>
 /* Freshness: when a new service worker takes over an already-controlled page,
