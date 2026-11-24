@@ -1,9 +1,16 @@
 # MUST Finals platform - backend & account architecture
 
-Status: **design only, not active**. The live site is a fully static GitHub Pages app
-(localStorage progress, no server). Nothing below is implemented on the live site, and
-no feature on the live site pretends to be any of this. This document is the integration
-plan for when infrastructure is approved.
+Status: **static frontend with Supabase services**. GitHub Pages serves the app, while
+Supabase provides authentication, progress sync, and related services.
+
+## Login-first access
+- The app waits for Supabase Auth to restore a session before rendering study routes.
+  Signed-out visitors see the branded welcome and sign-in screen; after sign-in, the app
+  returns them to the route they originally requested.
+- This is an app-level gate. GitHub Pages serves the frontend and published course assets
+  publicly, so the gate must not be treated as access control for confidential files.
+- If Supabase Auth cannot initialize, the app shows a retry screen and keeps the workspace
+  hidden instead of opening it in a signed-out state.
 
 ## 1. Accounts and roles (RBAC)
 - Provider: a managed auth service (e.g. Supabase Auth / Firebase Auth) with email sign-in.
