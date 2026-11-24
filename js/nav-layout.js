@@ -84,6 +84,10 @@
       const active = nav.querySelector('a.on');
       const group = active && active.closest('.nav-group');
       if (group) group.open = true;
+      else if (!nav.querySelector('.nav-group[open]')) {
+        const defaultGroup = nav.querySelector('[data-nav-group="study"]');
+        if (defaultGroup) defaultGroup.open = true;
+      }
     };
     revealActiveSection();
     const observer = new MutationObserver(revealActiveSection);
