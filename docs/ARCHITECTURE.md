@@ -16,32 +16,48 @@ Supabase provides authentication, progress sync, and related services.
 - Provider: a managed auth service (e.g. Supabase Auth / Firebase Auth) with email sign-in.
 - Roles: `student` (default), `moderator`, `admin`. Role stored on the user row, enforced
   server-side on every request (never client-side).
-- Admin panel (role-gated): edit question bank, mark broken materials, review reported
-  questions. The current "Report error" button copies question details to the clipboard;
-  with a backend it would POST to a `question_reports` table instead.
+- Admin panel (role-gated): edit question bank, review reports submitted to the existing
+  `reports` table, and moderate other supported site content.
 
 ## 2. Progress sync
-- The UI already talks to progress only through an async `store.get/store.set` interface
-  (see js/app.js part 1). Swapping localStorage for authenticated API calls requires no UI
-  rewrite: implement the same interface against `/api/progress`.
-- Schema: `users(id, email, role)`, `progress(user_id, key, value_json, updated_at)`.
+- The async local-first store in `js/app.js` keeps each user's study data in browser
+  storage and syncs it through the existing Supabase `progress.state` row when signed in.
+- Study setup, exam dates, generated sessions, session completion and reminders use this
+  same per-account state and its existing row-level security policy. No schema migration
+  is needed for these features.
 
-## 3. AI tutor (RAG over the real course materials)
-- Ingest only the actual course PDFs/slides from the Drive folder into a vector store.
-- Retrieval-augmented answers must cite the lecture/section they came from; the tutor
-  must answer "not in the materials" rather than invent content - same no-fabrication
-  rule the static site follows.
-- Requires a hosted model API (paid) - blocked until approved.
+## 3. AI study assistant and study planning
+- The study setup records selected courses, confirmed exam dates, a daily study target,
+  preferred study time and optional reminders. On first sign-in, students complete this
+  setup before opening course routes.
+- The rule-based weekly planner uses real course completion, configured exam dates,
+  pending planner tasks and assignments, the existing weekly timetable, and available
+  study time. Generated sessions avoid known timetable conflicts. Students can edit,
+  drag to another day, complete, delete, regenerate, or report a session.
+- The study tutor searches the available question bank and lecture titles and links to
+  real course sources. A matching verified question can provide a source-based answer;
+  otherwise it says that no direct answer was found. The tutor can call the existing
+  `ai-proxy` Supabase Edge Function with retrieved course context, but provider access,
+  prompts, rate limits and usage logging are controlled by that server function. Client
+  code cannot enable a provider or remove a server-side student restriction.
+- Optional study reminders create a personal inbox item. Browser notifications require
+  permission and are delivered only while the site is open; background push needs a
+  separately configured push service.
+- Course and tutor reports reuse the existing `reports` table and admin moderation queue.
 
 ## 4. Community / gamification (optional, from the brief)
 - Opt-in leaderboard computed from real exam history only (never fabricated stats).
 - Discussion per question (`question_comments(question_id, user_id, body, created_at)`)
   with moderator tooling.
 
-## 5. What is NOT planned
-- No fake login, no fake AI, no fake sync on the static site. Features above ship only
-  when the corresponding backend is live; until then the UI shows local-only equivalents
-  (localStorage progress, clipboard-based error reports) and says so.
+## 5. Boundaries
+- No API provider key is stored in frontend assets. Hosted AI remains dependent on the
+  secured Supabase Edge Function and its deployed configuration; when that call is
+  restricted or unavailable, the tutor falls back to course-bank retrieval.
+- Browser-local reminders are not push notifications and will not fire after the site
+  has been closed. The platform should not promise background delivery without a push
+  service.
+- The app-level sign-in gate is not access control for static files served by GitHub Pages.
 
 ## 6. Progress sync behavior
 - Local-first: every progress key lives in localStorage under `mf.` with a per-key
