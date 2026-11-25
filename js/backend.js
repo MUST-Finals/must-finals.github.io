@@ -53,7 +53,8 @@ MFB.loadProfile = async function () {
   MFB.profile = data;
 };
 
-MFB.isAdmin = () => !!(MFB.profile && MFB.profile.role === 'admin');
+const MUST_FINALS_OWNER_ID = '2ec4e4aa-e56d-4bd2-8fb9-68c5023ccd0a';
+MFB.isAdmin = () => !!(MFB.user && MFB.user.id === MUST_FINALS_OWNER_ID && MFB.profile && MFB.profile.role === 'admin');
 MFB.lbSync = async function (xp) {
   if (!MFB.ready || !MFB.user || !Number.isFinite(xp) || xp < 0) return;
   try { if (Number(localStorage.getItem('mfb-lb-last')) === xp) return; } catch (e) {}
