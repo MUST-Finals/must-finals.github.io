@@ -18,8 +18,10 @@
 
   async function home() {
     dailyReminders();
+    const isAdmin = !!(window.MFB && MFB.isAdmin());
     page('Your academic workspace','A single place for your study routine, academic planning, and student resources.',
       `<div class="ex-grid">
+        ${card('Student Help Center','Search platform guides, source-checked campus links, and course Q&A.','/help','Student support')}
         ${card('Chat With Your PDF','Ask questions about lecture PDFs with page citations. Requires secure AI document processing.','/workspace/pdf','AI service')}
         ${card('AI Study Tutor','Explain concepts, solve step by step, hints, and line-by-line code explanation via the secure proxy.','/workspace/tutor','AI service')}
         ${card('AI Quiz Generator','Generate practice questions from your course topics via the secure server-side proxy.','/workspace/quiz','AI service')}
@@ -32,7 +34,7 @@
         ${card('Mind Map Studio','Create and edit a personal concept map.','/workspace/mindmap','Local')}
         ${card('Code Playground','Practice from the existing verified code-output exercises. Arbitrary execution is not enabled.','/tools/code','Practice')}
         ${card('GPA Calculator','Calculate semester and cumulative GPA with your chosen grading scale.','/workspace/gpa','Local')}
-        ${card('Admin Dashboard','Manage content and moderation using the existing protected admin area.','/admin','Role protected')}
+        ${isAdmin ? card('Admin Dashboard','Manage content and moderation using the existing protected admin area.','/admin','Admin only') : ''}
         ${card('Offline Learning','Review offline capabilities and save supported same-origin resources.','/workspace/offline','PWA')}
         ${card('Study Rooms','Subject-based study rooms with shared chat. Currently in private testing.','/workspace/rooms','Private test')}
         ${card('Leaderboard','Optional class ranking by XP. You appear only after you join, and only joined members can see the board.','/workspace/leaderboard','Opt-in')}

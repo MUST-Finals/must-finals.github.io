@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MUST Finals | Lectures, Materials, MCQs &amp; Mock Exams</title>
-<meta name="description" content="MUST finals prep platform: lectures and sections with material links, MCQ and written practice, timed mock exams, progress tracking and interactive tools for CS.212, ECE202 and CS.211.">
+<title>MUST Finals | Study Platform for MUST Students</title>
+<meta name="description" content="Sign in to MUST Finals for course lectures, practice exams, study progress, and your personal smart study plan.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -12,12 +12,19 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1020">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/styles.css?v=121">
-  <link rel="stylesheet" href="css/expansion.css?v=121">
+<link rel="stylesheet" href="css/styles.css?v=128">
+<link rel="stylesheet" href="css/auth-gate.css?v=127">
+<link rel="stylesheet" href="css/expansion.css?v=127">
+<link rel="stylesheet" href="css/study-planner.css?v=132">
+<link rel="stylesheet" href="css/help-center.css?v=132">
 <script data-goatcounter="https://must-finals.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
-<body>
+<body class="auth-pending">
 <a class="skip-link" href="#app">Skip to main content</a>
+<div class="auth-boot" id="auth-boot" role="status" aria-live="polite">
+  <span class="auth-boot-mark" aria-hidden="true">M</span>
+  <span>Preparing your secure study space…</span>
+</div>
 <div class="shell">
   <button type="button" class="iconbtn" id="menu-btn" aria-label="Open navigation"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg></button>
   <aside id="side" aria-label="Main navigation">
@@ -38,6 +45,8 @@
       <a href="#/revision">Revision</a>
       <div class="cat">Lab</div>
       <a href="#/tools">Interactive tools</a>
+      <div class="cat">Student support</div>
+      <a href="#/help">Help Center</a>
     </nav>
     <div class="foot">
       <button type="button" class="iconbtn" id="theme-btn" aria-label="Toggle dark and light mode"></button>
@@ -49,19 +58,25 @@
   </main>
 </div>
 <script>
-/* Load supabase-js without blocking parsing or boot (a slow CDN used to leave the page blank).
-   Re-run backend init once the library arrives; backend.js tolerates it being absent until then. */
+/* Load Supabase without blocking parsing; auth boot waits on this promise before showing app routes. */
 (function () {
-  var s = document.createElement('script');
-  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
-  s.async = true;
-  s.onload = function () {
-    try { if (window.MFB && window.supabase && !MFB.sb) { MFB._p = null; MFB.init(); } } catch (e) {}
-  };
-  document.head.appendChild(s);
+  window.__MF_SUPABASE_READY = new Promise(function (resolve) {
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';
+    s.async = true;
+    s.onload = function () {
+      resolve(!!window.supabase);
+      if (window.MFB && window.supabase && !MFB.ready && !MFB._p) {
+        MFB._authFailed = false;
+        MFB.init().then(function () { if (window.render) window.render(); });
+      }
+    };
+    s.onerror = function () { resolve(false); };
+    document.head.appendChild(s);
+  });
 })();
 </script>
-<script src="js/data.js?v=121"></script>
+<script src="js/data.js?v=127"></script>
 <script>
 /* Freshness: when a new service worker takes over an already-controlled page,
    offer a user-controlled update toast. NEVER auto-reload: an active exam,
@@ -88,10 +103,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="js/backend.js?v=121"></script>
-<script src="js/app.js?v=121"></script>
-  <script src="js/expansion.js?v=121"></script>
-  <script src="js/ar-extra.js?v=121"></script>
+<script src="js/backend-v127.js"></script>
+<script src="js/study-planner.js?v=132"></script>
+<script src="js/app-v127.js"></script>
+  <script src="js/expansion.js?v=127"></script>
+  <script src="js/ar-extra.js?v=127"></script>
+  <script src="js/study-tools-v127.js"></script>
+  <script src="js/smart-planner-ui.js?v=132"></script>
+  <script src="js/nav-layout.js?v=130"></script>
+  <script src="js/help-center.js?v=132"></script>
 <script>
 /* Boot watchdog: if scripts were blocked (flaky SW/network), reload once per session. */
 setTimeout(function () {
