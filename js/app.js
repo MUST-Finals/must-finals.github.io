@@ -121,7 +121,24 @@ const routes = [];
 function route(re, fn) { routes.push([re, fn]); }
 function nav(hash) { location.hash = hash; }
 async function render() {
+  if (!window.MFB) return;
+  document.body.classList.add('auth-pending');
+  if (!MFB.ready && !MFB._authFailed) await MFB.init();
+  if (!MFB.ready) { MFB.viewAuthUnavailable(); return; }
+
   const h = location.hash.slice(1) || '/';
+  if (!MFB.user) {
+    if (h !== '/account') {
+      MFB.rememberReturnTo(h);
+      history.replaceState(null, '', location.pathname + location.search + '#/account');
+    }
+    document.body.classList.add('auth-gate');
+    await MFB.viewAccount();
+    return;
+  }
+
+  document.body.classList.remove('auth-pending', 'auth-gate', 'auth-error');
+  await loadContentOverlay();
   for (const [re, fn] of routes) {
     const m = h.match(re);
     if (m) { await fn(...m.slice(1)); markNav(h); window.scrollTo(0, 0); return; }
@@ -1369,7 +1386,10 @@ async function applyTheme() {
 }
 
 /* ---- admin content overlay: merge DB content_items over baked data (public read, fail-silent) ---- */
+let contentOverlayLoaded = false;
 async function loadContentOverlay() {
+  if (contentOverlayLoaded) return;
+  contentOverlayLoaded = true;
   const SB = 'https://ziczpsbryyjdwjoedtdb.supabase.co';
   const KEY = 'sb_publishable_njRhgbia6C91Ce3RKg03Eg_vgnXxt7O';
   try {
@@ -1395,8 +1415,8 @@ async function loadContentOverlay() {
 }
 
 async function boot() {
-  if (window.MFB) MFB.init();
-  await loadContentOverlay();
+  document.body.classList.add('auth-pending');
+  if (window.MFB) await MFB.init();
   await applyTheme();
   $('#theme-btn').addEventListener('click', async () => {
     const t = (await store.get('theme', 'dark')) === 'dark' ? 'light' : 'dark';
