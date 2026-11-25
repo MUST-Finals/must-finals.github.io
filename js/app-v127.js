@@ -290,11 +290,6 @@ async function viewDashboard() {
     ? upcoming.slice(0, 6).map(u => `<div class="dz-up"><span class="dz-up-dot"></span><div><div class="dz-up-t">${esc(u.t)}</div><div class="hint">${esc(u.sub)} · ${esc(u.d)}</div></div></div>`).join('')
     : '<p class="hint">No dates yet - add your exam dates and tasks in the <a href="#/planner">Planner</a>.</p>';
 
-  const examsHtml = D.exams.map(e => `
-    <div class="act"><span style="font-weight:700">${esc(e.name)}</span>
-    ${e.light ? '<span class="pill">Light review</span>' : ''}
-    <span class="hint">${esc(e.window)} · ${esc(e.note)}</span></div>`).join('');
-
   const acts = p.activity.length
     ? p.activity.slice(0, 8).map(a => `<div class="act">${ic('check')}<span>${esc(a.text)}</span><time>${ago(a.ts)}</time></div>`).join('')
     : `<div class="empty">${ic('chart')}<div>No activity yet. Answer a question or finish a lecture and it shows up here.</div></div>`;
@@ -302,19 +297,6 @@ async function viewDashboard() {
   const hist = p.examHistory.length
     ? p.examHistory.slice(0, 5).map(x => `<div class="act">${ic('target')}<span>${esc(subjByKey(x.subj).code)} mock · ${x.correct}/${x.count} correct</span><time>${ago(x.ts)}</time></div>`).join('')
     : `<div class="empty">${ic('target')}<div>No mock exams yet. Your results will appear here.</div></div>`;
-
-  const bySrc = {};
-  for (const q of D.mcq) {
-    const s = p.mcq[q.id]; if (!s || !s.t) continue;
-    const key = q.subj + '|' + q.src;
-    bySrc[key] = bySrc[key] || { t: 0, c: 0, subj: q.subj, src: q.src };
-    bySrc[key].t += s.t; bySrc[key].c += s.c;
-  }
-  const weak = Object.values(bySrc).filter(x => x.t >= 3).sort((a, b) => a.c / a.t - b.c / b.t).slice(0, 3);
-  const weakHtml = weak.length
-    ? weak.map(w => `<div class="act">${ic('alert')}<span>${esc(subjByKey(w.subj).code)} · ${esc(w.src)}</span><span class="pill warn">${Math.round(100 * w.c / w.t)}% · ${w.t} tries</span></div>`).join('')
-    : `<div class="empty">${ic('trend')}<div>Answer at least 3 questions on a topic and weak spots show up here.</div></div>`;
-
 
   /* gold reference structure: stats mini-rings, big score ring, subject progress, recent-exam table (real data only) */
   const mocksChrono = p.examHistory.slice().reverse();
@@ -401,12 +383,7 @@ async function viewDashboard() {
     <div class="card stat"><span class="v">${bms}</span><span class="l">${ic('bookmark')} Bookmarks</span></div>
   </div>
   <div id="dz-announce"></div>
-  <div class="grid g2" style="align-items:start">
-    <div class="blk"><div class="blk-h"><h2>Upcoming exams</h2></div><div class="acts">${examsHtml}</div>
-      <p class="hint" style="margin-top:8px">Windows are general and unofficial until the university posts exact dates.</p></div>
-    <div class="blk"><div class="blk-h"><h2>Weak topics</h2></div><div class="acts">${weakHtml}</div></div>
-    <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>
-  </div>`;
+  <div class="blk"><div class="blk-h"><h2>Recent activity</h2></div><div class="acts">${acts}</div></div>`;
 }
 function todayKey2() { return new Date().toISOString().slice(0, 10); }
 /* MUST Finals platform - part 2: subject pages, practice, bookmarks */
@@ -1704,8 +1681,6 @@ const AR_UI = {
   'Written Practice': 'تدريب كتابي',
   'Bookmarks': 'الإشارات المرجعية',
   'Upcoming': 'القادمة',
-  'Upcoming exams': 'الامتحانات القادمة',
-  'Weak topics': 'المواضيع الضعيفة',
   'Recent activity': 'النشاط الأخير',
   'Light review': 'مراجعة خفيفة',
   'All': 'الكل',
