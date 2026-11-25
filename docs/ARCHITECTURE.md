@@ -20,10 +20,10 @@ Supabase provides authentication, progress sync, and related services.
   `reports` table, and moderate other supported site content.
 - The account menu is separated from student navigation. Only the configured site owner
   sees the admin dashboard entry; direct non-owner visits return to the student dashboard.
-- Apply `supabase/migrations/20261125120000_owner_admin_privacy.sql` to pin the database
-  `is_admin()` policy to the owner and hide the owner's admin profile from student profile
-  reads. The support email is intentionally public in the Help Center so students can contact
-  the owner directly.
+- `supabase/migrations/20261125120000_owner_admin_privacy.sql` was applied manually in the
+  Supabase SQL Editor. It pins the database `is_admin()` policy to the owner and hides the
+  owner's admin profile from student profile reads. The support email is intentionally public
+  in the Help Center so students can contact the owner directly.
 
 ## 2. Progress sync
 - The async local-first store in `js/app.js` keeps each user's study data in browser

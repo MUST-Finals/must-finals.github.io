@@ -14,7 +14,7 @@ An admin can add, edit, publish, unpublish, or delete campus guide entries; revi
 
 ## Setup
 
-The Help Center migration was applied manually in the Supabase SQL Editor. Apply the pending owner-privacy migration from the active development branch:
+The Help Center and owner-privacy migrations were applied manually in the Supabase SQL Editor. Both SQL files are source-controlled and idempotent; a later `supabase db push` can safely record and reapply them:
 
 ```sh
 supabase db push
