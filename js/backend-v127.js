@@ -116,12 +116,77 @@ MFB.audit = async function (action, target, meta) {
 
 /* ---- nav badge ---- */
 MFB.paintNav = function () {
+  const isAdmin = MFB.isAdmin();
   const a = document.getElementById('nav-account');
-  if (!a) return;
-  a.innerHTML = MFB.user ? (MFB.isAdmin() ? 'Admin · ' : '') + 'Account' : 'Sign in';
+  if (a) a.textContent = MFB.user ? 'Account' : 'Sign in';
   const ad = document.getElementById('nav-admin');
-  if (ad) ad.style.display = MFB.isAdmin() ? '' : 'none';
+  if (ad) ad.hidden = !isAdmin;
+
+  const wrap = document.getElementById('account-menu-wrap');
+  const trigger = document.getElementById('account-menu-trigger');
+  const panel = document.getElementById('account-menu-panel');
+  if (!wrap || !trigger || !panel) return;
+  wrap.hidden = !(MFB.ready && MFB.user);
+  const name = MFB.profile?.display_name || (MFB.user?.email || 'Account').split('@')[0];
+  const nameNode = document.getElementById('account-menu-name');
+  const emailNode = document.getElementById('account-menu-email');
+  const avatar = document.getElementById('account-avatar');
+  if (nameNode) nameNode.textContent = name;
+  if (emailNode) emailNode.textContent = MFB.user?.email || '';
+  if (avatar) avatar.textContent = String(name).trim().charAt(0).toUpperCase() || 'M';
+
+  let adminLink = document.getElementById('account-admin-link');
+  if (isAdmin && !adminLink) {
+    adminLink = document.createElement('a');
+    adminLink.id = 'account-admin-link';
+    adminLink.className = 'account-menu-link';
+    adminLink.setAttribute('role', 'menuitem');
+    adminLink.href = '#/admin';
+    adminLink.innerHTML = '<span>Admin dashboard</span><small>Private site controls</small>';
+    const contact = document.getElementById('account-contact-link');
+    panel.insertBefore(adminLink, contact || panel.lastElementChild);
+  } else if (!isAdmin && adminLink) {
+    adminLink.remove();
+  }
 };
+
+MFB.closeAccountMenu = function (restoreFocus = false) {
+  const panel = document.getElementById('account-menu-panel');
+  const trigger = document.getElementById('account-menu-trigger');
+  if (!panel || !trigger) return;
+  panel.hidden = true;
+  trigger.setAttribute('aria-expanded', 'false');
+  if (restoreFocus) trigger.focus();
+};
+MFB.initAccountMenu = function () {
+  const wrap = document.getElementById('account-menu-wrap');
+  const trigger = document.getElementById('account-menu-trigger');
+  const panel = document.getElementById('account-menu-panel');
+  const signOut = document.getElementById('account-sign-out');
+  if (!wrap || !trigger || !panel || wrap.dataset.bound === 'true') return;
+  wrap.dataset.bound = 'true';
+  trigger.addEventListener('click', () => {
+    const open = panel.hidden;
+    panel.hidden = !open;
+    trigger.setAttribute('aria-expanded', String(open));
+  });
+  panel.addEventListener('click', event => {
+    if (event.target.closest('a')) MFB.closeAccountMenu();
+  });
+  document.addEventListener('click', event => {
+    if (!wrap.contains(event.target)) MFB.closeAccountMenu();
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !panel.hidden) MFB.closeAccountMenu(true);
+  });
+  window.addEventListener('hashchange', () => MFB.closeAccountMenu());
+  if (signOut) signOut.addEventListener('click', async () => {
+    signOut.disabled = true;
+    await MFB.signOut();
+    signOut.disabled = false;
+  });
+};
+MFB.initAccountMenu();
 
 /* ---- progress sync: per-key last-writer-wins against progress.state {data,ts} ---- */
 const SYNC_SKIP = new Set(['syncedAt']);
@@ -347,7 +412,7 @@ MFB.viewAccount = async function () {
   const name = MFB.profile ? MFB.profile.display_name : '';
   $('#app').innerHTML = `
   <section class="hero"><div class="eyebrow">Account</div><h1>${esc(name || MFB.user.email)}</h1>
-  <p class="sub">${esc(MFB.user.email)} · ${MFB.isAdmin() ? 'Admin' : 'Student'}</p></section>
+  <p class="sub">${esc(MFB.user.email)}</p></section>
   <div class="grid g2" style="align-items:start">
     <div class="card" style="padding:18px">
       <h2 style="margin-top:0">Sync</h2>
@@ -376,13 +441,19 @@ MFB.viewAccount = async function () {
     $('#pf-msg').textContent = error ? ('Save failed: ' + error.message) : 'Saved.';
     if (!error) { await MFB.loadProfile(); MFB.paintNav(); }
   });
-  $('#sign-out').addEventListener('click', async () => {
-    const { error } = await MFB.sb.auth.signOut();
-    if (error) { toast('Could not sign out. Please try again.'); return; }
-    MFB.user = null; MFB.profile = null;
-    document.body.classList.add('auth-gate');
-    MFB.viewAccount();
-  });
+  $('#sign-out').addEventListener('click', MFB.signOut);
+};
+
+MFB.signOut = async function () {
+  const { error } = await MFB.sb.auth.signOut();
+  if (error) { toast('Could not sign out. Please try again.'); return false; }
+  MFB.user = null; MFB.profile = null;
+  MFB.closeAccountMenu();
+  MFB.paintNav();
+  document.body.classList.add('auth-gate');
+  if (location.hash !== '#/account') location.hash = '#/account';
+  await MFB.viewAccount();
+  return true;
 };
 
 /* ---- announcements (public read) ---- */
@@ -429,7 +500,7 @@ MFB.sendReport = async function (qid, detail) {
 /* ---- admin page ---- */
 MFB.viewAdmin = async function () {
   if (!MFB.ready || !MFB.user) { nav('/account'); return; }
-  if (!MFB.isAdmin()) { $('#app').innerHTML = `<div class="empty">${ic('alert')}<div>Admins only. Your account has the student role.</div></div>`; return; }
+  if (!MFB.isAdmin()) { nav('/'); return; }
   const [reps, postsN, usersN, posts, anns, profs, cont2, auds] = await Promise.all([
     MFB.sb.from('reports').select('id,question_id,detail,status,created_at,profiles(display_name)').order('created_at', { ascending: false }).limit(50),
     MFB.sb.from('posts').select('id', { count: 'exact', head: true }),
@@ -469,44 +540,32 @@ MFB.viewAdmin = async function () {
     ${r.status === 'open' ? `<button type="button" class="btn ghost sm rep-res" data-id="${r.id}">Resolve</button><button type="button" class="btn ghost sm rep-dis" data-id="${r.id}">Dismiss</button>` : ''}</div>`;
   }).join('') || '<p class="hint">No reports.</p>';
   $('#app').innerHTML = `
-  <section class="hero"><div class="eyebrow">Admin</div><h1>Site administration</h1>
-  <p class="sub">${usersN.count || 0} accounts · ${postsN.count || 0} discussion posts · ${(reps.data || []).filter(r => r.status === 'open').length} open reports</p></section>
-  <div class="grid g2" style="align-items:start">
-    <div class="card" style="padding:18px">
-      <h2 style="margin-top:0">Post announcement</h2>
-      <label class="hint">Title</label><input id="an-title" maxlength="200" style="width:100%">
-      <label class="hint">Body</label><textarea id="an-body" rows="3" maxlength="4000" style="width:100%"></textarea>
-      <button type="button" class="btn sm" id="an-go" style="margin-top:12px">${ic('check')} Publish</button>
-      <p class="hint" id="an-msg"></p>
+  <div class="admin-dashboard">
+    <section class="hero admin-hero"><div><div class="eyebrow">PRIVATE WORKSPACE</div><h1>Site administration</h1><p class="sub">Manage student support, accounts, announcements, and course content.</p></div><span class="admin-secure-badge">${ic('check')} Owner access</span></section>
+    <section class="admin-stats" aria-label="Platform overview">
+      <article class="card admin-stat"><span>Registered accounts</span><b>${usersN.count || 0}</b><small>Student profiles on the platform</small></article>
+      <article class="card admin-stat"><span>Community posts</span><b>${postsN.count || 0}</b><small>Student discussion activity</small></article>
+      <article class="card admin-stat ${((reps.data || []).filter(r => r.status === 'open').length) ? 'is-urgent' : ''}"><span>Open reports</span><b>${(reps.data || []).filter(r => r.status === 'open').length}</b><small>Items awaiting your review</small></article>
+      <article class="card admin-stat"><span>Recent announcements</span><b>${(anns.data || []).length}</b><small>Latest items loaded</small></article>
+    </section>
+    <div class="admin-grid">
+      <section class="card admin-panel" id="admin-announcement"><div class="admin-panel-head"><div><div class="eyebrow">STUDENT UPDATES</div><h2>Post an announcement</h2></div><span class="admin-panel-icon">${ic('flag')}</span></div>
+        <div class="admin-form-grid"><label>Title<input id="an-title" maxlength="200" placeholder="A clear title for students"></label><label>Message<textarea id="an-body" rows="4" maxlength="4000" placeholder="Share a verified update or platform notice"></textarea></label></div>
+        <button type="button" class="btn sm" id="an-go">${ic('check')} Publish announcement</button><p class="hint admin-form-status" id="an-msg" role="status"></p>
+      </section>
+      <section class="card admin-panel" id="admin-reports"><div class="admin-panel-head"><div><div class="eyebrow">STUDENT SUPPORT</div><h2>Question reports</h2></div><span class="pill ${((reps.data || []).some(r => r.status === 'open')) ? 'warn' : 'good'}">${(reps.data || []).filter(r => r.status === 'open').length} open</span></div><div class="acts admin-list">${repList}</div></section>
+      <section class="card admin-panel" id="admin-community"><div class="admin-panel-head"><div><div class="eyebrow">COMMUNITY</div><h2>Community moderation</h2></div></div><div class="acts admin-list">${postList}</div></section>
+      <section class="card admin-panel" id="admin-accounts"><div class="admin-panel-head"><div><div class="eyebrow">ACCESS</div><h2>Student accounts</h2></div></div><div class="acts admin-list">${accList}</div></section>
+      <section class="card admin-panel admin-panel-wide" id="admin-announcements"><div class="admin-panel-head"><div><div class="eyebrow">PUBLISHED UPDATES</div><h2>Announcements</h2></div></div><div class="acts admin-list">${annList}</div></section>
+      <details class="card admin-panel admin-collapsible" id="admin-audit"><summary><span><span class="eyebrow">AUDIT</span><b>Admin activity log</b><small>Append-only record of site changes.</small></span><span class="admin-expand">+</span></summary><div class="acts admin-list">${audList}</div></details>
+      <details class="card admin-panel admin-collapsible admin-panel-wide" id="admin-content"><summary><span><span class="eyebrow">COURSE MATERIALS</span><b>Manage course content</b><small>Use verified course sources when adding questions.</small></span><span class="admin-expand">+</span></summary>
+        <div class="admin-content-grid"><div class="admin-form-grid"><label>Subject<select id="cc-subj">${subjOpts}</select></label><label>Question type<select id="cc-kind"><option value="mcq">Multiple choice</option><option value="written">Written question</option></select></label><label>Source label<input id="cc-src" maxlength="120" placeholder="Lecture or section name"></label><label>Question<textarea id="cc-q" rows="3" maxlength="2000"></textarea></label>
+          <div class="admin-options" id="cc-opts"><label>Option A<input id="cc-o0" maxlength="500"></label><label>Option B<input id="cc-o1" maxlength="500"></label><label>Option C<input id="cc-o2" maxlength="500"></label><label>Option D<input id="cc-o3" maxlength="500"></label><label>Correct option<select id="cc-a"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select></label></div>
+          <div class="admin-model-answer" id="cc-wr" hidden><label>Model answer<textarea id="cc-wa" rows="3" maxlength="4000"></textarea></label></div>
+          <button type="button" class="btn sm" id="cc-go">${ic('check')} Add question</button><p class="hint admin-form-status" id="cc-msg" role="status"></p>
+        </div><div><h3 class="admin-subheading">Recently managed content</h3><div class="acts admin-list">${contList}</div></div></div>
+      </details>
     </div>
-    <div class="blk"><div class="blk-h"><h2>Question reports</h2></div><div class="acts">${repList}</div></div>
-  </div>
-  <div class="grid g2" style="align-items:start;margin-top:16px">
-    <div class="blk"><div class="blk-h"><h2>Community moderation</h2></div><div class="acts">${postList}</div></div>
-    <div class="blk"><div class="blk-h"><h2>Accounts</h2></div><div class="acts">${accList}</div></div>
-  </div>
-  <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Announcements</h2></div><div class="acts">${annList}</div></div>
-  <div class="blk" style="margin-top:16px"><div class="blk-h"><h2>Admin audit log</h2><p class="hint">Append-only record of admin actions. Entries cannot be edited or removed.</p></div><div class="acts">${audList}</div></div>
-  <div class="grid g2" style="align-items:start;margin-top:16px">
-    <div class="card" style="padding:18px">
-      <h2 style="margin-top:0">Add course content</h2>
-      <p class="hint">Added questions merge into the live site for everyone within seconds. Only add content from real course materials - never invented questions or answers.</p>
-      <label class="hint">Subject</label><select id="cc-subj" style="width:100%">${subjOpts}</select>
-      <label class="hint">Type</label><select id="cc-kind" style="width:100%"><option value="mcq">MCQ</option><option value="written">Written question</option></select>
-      <label class="hint">Source label (e.g. Lecture 6 · name, or Section 3)</label><input id="cc-src" maxlength="120" style="width:100%">
-      <label class="hint">Question</label><textarea id="cc-q" rows="2" maxlength="2000" style="width:100%"></textarea>
-      <div id="cc-opts">
-        <label class="hint">Option A</label><input id="cc-o0" maxlength="500" style="width:100%">
-        <label class="hint">Option B</label><input id="cc-o1" maxlength="500" style="width:100%">
-        <label class="hint">Option C</label><input id="cc-o2" maxlength="500" style="width:100%">
-        <label class="hint">Option D</label><input id="cc-o3" maxlength="500" style="width:100%">
-        <label class="hint">Correct option</label><select id="cc-a" style="width:100%"><option value="0">A</option><option value="1">B</option><option value="2">C</option><option value="3">D</option></select>
-      </div>
-      <div id="cc-wr" style="display:none"><label class="hint">Model answer (from course materials)</label><textarea id="cc-wa" rows="3" maxlength="4000" style="width:100%"></textarea></div>
-      <button type="button" class="btn sm" id="cc-go" style="margin-top:12px">${ic('check')} Add question</button>
-      <p class="hint" id="cc-msg"></p>
-    </div>
-    <div class="blk"><div class="blk-h"><h2>Managed content</h2></div><div class="acts">${contList}</div></div>
   </div>`;
   $('#an-go').addEventListener('click', async () => {
     const t = $('#an-title').value.trim(), b = $('#an-body').value.trim();
@@ -525,8 +584,8 @@ MFB.viewAdmin = async function () {
   const kindSel = $('#cc-kind');
   if (kindSel) kindSel.addEventListener('change', () => {
     const mcq = kindSel.value === 'mcq';
-    $('#cc-opts').style.display = mcq ? '' : 'none';
-    $('#cc-wr').style.display = mcq ? 'none' : '';
+    $('#cc-opts').hidden = !mcq;
+    $('#cc-wr').hidden = mcq;
   });
   const ccGo = $('#cc-go');
   if (ccGo) ccGo.addEventListener('click', async () => {

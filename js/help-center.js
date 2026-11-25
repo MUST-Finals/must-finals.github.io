@@ -74,6 +74,9 @@
         <div class="hc-question-toolbar"><label for="hc-subject-filter">Filter by course</label><select id="hc-subject-filter"><option value="">All courses</option><option value="__general__">General</option>${subjectOptions}</select><span id="hc-question-count" class="hint" aria-live="polite"></span></div>
         <div id="hc-question-list" class="hc-question-list" aria-live="polite"><div class="card hc-empty"><span class="hc-spinner" aria-hidden="true"></span><p>Loading student questions…</p></div></div>
       </section>
+      <section class="blk hc-section" id="hc-contact"><div class="blk-h"><div><div class="eyebrow">NEED A HAND?</div><h2>Contact site support</h2></div><span class="pill">Direct contact</span></div>
+        <div class="card hc-contact-card"><div><b>Questions about your account or the platform?</b><p>Contact the site owner directly and include a short description of what you need help with.</p><a href="mailto:mezotaher61@gmail.com?subject=MUST%20Finals%20Support">mezotaher61@gmail.com</a></div><a class="btn" href="mailto:mezotaher61@gmail.com?subject=MUST%20Finals%20Support">Email support</a></div>
+      </section>
       ${admin ? `<section class="blk hc-section" id="hc-moderation"><div class="blk-h"><div><div class="eyebrow">ADMIN ONLY</div><h2>Community moderation</h2></div><span class="pill warn">Private reports</span></div><div id="hc-report-list" class="hc-report-list"><div class="card hc-empty"><span class="hc-spinner" aria-hidden="true"></span><p>Loading reports…</p></div></div></section>` : ''}`);
 
     const directory = [];

@@ -2217,9 +2217,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const nav = $('.snav');
   if (nav && !nav.querySelector('a[href="#/planner"]')) {
     const anchor = nav.querySelector('a[href="#/revision"]') || nav.querySelector('a[href="#/bookmarks"]');
-    anchor.insertAdjacentHTML('beforebegin', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a><a href="#/account" id="nav-account">Sign in</a><a href="#/admin" id="nav-admin" style="display:none">Admin</a>');
-    if (window.MFB) MFB.paintNav();
+    if (anchor) anchor.insertAdjacentHTML('beforebegin', '<a href="#/planner">Planner</a><a href="#/past-exams">Past exams</a>');
   }
+  // Account controls live in the separate top-corner menu, never in student navigation.
+  nav?.querySelectorAll('a[href="#/account"],a[href="#/admin"]').forEach(link => link.remove());
 });
 
 /* ============ MUST Finals - part 7: Boolean evaluator with steps, focus timer ============ */

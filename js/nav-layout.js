@@ -32,10 +32,6 @@
         id: 'support', label: 'Student support',
         match: link => ['#/help'].includes(link.getAttribute('href'))
       },
-      {
-        id: 'account', label: 'Account',
-        match: link => ['#/account', '#/admin'].includes(link.getAttribute('href'))
-      }
     ];
 
     nav.replaceChildren();
@@ -82,7 +78,6 @@
       'Practice & review': 'التدريب والمراجعة',
       'Workspace': 'مساحة العمل',
       'Student support': 'مساعدة الطلاب',
-      'Account': 'الحساب',
       'More': 'المزيد'
     });
 

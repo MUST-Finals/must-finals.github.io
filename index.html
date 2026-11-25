@@ -12,11 +12,12 @@
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b1020">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="css/styles.css?v=128">
+<link rel="stylesheet" href="css/styles.css?v=129">
 <link rel="stylesheet" href="css/auth-gate.css?v=127">
 <link rel="stylesheet" href="css/expansion.css?v=127">
 <link rel="stylesheet" href="css/study-planner.css?v=132">
-<link rel="stylesheet" href="css/help-center.css?v=132">
+<link rel="stylesheet" href="css/help-center.css?v=133">
+<link rel="stylesheet" href="css/admin-dashboard.css?v=133">
 <script data-goatcounter="https://must-finals.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </head>
 <body class="auth-pending">
@@ -53,6 +54,20 @@
       <span class="credit">Made by Mazen</span>
     </div>
   </aside>
+  <div class="account-menu-wrap" id="account-menu-wrap" hidden>
+    <button class="account-menu-trigger" id="account-menu-trigger" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="account-menu-panel">
+      <span class="account-avatar" id="account-avatar" aria-hidden="true">M</span>
+      <span class="account-menu-copy"><b id="account-menu-name">Account</b><small id="account-menu-email"></small></span>
+      <svg class="account-menu-chevron" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 7.5 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+    <div class="account-menu-panel" id="account-menu-panel" role="menu" aria-labelledby="account-menu-trigger" hidden>
+      <a class="account-menu-link" role="menuitem" href="#/account"><span>Account settings</span><small>Profile and cloud sync</small></a>
+      <a class="account-menu-link" role="menuitem" href="#/setup"><span>Study preferences</span><small>Courses, exam dates and reminders</small></a>
+      <a class="account-menu-link" id="account-contact-link" role="menuitem" href="mailto:mezotaher61@gmail.com?subject=MUST%20Finals%20Support"><span>Contact support</span><small>mezotaher61@gmail.com</small></a>
+      <div class="account-menu-divider" role="separator"></div>
+      <button class="account-menu-signout" id="account-sign-out" type="button" role="menuitem">Log out</button>
+    </div>
+  </div>
   <main id="app" aria-live="polite">
     <div class="empty" style="padding-top:80px">Loading...</div>
   </main>
@@ -103,15 +118,15 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="js/backend-v127.js"></script>
+<script src="js/backend-v127.js?v=133"></script>
 <script src="js/study-planner.js?v=132"></script>
-<script src="js/app-v127.js"></script>
+<script src="js/app-v127.js?v=133"></script>
   <script src="js/expansion.js?v=127"></script>
   <script src="js/ar-extra.js?v=127"></script>
   <script src="js/study-tools-v127.js"></script>
   <script src="js/smart-planner-ui.js?v=132"></script>
-  <script src="js/nav-layout.js?v=130"></script>
-  <script src="js/help-center.js?v=132"></script>
+  <script src="js/nav-layout.js?v=133"></script>
+  <script src="js/help-center.js?v=133"></script>
 <script>
 /* Boot watchdog: if scripts were blocked (flaky SW/network), reload once per session. */
 setTimeout(function () {

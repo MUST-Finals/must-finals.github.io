@@ -213,8 +213,28 @@ footer{margin:40px 0 30px;text-align:center}
 #side .foot .iconbtn{min-height:38px;justify-content:center}
 #side .credit{grid-column:1/-1;justify-self:stretch;font-size:11px;text-align:center;padding:7px 10px}
 #side #ar-note{grid-column:1/-1;margin:0!important;text-align:center}
-main#app{flex:1;min-width:0;padding:8px 26px 40px;max-width:1180px}
+main#app{flex:1;min-width:0;padding:68px 26px 40px;max-width:1180px}
 #menu-btn{display:none}
+#account-menu-wrap{position:fixed;top:12px;right:16px;z-index:70;font-size:13px}
+#account-menu-wrap[hidden],#account-menu-panel[hidden]{display:none!important}
+.account-menu-trigger{display:flex;align-items:center;gap:10px;min-width:188px;min-height:44px;padding:5px 11px 5px 6px;border:1px solid var(--stroke);border-radius:13px;background:color-mix(in srgb,var(--surface) 93%,transparent);color:var(--ink);box-shadow:0 8px 24px rgba(0,0,0,.18);cursor:pointer;text-align:left;backdrop-filter:blur(14px);transition:border-color .16s,transform .16s}
+.account-menu-trigger:hover,.account-menu-trigger[aria-expanded="true"]{border-color:var(--primary);transform:translateY(-1px)}
+.account-avatar{display:grid;place-items:center;width:32px;height:32px;flex:none;border-radius:10px;background:var(--grad);color:#20180a;font-size:13px;font-weight:850}
+.account-menu-copy{display:grid;gap:1px;min-width:0;flex:1}
+.account-menu-copy b{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.account-menu-copy small{max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:9px}
+.account-menu-chevron{width:16px;height:16px;flex:none;color:var(--muted);transition:transform .16s}
+.account-menu-trigger[aria-expanded="true"] .account-menu-chevron{transform:rotate(180deg)}
+.account-menu-panel{position:absolute;top:calc(100% + 8px);right:0;display:grid;gap:3px;width:min(292px,calc(100vw - 24px));padding:8px;border:1px solid var(--stroke);border-radius:15px;background:var(--surface);box-shadow:0 18px 50px rgba(0,0,0,.38);animation:account-menu-in .14s ease-out both}
+@keyframes account-menu-in{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+.account-menu-link{display:grid;gap:2px;padding:10px 11px;border-radius:10px;color:var(--ink);font-size:12px;font-weight:700}
+.account-menu-link:hover{background:var(--surface2);text-decoration:none}
+.account-menu-link small{color:var(--muted);font-size:10px;font-weight:500}
+.account-menu-divider{height:1px;margin:4px 5px;background:var(--stroke)}
+.account-menu-signout{width:100%;padding:10px 11px;border:0;border-radius:10px;background:transparent;color:var(--bad);font:700 12px var(--font);text-align:left;cursor:pointer}
+.account-menu-signout:hover{background:var(--badSoft)}
+.account-menu-signout:disabled{opacity:.6;cursor:wait}
+body.auth-gate #account-menu-wrap{display:none!important}
 #toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface3);color:var(--ink);border:1px solid var(--stroke2);padding:10px 18px;border-radius:12px;font-size:13.5px;font-weight:600;opacity:0;pointer-events:none;transition:.2s;z-index:99}
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .examlay{display:grid;grid-template-columns:1fr 240px;gap:16px;align-items:start}
@@ -229,6 +249,14 @@ main#app{flex:1;min-width:0;padding:8px 26px 40px;max-width:1180px}
   body.navopen #side{transform:none}
   #menu-btn{display:inline-flex;position:fixed;top:10px;left:10px;z-index:50;background:var(--surface3);box-shadow:0 6px 18px rgba(0,0,0,.22)}
   main#app{padding:8px 14px 40px;padding-top:52px}
+}
+@media(max-width:480px){
+  #account-menu-wrap{top:9px;right:9px}
+  .account-menu-trigger{min-width:0;min-height:40px;gap:7px;padding:4px 8px 4px 4px}
+  .account-avatar{width:30px;height:30px}
+  .account-menu-copy b{max-width:120px}
+  .account-menu-copy small{max-width:120px}
+  .account-menu-panel{top:calc(100% + 7px)}
 }
 @media(prefers-reduced-motion:reduce){.snav a,.snav .nav-group,.snav .cat::after,#side{transition:none!important}}
 

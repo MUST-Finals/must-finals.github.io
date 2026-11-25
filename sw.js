@@ -1,7 +1,7 @@
 /* MUST Finals service worker: offline app shell. Data stays local; analytics untouched.
    Bump CACHE on every deploy so old shells are dropped. */
-const CACHE = 'must-finals-v132';
-const SHELL = ['./', 'index.html', 'css/styles.css', 'css/auth-gate.css', 'css/expansion.css', 'css/study-planner.css?v=132', 'css/help-center.css?v=132', 'js/data.js', 'js/app-v127.js', 'js/backend-v127.js', 'js/study-planner.js?v=132', 'js/smart-planner-ui.js?v=132', 'js/help-center.js?v=132', 'js/expansion.js', 'js/ar-extra.js', 'js/study-tools-v127.js', 'js/nav-layout.js', 'manifest.webmanifest', 'icon.svg'];
+const CACHE = 'must-finals-v133';
+const SHELL = ['./', 'index.html', 'css/styles.css?v=129', 'css/auth-gate.css?v=127', 'css/expansion.css?v=127', 'css/study-planner.css?v=132', 'css/help-center.css?v=133', 'css/admin-dashboard.css?v=133', 'js/data.js', 'js/app-v127.js?v=133', 'js/backend-v127.js?v=133', 'js/study-planner.js?v=132', 'js/smart-planner-ui.js?v=132', 'js/help-center.js?v=133', 'js/expansion.js', 'js/ar-extra.js', 'js/study-tools-v127.js', 'js/nav-layout.js?v=133', 'manifest.webmanifest', 'icon.svg'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });

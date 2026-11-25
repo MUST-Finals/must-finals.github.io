@@ -24,11 +24,12 @@
 <li>At sign-in, Google sends your name, email address and profile picture to the sign-in system (Supabase Auth), which keeps them in its private account store. That store is visible to the site owner, not to other students.</li>
 <li>Your account also has a display name you can edit.</li>
 <li>Your study progress and quiz results are stored so they sync across your devices. They are not visible to other students. (The site owner and the database provider technically host all stored data.)</li>
-<li>Other signed-in students can read every user's profile: display name, role (student, admin or blocked), account creation date and user ID. This is how discussion posts show who wrote them. Do not put private information in your display name.</li>
+<li>Signed-in students can read student profile names used in discussions. The site owner's admin profile is hidden from student profile reads; only the owner can open the private admin dashboard. Do not put private information in your display name.</li>
 <li>Your email address and study progress are not visible to other students.</li>
 <li>Discussion posts are visible to all signed-in students.</li>
 <li>Questions and answers in the Student Help Center are visible to signed-in students and show your chosen profile name. Your email and account ID are not shown in the interface.</li>
 <li>Help Center reports are visible only to the site owner/admin. Campus guide entries are curated by the site owner with a source link and review date; they are not official university announcements.</li>
+<li>The account menu and admin dashboard are visible only after sign-in, and the dashboard entry is shown only to the configured site owner. Students can contact the owner at <a href="mailto:mezotaher61@gmail.com">mezotaher61@gmail.com</a>; this support address is intentionally public.</li>
 <li>If you report a problem with a question, your report text is visible only to you and the admin.</li>
 </ul>
 <p>You must sign in or create an account before entering the study workspace. The login screen controls access through the app; because the site is hosted as a static public website, published course files and page source may still be reachable directly by URL.</p>

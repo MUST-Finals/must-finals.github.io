@@ -20,6 +20,8 @@
 .hc-guide h3{margin:11px 0 5px;font-size:15px}.hc-guide p{margin:0 0 12px;color:var(--muted);font-size:12px;line-height:1.55}
 .hc-guide>a{font-size:11px;font-weight:750;color:var(--primary2)}
 .hc-notice{margin:0 0 12px;font-size:12px;line-height:1.55}
+.hc-contact-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--primarySoft) 72%,var(--surface)),var(--surface))}
+.hc-contact-card>b,.hc-contact-card div>b{font-size:14px}.hc-contact-card p{margin:5px 0 8px;color:var(--muted);font-size:12px;line-height:1.55}.hc-contact-card div>a{font-size:12px;font-weight:750}.hc-contact-card>.btn{flex:none}
 .hc-directory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .hc-directory-item{min-width:0;padding:16px}
 .hc-directory-top,.hc-question-meta,.hc-report-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -71,5 +73,5 @@
 .hc-directory-item[hidden],.hc-guide[hidden],.hc-empty[hidden]{display:none!important}
 .hc-hero,.hc-search,.hc-shortcuts,.hc-section{direction:ltr;text-align:left}
 @media(max-width:760px){.hc-directory-grid,.hc-report-list{grid-template-columns:1fr}}
-@media(max-width:600px){.hc-shortcuts{grid-template-columns:1fr}.hc-guide-grid{grid-template-columns:1fr}.hc-form-grid{grid-template-columns:1fr}.hc-span-2{grid-column:auto}.hc-question-toolbar{align-items:flex-start;flex-wrap:wrap}.hc-question-toolbar>.hint{width:100%;margin:0}.hc-question-actions>.hc-report{margin-inline-start:0}.hc-question-actions>.hint{margin-inline-start:auto}.hc-admin-form,.hc-ask{padding-inline:12px}.hc-question,.hc-directory-item{padding:13px}}
+@media(max-width:600px){.hc-shortcuts{grid-template-columns:1fr}.hc-guide-grid{grid-template-columns:1fr}.hc-form-grid{grid-template-columns:1fr}.hc-span-2{grid-column:auto}.hc-question-toolbar{align-items:flex-start;flex-wrap:wrap}.hc-question-toolbar>.hint{width:100%;margin:0}.hc-question-actions>.hc-report{margin-inline-start:0}.hc-question-actions>.hint{margin-inline-start:auto}.hc-admin-form,.hc-ask{padding-inline:12px}.hc-question,.hc-directory-item{padding:13px}.hc-contact-card{align-items:flex-start;flex-direction:column}.hc-contact-card>.btn{width:100%;justify-content:center}}
 @media(prefers-reduced-motion:reduce){.hc-spinner{animation:none}.hc-plus{transition:none}}
