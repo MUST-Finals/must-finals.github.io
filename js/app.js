@@ -326,7 +326,7 @@ async function viewDashboard() {
   $('#app').innerHTML = `
   <section class="dz-top">
     <div class="dz-top-h">
-      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}, Mazen</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
+      <div><div class="eyebrow">MUST · Finals Prep</div><h1>${greet}</h1><p class="dz-sub">Your finals picture at a glance: subjects, practice and schedule.</p></div>
       <div class="rowflex">${continueBtn || '<span class="hint">Pick a subject in the sidebar to start.</span>'}</div>
     </div>
   </section>
